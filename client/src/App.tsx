@@ -1,0 +1,116 @@
+import { useState, useEffect, useRef } from 'react'
+import { HexRenderer } from './renderers/HexRenderer'
+import type { Entity, Position } from '../../common/src/types'
+import { socket, joinGame, movePlayer } from './network'
+import { useInput } from './hooks/useInput'
+import './App.css'
+
+export const CHUNK_SIZE = 16;
+export function getChunkCoords(q: number, r: number): { cq: number, cr: number } {
+  return {
+    cq: Math.floor(q / CHUNK_SIZE),
+    cr: Math.floor(r / CHUNK_SIZE)
+  };
+}
+
+function App() {
+  const pixiContainer = useRef<HTMLDivElement>(null);
+  const renderer = useRef<HexRenderer | null>(null);
+  const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
+  const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
+  const loadedChunks = useRef<Set<string>>(new Set());
+
+  const requestChunksAround = (q: number, r: number) => {
+    const { cq, cr } = getChunkCoords(q, r);
+    const needed = [];
+    for (let dq = -1; dq <= 1; dq++) {
+        for (let dr = -1; dr <= 1; dr++) {
+            const key = `${cq+dq},${cr+dr}`;
+            if (!loadedChunks.current.has(key)) {
+                needed.push({ cq: cq + dq, cr: cr + dr });
+                loadedChunks.current.add(key);
+            }
+        }
+    }
+    if (needed.length > 0) {
+        socket.emit('requestChunks', needed);
+    }
+  };
+
+  useEffect(() => {
+    if (pixiContainer.current && !renderer.current) {
+      renderer.current = new HexRenderer(pixiContainer.current);
+    }
+
+    socket.on('init', () => {
+      requestChunksAround(0, 0);
+    });
+
+    socket.on('chunks', (chunks: any[]) => {
+      setEntities(prev => {
+        const next = new Map(prev);
+        chunks.forEach((chunk: any) => {
+          chunk.entities.forEach((e: Entity) => {
+            next.set(e.id, e);
+          });
+        });
+        return next;
+      });
+    });
+
+    socket.on('entityUpdate', (entity: Entity) => {
+      setEntities(prev => {
+        const next = new Map(prev);
+        next.set(entity.id, entity);
+        return next;
+      });
+      if (entity.id === socket.id) {
+        setPlayerPos(entity.pos);
+        requestChunksAround(entity.pos.q, entity.pos.r);
+      }
+    });
+
+    socket.on('entityRemove', ({ id }: { id: string }) => {
+      setEntities(prev => {
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
+    });
+
+    joinGame('Player' + Math.floor(Math.random() * 1000));
+
+    return () => {
+      renderer.current?.destroy();
+      renderer.current = null;
+      socket.off('init');
+      socket.off('chunks');
+      socket.off('entityUpdate');
+      socket.off('entityRemove');
+    };
+  }, []);
+
+  useInput((dq, dr) => {
+    const nextPos = { q: playerPos.q + dq, r: playerPos.r + dr };
+    movePlayer(nextPos.q, nextPos.r);
+  });
+
+  useEffect(() => {
+    if (renderer.current) {
+      renderer.current.renderWorld(Array.from(entities.values()), playerPos);
+    }
+  }, [entities, playerPos]);
+
+  return (
+    <div className="App">
+      <div ref={pixiContainer} className="pixi-container" style={{ width: '100vw', height: '100vh' }} />
+      <div className="ui-overlay" style={{ position: 'absolute', top: 10, left: 10, pointerEvents: 'none', color: 'white', textShadow: '1px 1px 2px black' }}>
+        <h1>Harvest Hex MMO</h1>
+        <p>Position: {playerPos.q}, {playerPos.r}</p>
+        <p>Use WASD or Arrow Keys to move</p>
+      </div>
+    </div>
+  )
+}
+
+export default App

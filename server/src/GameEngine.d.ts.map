@@ -1,0 +1,1 @@
+{"version":3,"file":"GameEngine.d.ts","sourceRoot":"","sources":["GameEngine.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,MAAM,gBAAgB,CAAC;AAK9C,qBAAa,UAAU;IACT,OAAO,CAAC,KAAK;gBAAL,KAAK,EAAE,YAAY;IAEvC,IAAI;IAQJ,cAAc,CAAC,QAAQ,EAAE,GAAG,EAAE;CAQ/B"}
