@@ -2,9 +2,9 @@
   "name": "harvest-hex-mmo",
   "private": true,
   "workspaces": [
-    "client",
+    "common",
     "server",
-    "common"
+    "client"
   ],
   "scripts": {
     "dev:server": "npm run dev --workspace=server",
