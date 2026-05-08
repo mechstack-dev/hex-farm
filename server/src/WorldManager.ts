@@ -49,4 +49,16 @@ export class WorldManager {
     }
     return entities;
   }
+
+  getActiveChunks(): WorldChunk[] {
+    return Array.from(this.chunks.values());
+  }
+
+  updateChunkEntities(cq: number, cr: number, newEntities: Entity[]) {
+    const key = chunkToKey(cq, cr);
+    const chunk = this.chunks.get(key);
+    if (chunk) {
+      chunk.entities = newEntities;
+    }
+  }
 }

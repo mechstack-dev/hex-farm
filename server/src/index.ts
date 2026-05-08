@@ -37,8 +37,51 @@ io.on('connection', (socket) => {
   socket.on('move', (pos: Position) => {
     const player = players.get(socket.id);
     if (player) {
-      player.pos = pos;
-      io.emit('entityUpdate', player);
+      const entities = world.getEntitiesAt(pos.q, pos.r);
+      const isBlocked = entities.some(e => e.type === 'obstacle');
+      if (!isBlocked) {
+        world.removeEntity(player.id, player.pos.q, player.pos.r);
+        player.pos = pos;
+        world.addEntity(player);
+        io.emit('entityUpdate', player);
+      } else {
+        socket.emit('entityUpdate', player); // Send back original position
+      }
+    }
+  });
+
+  socket.on('plant', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const isOccupied = entities.some(e => e.type !== 'player');
+      if (!isOccupied) {
+        const now = Date.now();
+        const plant: any = {
+          id: `plant-${player.pos.q}-${player.pos.r}-${now}`,
+          type: 'plant',
+          species: 'turnip',
+          pos: { ...player.pos },
+          growthStage: 0,
+          plantedAt: now,
+          lastWatered: 0,
+          lastUpdate: now
+        };
+        world.addEntity(plant);
+        io.emit('entityUpdate', plant);
+      }
+    }
+  });
+
+  socket.on('water', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const plant = entities.find(e => e.type === 'plant') as any;
+      if (plant) {
+        plant.lastWatered = Date.now();
+        io.emit('entityUpdate', plant);
+      }
     }
   });
 
@@ -59,8 +102,10 @@ io.on('connection', (socket) => {
 
 // Real game loop
 setInterval(() => {
-  // Logic for animals and plants would go here
-  // For a basic demo, we just print something
+  const updatedEntities = engine.tick();
+  updatedEntities.forEach(entity => {
+    io.emit('entityUpdate', entity);
+  });
 }, 1000);
 
 const PORT = process.env.PORT || 3001;
