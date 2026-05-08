@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import type { Player, Position } from 'common';
+import type { Player, Position, Plant } from 'common';
 
 const app = express();
 const httpServer = createServer(app);
@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const plant = entities.find(e => e.type === 'plant') as any;
+      const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       if (plant && plant.growthStage >= 5) {
         world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
         const species = plant.species || 'unknown';
@@ -74,10 +74,12 @@ io.on('connection', (socket) => {
       const isOccupied = entities.some(e => e.type !== 'player');
       if (!isOccupied) {
         const now = Date.now();
-        const plant: any = {
+        const speciesList = ['turnip', 'carrot', 'pumpkin'];
+        const species = speciesList[Math.floor(Math.random() * speciesList.length)];
+        const plant: Plant = {
           id: `plant-${player.pos.q}-${player.pos.r}-${now}`,
           type: 'plant',
-          species: 'turnip',
+          species,
           pos: { ...player.pos },
           growthStage: 0,
           plantedAt: now,
@@ -94,7 +96,7 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const plant = entities.find(e => e.type === 'plant') as any;
+      const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       if (plant) {
         plant.lastWatered = Date.now();
         io.emit('entityUpdate', plant);

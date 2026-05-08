@@ -26,11 +26,21 @@ export class Generator {
             pos: { q, r }
           });
         } else if (chunkRng() < 0.05) {
-           entities.push({
+          entities.push({
             id: `rock-${q}-${r}`,
             type: 'obstacle',
             pos: { q, r }
           });
+        } else if (chunkRng() < 0.01) {
+          // Spawn animal
+          const species = chunkRng() < 0.5 ? 'cow' : 'sheep';
+          entities.push({
+            id: `animal-${q}-${r}`,
+            type: 'animal',
+            species,
+            pos: { q, r },
+            nextMoveTime: Date.now() + chunkRng() * 10000
+          } as unknown as Entity);
         }
       }
     }
