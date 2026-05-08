@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { HexRenderer } from './renderers/HexRenderer'
-import type { Entity, Position } from 'common'
+import type { Entity, Position, EnvironmentState } from 'common'
 import { getChunkCoords } from 'common'
 import { socket, joinGame, movePlayer } from './network'
 import { useInput } from './hooks/useInput'
@@ -12,6 +12,7 @@ function App() {
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
   const [playerInventory, setPlayerInventory] = useState<Record<string, number>>({});
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
+  const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0 });
   const loadedChunks = useRef<Set<string>>(new Set());
 
   const requestChunksAround = (q: number, r: number) => {
@@ -73,6 +74,10 @@ function App() {
       });
     });
 
+    socket.on('environmentUpdate', (env: EnvironmentState) => {
+      setEnvironment(env);
+    });
+
     joinGame('Player' + Math.floor(Math.random() * 1000));
 
     return () => {
@@ -82,6 +87,7 @@ function App() {
       socket.off('chunks');
       socket.off('entityUpdate');
       socket.off('entityRemove');
+      socket.off('environmentUpdate');
     };
   }, []);
 
@@ -106,15 +112,20 @@ function App() {
 
   useEffect(() => {
     if (renderer.current) {
-      renderer.current.renderWorld(Array.from(entities.values()), playerPos);
+      renderer.current.renderWorld(Array.from(entities.values()), playerPos, environment.season);
     }
-  }, [entities, playerPos]);
+  }, [entities, playerPos, environment.season]);
 
   return (
     <div className="App">
       <div ref={pixiContainer} className="pixi-container" style={{ width: '100vw', height: '100vh' }} />
       <div className="ui-overlay" style={{ position: 'absolute', top: 10, left: 10, pointerEvents: 'none', color: 'white', textShadow: '1px 1px 2px black' }}>
         <h1>Harvest Hex MMO</h1>
+        <div className="environment-info" style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', marginBottom: '10px' }}>
+          <p>Season: <span style={{ textTransform: 'capitalize' }}>{environment.season}</span></p>
+          <p>Weather: <span style={{ textTransform: 'capitalize' }}>{environment.weather}</span></p>
+          <p>Day: {environment.dayCount + 1}</p>
+        </div>
         <p>Position: {playerPos.q}, {playerPos.r}</p>
         <p>Use WASD or Arrow Keys to move</p>
         <p>Press <b>P</b> to Plant, <b>I</b> to Water, <b>H</b> to Harvest</p>

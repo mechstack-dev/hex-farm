@@ -88,8 +88,8 @@ The project is organized as a **TypeScript Monorepo**:
 ## 5. Future Vision (What it Should Be)
 
 ### Environmental Depth
-- **Seasons:** A 4-season cycle (Real-time) that affects which plants can grow and changes the visual aesthetic of the world.
-- **Weather:** Rain could automatically water all plants in a region, while storms might create temporary obstacles.
+- **Seasons:** A 4-season cycle (Real-time, 7 game days per season) that changes the visual aesthetic of the world (e.g., snow in winter, orange leaves in autumn).
+- **Weather:** Dynamic weather system including Sunny, Rainy, and Cloudy days. Rain automatically waters all plants.
 
 ### Expanded Gameplay
 - **Economy:** A decentralized trading system where players can trade harvested crops for rare seeds or decorative items.
@@ -109,15 +109,17 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
 - [x] **Animal Spawning:** Deterministic spawning of cows and sheep in the procedural world.
 - [x] **Multiple Crops:** Support for different plant species with unique growth durations.
+- [x] **Seasons & Weather:** Implement the real-time seasonal cycle and dynamic weather (rain waters plants).
 
 ### Medium Priority
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites.
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
 - [ ] **Animations:** Smooth transitions for player movement and animal walking.
+- [ ] **More Animals:** Add more species with unique behaviors.
 
 ### Long Term
-- [ ] **Seasons & Weather:** Implement the real-time seasonal cycle.
 - [ ] **Trading:** A system for players to exchange resources.
+- [ ] **Infrastructure:** Building paths, fences, and simple farm buildings.
 
 ---
 

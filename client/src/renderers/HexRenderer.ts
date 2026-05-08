@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import type { Entity, Position } from 'common';
+import type { Entity, Position, Season } from 'common';
 import { axialToPixel } from 'common';
 
 const HEX_SIZE = 30;
@@ -44,7 +44,7 @@ export class HexRenderer {
     this.graphics.stroke({ color: 0x999999, width: 1 });
   }
 
-  renderWorld(entities: Entity[], playerPos: Position) {
+  renderWorld(entities: Entity[], playerPos: Position, season: Season = 'spring') {
     if (!this.initialized) return;
     this.graphics.clear();
 
@@ -52,10 +52,17 @@ export class HexRenderer {
     this.container.x = this.app.screen.width / 2 - px;
     this.container.y = this.app.screen.height / 2 - py;
     
+    let bgColor = 0x228B22; // Forest Green (Spring)
+    if (season === 'summer') bgColor = 0x7CFC00; // Lawngreen
+    else if (season === 'autumn') bgColor = 0xD2691E; // Chocolate/Orange
+    else if (season === 'winter') bgColor = 0xFFFAFA; // Snow
+
+    this.app.renderer.background.color = bgColor;
+
     // Draw some background hexes around player
     for (let q = playerPos.q - 10; q <= playerPos.q + 10; q++) {
       for (let r = playerPos.r - 10; r <= playerPos.r + 10; r++) {
-         this.drawHex(q, r, 0x228B22); // Forest Green
+         this.drawHex(q, r, bgColor);
       }
     }
 
