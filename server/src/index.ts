@@ -31,7 +31,10 @@ io.on('connection', (socket) => {
     };
     players.set(socket.id, player);
     world.addEntity(player);
+
+    const { environment } = engine.tick(); // Just to get current state
     socket.emit('init', { playerId: socket.id, worldSeed: "mmo-seed" });
+    socket.emit('environmentUpdate', environment);
     io.emit('entityUpdate', player);
   });
 
@@ -121,10 +124,13 @@ io.on('connection', (socket) => {
 
 // Real game loop
 setInterval(() => {
-  const updatedEntities = engine.tick();
+  const { updatedEntities, environment, environmentChanged } = engine.tick();
   updatedEntities.forEach(entity => {
     io.emit('entityUpdate', entity);
   });
+  if (environmentChanged) {
+    io.emit('environmentUpdate', environment);
+  }
 }, 1000);
 
 const PORT = process.env.PORT || 3001;

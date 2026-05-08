@@ -1,16 +1,24 @@
 import { WorldManager } from './WorldManager.js';
 import { updatePlant } from './logic/PlantLogic.js';
 import { moveAnimal } from './logic/AnimalLogic.js';
-import type { Animal, Plant } from 'common';
+import { SeasonManager } from './logic/SeasonManager.js';
+import type { Animal, Plant, EnvironmentState } from 'common';
 import { getChunkCoords } from 'common';
 
 export class GameEngine {
-  constructor(private world: WorldManager) {}
+  private seasonManager: SeasonManager;
 
-  tick() {
+  constructor(private world: WorldManager) {
+    this.seasonManager = new SeasonManager();
+  }
+
+  tick(): { updatedEntities: any[], environment: EnvironmentState, environmentChanged: boolean } {
     const chunks = this.world.getActiveChunks();
     const updatedEntities: any[] = [];
     const now = Date.now();
+
+    const environmentChanged = this.seasonManager.update(now);
+    const environment = this.seasonManager.getState();
 
     const updates: { oldEntity: any, newEntity: any, cq: number, cr: number }[] = [];
 
@@ -18,7 +26,7 @@ export class GameEngine {
       chunk.entities.forEach(entity => {
         let updated: any = entity;
         if (entity.type === 'plant') {
-          updated = updatePlant(entity as Plant, now);
+          updated = updatePlant(entity as Plant, now, environment.weather);
         } else if (entity.type === 'animal' && (entity as Animal).nextMoveTime < now) {
           updated = moveAnimal(entity as Animal, this.world);
         }
@@ -44,6 +52,6 @@ export class GameEngine {
       updatedEntities.push(newEntity);
     });
 
-    return updatedEntities;
+    return { updatedEntities, environment, environmentChanged };
   }
 }

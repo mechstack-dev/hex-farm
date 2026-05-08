@@ -1,4 +1,4 @@
-import type { Plant } from 'common';
+import type { Plant, Weather } from 'common';
 
 const WATER_BONUS = 2;
 
@@ -8,9 +8,9 @@ const SPECIES_GROWTH: Record<string, number> = {
   'pumpkin': 72 * 60 * 60 * 1000,  // 3 days per stage
 };
 
-export function updatePlant(plant: Plant, now: number): Plant {
+export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny'): Plant {
   const elapsed = now - plant.lastUpdate;
-  const isWatered = now - plant.lastWatered < 24 * 60 * 60 * 1000;
+  const isWatered = (now - plant.lastWatered < 24 * 60 * 60 * 1000) || weather === 'rainy';
   
   const duration = SPECIES_GROWTH[plant.species] || SPECIES_GROWTH['turnip'];
 

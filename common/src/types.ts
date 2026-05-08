@@ -35,6 +35,15 @@ export interface Player extends Entity {
   inventory: Record<string, number>;
 }
 
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+export type Weather = 'sunny' | 'rainy' | 'cloudy';
+
+export interface EnvironmentState {
+  season: Season;
+  weather: Weather;
+  dayCount: number;
+}
+
 export interface WorldChunk {
   q: number; // Chunk coordinates
   r: number;
