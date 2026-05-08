@@ -99,7 +99,8 @@ The project is organized as a **TypeScript Monorepo**:
 
 ### Visual & Technical Polish
 - **Pixel Art Sprites:** Replacing colored hexes with high-quality pixel art for all entities.
-- **Day/Night Cycle:** Dynamic lighting that follows real-world time or a compressed game-time cycle.
+- **Day/Night Cycle:** Dynamic lighting that follows a compressed game-time cycle (24 minutes per day).
+- **Smooth Animations:** Continuous interpolation for player and animal movement.
 - **Persistence:** A robust database (e.g., MongoDB or PostgreSQL) to store the state of millions of hexes across the infinite world.
 
 ## 7. TODO / Roadmap
@@ -111,12 +112,14 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Animal Spawning:** Deterministic spawning of cows and sheep in the procedural world.
 - [x] **Multiple Crops:** Support for different plant species with unique growth durations.
 - [x] **Seasons & Weather:** Implement the real-time seasonal cycle and dynamic weather (rain waters plants).
+- [x] **Day/Night Cycle:** Visual representation of time of day with light/dark overlays.
 
 ### Medium Priority
 - [x] **Infrastructure:** Building and removing fences.
+- [x] **Smooth Animations:** Continuous interpolation for player and animal movement.
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites.
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
-- [ ] **Animations:** Smooth transitions for player movement and animal walking.
+- [ ] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.
 - [ ] **More Animals:** Add more species with unique behaviors.
 
 ### Long Term

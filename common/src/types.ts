@@ -42,6 +42,7 @@ export interface EnvironmentState {
   season: Season;
   weather: Weather;
   dayCount: number;
+  timeOfDay: number; // 0.0 to 1.0
 }
 
 export interface WorldChunk {

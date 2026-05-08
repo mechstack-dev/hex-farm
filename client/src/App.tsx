@@ -12,7 +12,7 @@ function App() {
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
   const [playerInventory, setPlayerInventory] = useState<Record<string, number>>({});
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
-  const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0 });
+  const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
   const loadedChunks = useRef<Set<string>>(new Set());
 
   const requestChunksAround = (q: number, r: number) => {
@@ -118,9 +118,9 @@ function App() {
 
   useEffect(() => {
     if (renderer.current) {
-      renderer.current.renderWorld(Array.from(entities.values()), playerPos, environment.season);
+      renderer.current.renderWorld(Array.from(entities.values()), playerPos, environment);
     }
-  }, [entities, playerPos, environment.season]);
+  }, [entities, playerPos, environment]);
 
   return (
     <div className="App">
@@ -131,6 +131,7 @@ function App() {
           <p>Season: <span style={{ textTransform: 'capitalize' }}>{environment.season}</span></p>
           <p>Weather: <span style={{ textTransform: 'capitalize' }}>{environment.weather}</span></p>
           <p>Day: {environment.dayCount + 1}</p>
+          <p>Time: {Math.floor(environment.timeOfDay * 24).toString().padStart(2, '0')}:{Math.floor((environment.timeOfDay * 24 * 60) % 60).toString().padStart(2, '0')}</p>
         </div>
         <p>Position: {playerPos.q}, {playerPos.r}</p>
         <p>Use WASD or Arrow Keys to move</p>
