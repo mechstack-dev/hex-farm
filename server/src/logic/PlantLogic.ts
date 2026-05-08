@@ -2,15 +2,18 @@ import type { Plant, Weather } from 'common';
 
 const WATER_BONUS = 2;
 
+// One game day is 24 minutes
+const GAME_DAY = 24 * 60 * 1000;
+
 const SPECIES_GROWTH: Record<string, number> = {
-  'turnip': 24 * 60 * 60 * 1000,   // 1 day per stage
-  'carrot': 48 * 60 * 60 * 1000,   // 2 days per stage
-  'pumpkin': 72 * 60 * 60 * 1000,  // 3 days per stage
+  'turnip': GAME_DAY,   // 1 day per stage
+  'carrot': 2 * GAME_DAY,   // 2 days per stage
+  'pumpkin': 3 * GAME_DAY,  // 3 days per stage
 };
 
 export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny'): Plant {
   const elapsed = now - plant.lastUpdate;
-  const isWatered = (now - plant.lastWatered < 24 * 60 * 60 * 1000) || weather === 'rainy';
+  const isWatered = (now - plant.lastWatered < GAME_DAY) || weather === 'rainy';
   
   const duration = SPECIES_GROWTH[plant.species] || SPECIES_GROWTH['turnip'];
 

@@ -17,8 +17,9 @@ export class SeasonManager {
   update(now: number): boolean {
     const elapsed = now - this.startTime;
     const newDayCount = Math.floor(elapsed / this.DAY_DURATION);
+    const newTimeOfDay = (elapsed % this.DAY_DURATION) / this.DAY_DURATION;
 
-    let changed = false;
+    let changed = true; // Always return true now because timeOfDay changes every tick
 
     if (newDayCount !== this.dayCount) {
       this.dayCount = newDayCount;
@@ -44,10 +45,14 @@ export class SeasonManager {
   }
 
   getState(): EnvironmentState {
+    const elapsed = Date.now() - this.startTime;
+    const timeOfDay = (elapsed % this.DAY_DURATION) / this.DAY_DURATION;
+
     return {
       season: this.currentSeason,
       weather: this.currentWeather,
-      dayCount: this.dayCount
+      dayCount: this.dayCount,
+      timeOfDay
     };
   }
 }

@@ -20,6 +20,19 @@
         "q": 2,
         "r": 0
       }
+    },
+    {
+      "id": "plant-1-1-1778253168204",
+      "type": "plant",
+      "species": "turnip",
+      "pos": {
+        "q": 1,
+        "r": 1
+      },
+      "growthStage": 0,
+      "plantedAt": 1778253168204,
+      "lastWatered": 0,
+      "lastUpdate": 1778253168204
     }
   ]
 }
