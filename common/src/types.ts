@@ -31,6 +31,7 @@ export interface Animal extends Entity {
 export interface Player extends Entity {
   type: 'player';
   name: string;
+  inventory: Record<string, number>;
 }
 
 export interface WorldChunk {
