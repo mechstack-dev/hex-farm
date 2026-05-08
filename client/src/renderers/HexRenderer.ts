@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import type { Entity, Position, Season, Plant, Animal, EnvironmentState } from 'common';
+import type { Entity, Position, Plant, Animal, EnvironmentState } from 'common';
 import { axialToPixel } from 'common';
 import { socket } from '../network';
 
