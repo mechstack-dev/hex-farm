@@ -1,17 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { HexRenderer } from './renderers/HexRenderer'
-import type { Entity, Position } from '../../common/src/types'
+import type { Entity, Position } from 'common'
+import { getChunkCoords } from 'common'
 import { socket, joinGame, movePlayer } from './network'
 import { useInput } from './hooks/useInput'
 import './App.css'
-
-export const CHUNK_SIZE = 16;
-export function getChunkCoords(q: number, r: number): { cq: number, cr: number } {
-  return {
-    cq: Math.floor(q / CHUNK_SIZE),
-    cr: Math.floor(r / CHUNK_SIZE)
-  };
-}
 
 function App() {
   const pixiContainer = useRef<HTMLDivElement>(null);
@@ -96,6 +89,18 @@ function App() {
   });
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'p') {
+        socket.emit('plant');
+      } else if (e.key.toLowerCase() === 'i') {
+        socket.emit('water');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
     if (renderer.current) {
       renderer.current.renderWorld(Array.from(entities.values()), playerPos);
     }
@@ -108,6 +113,7 @@ function App() {
         <h1>Harvest Hex MMO</h1>
         <p>Position: {playerPos.q}, {playerPos.r}</p>
         <p>Use WASD or Arrow Keys to move</p>
+        <p>Press <b>P</b> to Plant, <b>I</b> to Water</p>
       </div>
     </div>
   )

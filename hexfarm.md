@@ -13,6 +13,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Hexagonal Grid:** Uses axial coordinates (q, r) for all positions.
 - **Movement:** Players can move in 6 directions using WASD or Arrow keys.
 - **Real-time Synchronization:** Socket.io is used to sync player positions and entity states across all clients.
+- **Collision Detection:** Players cannot walk through static obstacles like trees and rocks.
 
 ### Entity System
 - **Players:** Persistent entities with unique IDs and names.
@@ -53,9 +54,9 @@ Players join by entering a name and are spawned at the origin (0, 0) or their la
 ### Movement
 Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows the player, and new chunks are requested from the server as the player approaches unexplored territory.
 
-### Farming (Planned/Current)
-1. **Planting:** Players can plant seeds on empty hexes.
-2. **Care:** Using a watering can increases the growth rate for a duration.
+### Farming (Current)
+1. **Planting:** Players can plant seeds on empty hexes by pressing **P**.
+2. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for 24 hours.
 3. **Observation:** Watching the world slowly change over days and weeks.
 4. **Social:** Coming across other players' farms and observing their progress.
 
@@ -97,6 +98,22 @@ The project is organized as a **TypeScript Monorepo**:
 - **Pixel Art Sprites:** Replacing colored hexes with high-quality pixel art for all entities.
 - **Day/Night Cycle:** Dynamic lighting that follows real-world time or a compressed game-time cycle.
 - **Persistence:** A robust database (e.g., MongoDB or PostgreSQL) to store the state of millions of hexes across the infinite world.
+
+## 7. TODO / Roadmap
+
+### High Priority
+- [ ] **Persistence:** Implement a database to save player progress and world state.
+- [ ] **Harvesting:** Allow players to harvest mature plants and gain resources.
+- [ ] **Inventory System:** Basic UI to show gathered resources and available seeds.
+
+### Medium Priority
+- [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites.
+- [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
+- [ ] **Animations:** Smooth transitions for player movement and animal walking.
+
+### Long Term
+- [ ] **Seasons & Weather:** Implement the real-time seasonal cycle.
+- [ ] **Trading:** A system for players to exchange resources.
 
 ---
 

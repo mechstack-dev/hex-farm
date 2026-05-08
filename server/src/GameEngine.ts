@@ -7,10 +7,26 @@ export class GameEngine {
   constructor(private world: WorldManager) {}
 
   tick() {
-    // Logic for global updates
+    const chunks = this.world.getActiveChunks();
+    const updatedEntities: any[] = [];
+
+    chunks.forEach(chunk => {
+      const newEntities = this.updateEntities(chunk.entities);
+
+      // Check if any entity actually changed (simple check for now)
+      // In a real app, you'd want to be more efficient about what you broadcast
+      const changed = newEntities.some((e, i) => e !== chunk.entities[i]);
+
+      if (changed) {
+        this.world.updateChunkEntities(chunk.q, chunk.r, newEntities);
+        updatedEntities.push(...newEntities.filter((e, i) => e !== chunk.entities[i]));
+      }
+    });
+
+    return updatedEntities;
   }
 
-  updateEntities(entities: any[]) {
+  private updateEntities(entities: any[]) {
     const now = Date.now();
     return entities.map(e => {
       if (e.type === 'plant') return updatePlant(e as Plant, now);

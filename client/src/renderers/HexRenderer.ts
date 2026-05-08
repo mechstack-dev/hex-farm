@@ -1,13 +1,8 @@
 import * as PIXI from 'pixi.js';
-import type { Entity, Position } from '../../../common/src/types';
+import type { Entity, Position } from 'common';
+import { axialToPixel } from 'common';
 
 const HEX_SIZE = 30;
-
-export function axialToPixel(q: number, r: number, size: number): { x: number, y: number } {
-  const x = size * (3/2 * q);
-  const y = size * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
-  return { x, y };
-}
 
 export class HexRenderer {
   private app: PIXI.Application;
@@ -64,7 +59,13 @@ export class HexRenderer {
       let color = 0xFFFFFF;
       if (entity.type === 'player') color = 0xFF0000;
       else if (entity.type === 'obstacle') color = 0x555555;
-      else if (entity.type === 'plant') color = 0x00FF00;
+      else if (entity.type === 'plant') {
+        const plant = entity as any;
+        const stage = Math.floor(plant.growthStage);
+        // Darken green as it grows
+        const green = Math.max(50, 255 - stage * 30);
+        color = (0 << 16) | (green << 8) | 0;
+      }
       else if (entity.type === 'animal') color = 0xFFA500;
       
       this.drawHex(entity.pos.q, entity.pos.r, color);
