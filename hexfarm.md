@@ -119,8 +119,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Smooth Animations:** Continuous interpolation for player and animal movement.
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites.
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
-- [ ] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.
-- [ ] **More Animals:** Add more species with unique behaviors.
+- [x] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.
+- [x] **More Animals:** Add more species with unique behaviors (e.g., chickens).
 
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.

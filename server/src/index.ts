@@ -186,6 +186,11 @@ setInterval(() => {
   }
 }, 1000);
 
+// Cleanup inactive chunks every minute
+setInterval(() => {
+  world.cleanupChunks(Array.from(players.values()));
+}, 60000);
+
 app.use(express.static(path.join(__dirname, '../../client/dist')));
 
 app.get('*', (req, res) => {

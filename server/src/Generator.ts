@@ -33,7 +33,8 @@ export class Generator {
           });
         } else if (chunkRng() < 0.01) {
           // Spawn animal
-          const species = chunkRng() < 0.5 ? 'cow' : 'sheep';
+          const rand = chunkRng();
+          const species = rand < 0.33 ? 'cow' : (rand < 0.66 ? 'sheep' : 'chicken');
           entities.push({
             id: `animal-${q}-${r}`,
             type: 'animal',
