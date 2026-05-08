@@ -18,6 +18,8 @@ export class HexRenderer {
   private lastEnvironment: EnvironmentState | null = null;
   private interpolatedPositions: Map<string, { x: number, y: number }> = new Map();
   private interpolatedCamera: { x: number, y: number } = { x: 0, y: 0 };
+  private playerLabels: Map<string, PIXI.Text> = new Map();
+  private plantLabels: Map<string, PIXI.Text> = new Map();
 
   constructor(element: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -110,10 +112,19 @@ export class HexRenderer {
 
   drawAnimal(animal: Animal, x: number, y: number) {
     let color = 0xFFFFFF;
-    if (animal.species === 'cow') color = 0xFFFFFF;
-    else if (animal.species === 'sheep') color = 0xDDDDDD;
+    let sizeScale = 1.0;
+    if (animal.species === 'cow') {
+        color = 0xFFFFFF;
+        sizeScale = 1.0;
+    } else if (animal.species === 'sheep') {
+        color = 0xDDDDDD;
+        sizeScale = 0.8;
+    } else if (animal.species === 'chicken') {
+        color = 0xFFFF00;
+        sizeScale = 0.5;
+    }
 
-    this.graphics.ellipse(x, y, HEX_SIZE * 0.5, HEX_SIZE * 0.3);
+    this.graphics.ellipse(x, y, HEX_SIZE * 0.5 * sizeScale, HEX_SIZE * 0.3 * sizeScale);
     this.graphics.fill({ color, alpha: 1 });
     this.graphics.stroke({ color: 0x000000, width: 1 });
   }
@@ -164,6 +175,14 @@ export class HexRenderer {
     for (const id of this.interpolatedPositions.keys()) {
         if (!entityIds.has(id)) {
             this.interpolatedPositions.delete(id);
+            if (this.playerLabels.has(id)) {
+                this.playerLabels.get(id)!.destroy();
+                this.playerLabels.delete(id);
+            }
+            if (this.plantLabels.has(id)) {
+                this.plantLabels.get(id)!.destroy();
+                this.plantLabels.delete(id);
+            }
         }
     }
   }
@@ -222,6 +241,7 @@ export class HexRenderer {
 
       if (entity.type === 'player') {
         this.drawPlayer(x, y, entity.id === socket.id ? 0xFF0000 : 0x0000FF);
+        this.updatePlayerLabel(entity as any, x, y);
       } else if (entity.type === 'obstacle') {
         if (entity.id.startsWith('tree')) {
           this.drawTree(x, y);
@@ -230,6 +250,7 @@ export class HexRenderer {
         }
       } else if (entity.type === 'plant') {
         this.drawPlant(entity as any, x, y);
+        this.updatePlantLabel(entity as any, x, y);
       } else if (entity.type === 'animal') {
         this.drawAnimal(entity as any, x, y);
       } else if (entity.type === 'fence') {
@@ -238,6 +259,56 @@ export class HexRenderer {
     });
 
     this.drawDayNightOverlay(timeOfDay);
+  }
+
+  updatePlayerLabel(player: any, x: number, y: number) {
+    let label = this.playerLabels.get(player.id);
+    if (!label) {
+        label = new PIXI.Text({
+            text: player.name,
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 14,
+                fill: 0xFFFFFF,
+                stroke: { color: 0x000000, width: 2 },
+                align: 'center'
+            }
+        });
+        label.anchor.set(0.5, 1.5);
+        this.container.addChild(label);
+        this.playerLabels.set(player.id, label);
+    }
+    label.x = x;
+    label.y = y - HEX_SIZE * 0.6;
+  }
+
+  updatePlantLabel(plant: Plant, x: number, y: number) {
+    if (plant.growthStage < 5) {
+        if (this.plantLabels.has(plant.id)) {
+            this.plantLabels.get(plant.id)!.destroy();
+            this.plantLabels.delete(plant.id);
+        }
+        return;
+    }
+
+    let label = this.plantLabels.get(plant.id);
+    if (!label) {
+        label = new PIXI.Text({
+            text: plant.species.charAt(0).toUpperCase() + plant.species.slice(1),
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 12,
+                fill: 0xFFFF00,
+                stroke: { color: 0x000000, width: 2 },
+                align: 'center'
+            }
+        });
+        label.anchor.set(0.5, 1.5);
+        this.container.addChild(label);
+        this.plantLabels.set(plant.id, label);
+    }
+    label.x = x;
+    label.y = y - HEX_SIZE * 0.4;
   }
 
   drawDayNightOverlay(timeOfDay: number) {

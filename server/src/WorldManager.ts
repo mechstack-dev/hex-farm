@@ -159,4 +159,24 @@ export class WorldManager {
       chunk.entities = newEntities;
     }
   }
+
+  cleanupChunks(players: Player[]) {
+    const activeKeys = new Set<string>();
+    const radius = 2;
+
+    players.forEach(player => {
+      const { cq, cr } = getChunkCoords(player.pos.q, player.pos.r);
+      for (let dq = -radius; dq <= radius; dq++) {
+        for (let dr = -radius; dr <= radius; dr++) {
+          activeKeys.add(chunkToKey(cq + dq, cr + dr));
+        }
+      }
+    });
+
+    for (const key of this.chunks.keys()) {
+      if (!activeKeys.has(key)) {
+        this.chunks.delete(key);
+      }
+    }
+  }
 }
