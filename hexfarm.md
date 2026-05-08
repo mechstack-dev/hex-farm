@@ -57,8 +57,10 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 ### Farming (Current)
 1. **Planting:** Players can plant seeds on empty hexes by pressing **P**.
 2. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for 24 hours.
-3. **Observation:** Watching the world slowly change over days and weeks.
-4. **Social:** Coming across other players' farms and observing their progress.
+3. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position.
+4. **Inventory:** Harvested crops are added to the player's inventory, which is visible in the UI.
+5. **Observation:** Watching the world slowly change over days and weeks.
+6. **Social:** Coming across other players' farms and observing their progress.
 
 ---
 
@@ -103,8 +105,8 @@ The project is organized as a **TypeScript Monorepo**:
 
 ### High Priority
 - [ ] **Persistence:** Implement a database to save player progress and world state.
-- [ ] **Harvesting:** Allow players to harvest mature plants and gain resources.
-- [ ] **Inventory System:** Basic UI to show gathered resources and available seeds.
+- [x] **Harvesting:** Allow players to harvest mature plants and gain resources.
+- [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
 
 ### Medium Priority
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites.

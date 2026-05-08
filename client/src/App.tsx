@@ -10,6 +10,7 @@ function App() {
   const pixiContainer = useRef<HTMLDivElement>(null);
   const renderer = useRef<HexRenderer | null>(null);
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
+  const [playerInventory, setPlayerInventory] = useState<Record<string, number>>({});
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const loadedChunks = useRef<Set<string>>(new Set());
 
@@ -59,6 +60,7 @@ function App() {
       });
       if (entity.id === socket.id) {
         setPlayerPos(entity.pos);
+        setPlayerInventory((entity as any).inventory || {});
         requestChunksAround(entity.pos.q, entity.pos.r);
       }
     });
@@ -94,6 +96,8 @@ function App() {
         socket.emit('plant');
       } else if (e.key.toLowerCase() === 'i') {
         socket.emit('water');
+      } else if (e.key.toLowerCase() === 'h') {
+        socket.emit('harvest');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -113,7 +117,17 @@ function App() {
         <h1>Harvest Hex MMO</h1>
         <p>Position: {playerPos.q}, {playerPos.r}</p>
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>P</b> to Plant, <b>I</b> to Water</p>
+        <p>Press <b>P</b> to Plant, <b>I</b> to Water, <b>H</b> to Harvest</p>
+        <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}>
+          <h3>Inventory</h3>
+          {Object.entries(playerInventory).length === 0 ? <p>Empty</p> : (
+            <ul>
+              {Object.entries(playerInventory).map(([item, count]) => (
+                <li key={item}>{item}: {count}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   )

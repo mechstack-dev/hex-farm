@@ -26,7 +26,8 @@ io.on('connection', (socket) => {
       id: socket.id,
       type: 'player',
       name,
-      pos: { q: 0, r: 0 }
+      pos: { q: 0, r: 0 },
+      inventory: {}
     };
     players.set(socket.id, player);
     world.addEntity(player);
@@ -46,6 +47,22 @@ io.on('connection', (socket) => {
         io.emit('entityUpdate', player);
       } else {
         socket.emit('entityUpdate', player); // Send back original position
+      }
+    }
+  });
+
+  socket.on('harvest', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const plant = entities.find(e => e.type === 'plant') as any;
+      if (plant && plant.growthStage >= 5) {
+        world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
+        const species = plant.species || 'unknown';
+        player.inventory[species] = (player.inventory[species] || 0) + 1;
+
+        io.emit('entityRemove', { id: plant.id, pos: plant.pos });
+        socket.emit('entityUpdate', player); // Update player inventory on client
       }
     }
   });
