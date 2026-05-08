@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-export const socket: Socket = io('http://localhost:3001');
+export const socket: Socket = io();
 
 export function joinGame(name: string) {
   socket.emit('join', name);

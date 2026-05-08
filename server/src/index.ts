@@ -1,6 +1,8 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
 import { distance } from 'common';
@@ -8,6 +10,9 @@ import type { Player, Position, Plant } from 'common';
 
 const app = express();
 const httpServer = createServer(app);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
@@ -180,6 +185,12 @@ setInterval(() => {
     io.emit('environmentUpdate', environment);
   }
 }, 1000);
+
+app.use(express.static(path.join(__dirname, '../../client/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+});
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
