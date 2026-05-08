@@ -1,14 +1,21 @@
 import type { Plant } from 'common';
 
-const STAGE_DURATION = 24 * 60 * 60 * 1000;
 const WATER_BONUS = 2;
+
+const SPECIES_GROWTH: Record<string, number> = {
+  'turnip': 24 * 60 * 60 * 1000,   // 1 day per stage
+  'carrot': 48 * 60 * 60 * 1000,   // 2 days per stage
+  'pumpkin': 72 * 60 * 60 * 1000,  // 3 days per stage
+};
 
 export function updatePlant(plant: Plant, now: number): Plant {
   const elapsed = now - plant.lastUpdate;
   const isWatered = now - plant.lastWatered < 24 * 60 * 60 * 1000;
   
+  const duration = SPECIES_GROWTH[plant.species] || SPECIES_GROWTH['turnip'];
+
   const effectiveTime = isWatered ? elapsed * WATER_BONUS : elapsed;
-  const growthIncrement = effectiveTime / STAGE_DURATION;
+  const growthIncrement = effectiveTime / duration;
   
   return {
     ...plant,

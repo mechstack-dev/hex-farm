@@ -11,6 +11,7 @@ export interface Entity {
   id: string;
   type: EntityType;
   pos: Position;
+  species?: string;
 }
 
 export interface Plant extends Entity {

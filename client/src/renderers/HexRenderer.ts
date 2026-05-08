@@ -47,6 +47,10 @@ export class HexRenderer {
   renderWorld(entities: Entity[], playerPos: Position) {
     if (!this.initialized) return;
     this.graphics.clear();
+
+    const { x: px, y: py } = axialToPixel(playerPos.q, playerPos.r, HEX_SIZE);
+    this.container.x = this.app.screen.width / 2 - px;
+    this.container.y = this.app.screen.height / 2 - py;
     
     // Draw some background hexes around player
     for (let q = playerPos.q - 10; q <= playerPos.q + 10; q++) {
@@ -62,11 +66,24 @@ export class HexRenderer {
       else if (entity.type === 'plant') {
         const plant = entity as any;
         const stage = Math.floor(plant.growthStage);
-        // Darken green as it grows
-        const green = Math.max(50, 255 - stage * 30);
-        color = (0 << 16) | (green << 8) | 0;
+
+        if (plant.species === 'carrot') {
+            const orange = Math.max(50, 255 - stage * 30);
+            color = (orange << 16) | (165 << 8) | 0; // Orangelike
+        } else if (plant.species === 'pumpkin') {
+            const yellow = Math.max(50, 255 - stage * 30);
+            color = (yellow << 16) | (yellow << 8) | 0; // Yellowish
+        } else {
+            // Darken green as it grows (turnip)
+            const green = Math.max(50, 255 - stage * 30);
+            color = (0 << 16) | (green << 8) | 0;
+        }
       }
-      else if (entity.type === 'animal') color = 0xFFA500;
+      else if (entity.type === 'animal') {
+        if (entity.species === 'cow') color = 0xFFFFFF; // White
+        else if (entity.species === 'sheep') color = 0xEEEEEE; // Light gray
+        else color = 0xFFA500;
+      }
       
       this.drawHex(entity.pos.q, entity.pos.r, color);
     });

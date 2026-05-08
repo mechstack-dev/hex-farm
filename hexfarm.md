@@ -22,7 +22,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Obstacles:** Static entities like trees and rocks that block movement.
 
 ### Growth Mechanics
-- **Real-time Growth:** Plants progress through stages based on elapsed time.
+- **Real-time Growth:** Plants progress through stages based on elapsed time. Different species (Turnips, Carrots, Pumpkins) have different growth rates.
 - **Watering Bonus:** Plants grow twice as fast if they have been watered within the last 24 hours (configurable in `PlantLogic.ts`).
 
 ---
@@ -107,6 +107,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [ ] **Persistence:** Implement a database to save player progress and world state.
 - [x] **Harvesting:** Allow players to harvest mature plants and gain resources.
 - [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
+- [x] **Animal Spawning:** Deterministic spawning of cows and sheep in the procedural world.
+- [x] **Multiple Crops:** Support for different plant species with unique growth durations.
 
 ### Medium Priority
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites.
