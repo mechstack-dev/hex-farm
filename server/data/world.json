@@ -1,0 +1,25 @@
+{
+  "entities": [
+    {
+      "id": "plant-1-0-1778242463717",
+      "type": "plant",
+      "species": "turnip",
+      "pos": {
+        "q": 1,
+        "r": 0
+      },
+      "growthStage": 0,
+      "plantedAt": 1778242463717,
+      "lastWatered": 0,
+      "lastUpdate": 1778242463717
+    },
+    {
+      "id": "fence-2-0",
+      "type": "fence",
+      "pos": {
+        "q": 2,
+        "r": 0
+      }
+    }
+  ]
+}

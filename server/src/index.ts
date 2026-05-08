@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
+import { distance } from 'common';
 import type { Player, Position, Plant } from 'common';
 
 const app = express();
@@ -27,7 +28,11 @@ io.on('connection', (socket) => {
       type: 'player',
       name,
       pos: { q: 0, r: 0 },
-      inventory: {}
+      inventory: {
+        'turnip-seed': 5,
+        'carrot-seed': 2,
+        'pumpkin-seed': 1
+      }
     };
     players.set(socket.id, player);
     world.addEntity(player);
@@ -41,8 +46,14 @@ io.on('connection', (socket) => {
   socket.on('move', (pos: Position) => {
     const player = players.get(socket.id);
     if (player) {
+      const d = distance(player.pos, pos);
+      if (d !== 1) {
+        socket.emit('entityUpdate', player);
+        return;
+      }
+
       const entities = world.getEntitiesAt(pos.q, pos.r);
-      const isBlocked = entities.some(e => e.type === 'obstacle');
+      const isBlocked = entities.some(e => e.type === 'obstacle' || e.type === 'animal' || e.type === 'fence');
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
         player.pos = pos;
@@ -50,6 +61,29 @@ io.on('connection', (socket) => {
         io.emit('entityUpdate', player);
       } else {
         socket.emit('entityUpdate', player); // Send back original position
+      }
+    }
+  });
+
+  socket.on('build_fence', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const isOccupied = entities.some(e => e.type !== 'player');
+      if (!isOccupied) {
+        const fence = {
+          id: `fence-${player.pos.q}-${player.pos.r}`,
+          type: 'fence' as const,
+          pos: { ...player.pos }
+        };
+        world.addEntity(fence);
+        io.emit('entityUpdate', fence);
+      } else {
+        const fence = entities.find(e => e.type === 'fence');
+        if (fence) {
+          world.removeEntity(fence.id, fence.pos.q, fence.pos.r);
+          io.emit('entityRemove', { id: fence.id, pos: fence.pos });
+        }
       }
     }
   });
@@ -62,7 +96,14 @@ io.on('connection', (socket) => {
       if (plant && plant.growthStage >= 5) {
         world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
         const species = plant.species || 'unknown';
+
+        // Give crop
         player.inventory[species] = (player.inventory[species] || 0) + 1;
+
+        // Chance to give 1-2 seeds
+        const seedType = `${species}-seed`;
+        const seedsGained = Math.floor(Math.random() * 2) + 1;
+        player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
 
         io.emit('entityRemove', { id: plant.id, pos: plant.pos });
         socket.emit('entityUpdate', player); // Update player inventory on client
@@ -70,15 +111,20 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('plant', () => {
+  socket.on('plant', (species: string) => {
     const player = players.get(socket.id);
     if (player) {
+      const seedType = `${species}-seed`;
+      if (!player.inventory[seedType] || player.inventory[seedType] <= 0) {
+        return;
+      }
+
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const isOccupied = entities.some(e => e.type !== 'player');
       if (!isOccupied) {
+        player.inventory[seedType]--;
+
         const now = Date.now();
-        const speciesList = ['turnip', 'carrot', 'pumpkin'];
-        const species = speciesList[Math.floor(Math.random() * speciesList.length)];
         const plant: Plant = {
           id: `plant-${player.pos.q}-${player.pos.r}-${now}`,
           type: 'plant',
@@ -91,6 +137,7 @@ io.on('connection', (socket) => {
         };
         world.addEntity(plant);
         io.emit('entityUpdate', plant);
+        socket.emit('entityUpdate', player);
       }
     }
   });
@@ -102,6 +149,7 @@ io.on('connection', (socket) => {
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       if (plant) {
         plant.lastWatered = Date.now();
+        world.markDirty();
         io.emit('entityUpdate', plant);
       }
     }

@@ -55,10 +55,11 @@ Players join by entering a name and are spawned at the origin (0, 0) or their la
 Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows the player, and new chunks are requested from the server as the player approaches unexplored territory.
 
 ### Farming (Current)
-1. **Planting:** Players can plant seeds on empty hexes by pressing **P**.
-2. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for 24 hours.
-3. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position.
-4. **Inventory:** Harvested crops are added to the player's inventory, which is visible in the UI.
+1. **Planting:** Players can plant specific seeds on empty hexes by pressing **1** (Turnip), **2** (Carrot), or **3** (Pumpkin).
+2. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for 24 hours. A blue indicator appears on watered plants.
+3. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
+4. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
+5. **Inventory:** Harvested crops and seeds are added to the player's inventory, which is visible in the UI.
 5. **Observation:** Watching the world slowly change over days and weeks.
 6. **Social:** Coming across other players' farms and observing their progress.
 
@@ -104,7 +105,7 @@ The project is organized as a **TypeScript Monorepo**:
 ## 7. TODO / Roadmap
 
 ### High Priority
-- [ ] **Persistence:** Implement a database to save player progress and world state.
+- [x] **Persistence:** Basic file-based persistence for plants and fences.
 - [x] **Harvesting:** Allow players to harvest mature plants and gain resources.
 - [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
 - [x] **Animal Spawning:** Deterministic spawning of cows and sheep in the procedural world.
@@ -112,6 +113,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Seasons & Weather:** Implement the real-time seasonal cycle and dynamic weather (rain waters plants).
 
 ### Medium Priority
+- [x] **Infrastructure:** Building and removing fences.
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites.
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
 - [ ] **Animations:** Smooth transitions for player movement and animal walking.
@@ -119,7 +121,8 @@ The project is organized as a **TypeScript Monorepo**:
 
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.
-- [ ] **Infrastructure:** Building paths, fences, and simple farm buildings.
+- [ ] **Tools & Upgrades:** Specialized equipment for better farming efficiency.
+- [ ] **Advanced Infrastructure:** Building paths and simple farm buildings.
 
 ---
 

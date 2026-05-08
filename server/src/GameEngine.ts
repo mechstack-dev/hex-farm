@@ -37,6 +37,10 @@ export class GameEngine {
       });
     });
 
+    if (updates.length > 0) {
+      this.world.markDirty();
+    }
+
     updates.forEach(({ oldEntity, newEntity, cq, cr }) => {
       const { cq: newCQ, cr: newCR } = getChunkCoords(newEntity.pos.q, newEntity.pos.r);
 

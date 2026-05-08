@@ -1,6 +1,6 @@
 export const CHUNK_SIZE = 16;
 
-export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle';
+export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence';
 
 export interface Position {
   q: number;
