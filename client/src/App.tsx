@@ -98,12 +98,18 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'p') {
-        socket.emit('plant');
+      if (e.key.toLowerCase() === '1') {
+        socket.emit('plant', 'turnip');
+      } else if (e.key.toLowerCase() === '2') {
+        socket.emit('plant', 'carrot');
+      } else if (e.key.toLowerCase() === '3') {
+        socket.emit('plant', 'pumpkin');
       } else if (e.key.toLowerCase() === 'i') {
         socket.emit('water');
       } else if (e.key.toLowerCase() === 'h') {
         socket.emit('harvest');
+      } else if (e.key.toLowerCase() === 'f') {
+        socket.emit('build_fence');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -128,7 +134,7 @@ function App() {
         </div>
         <p>Position: {playerPos.q}, {playerPos.r}</p>
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>P</b> to Plant, <b>I</b> to Water, <b>H</b> to Harvest</p>
+        <p>Press <b>1, 2, 3</b> to Plant, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Build/Remove Fence</p>
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}>
           <h3>Inventory</h3>
           {Object.entries(playerInventory).length === 0 ? <p>Empty</p> : (
