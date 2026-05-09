@@ -80,6 +80,31 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('buy_tool', (tool: string) => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = [
+        ...world.getEntitiesAt(player.pos.q, player.pos.r),
+        ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
+      ];
+      const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
+      if (isNearMerchant) {
+        const toolPrices: Record<string, number> = { 'hoe': 50, 'watering-can': 50, 'axe': 50, 'pickaxe': 50 };
+        const price = toolPrices[tool];
+        if (price !== undefined) {
+          if (player.coins >= price) {
+            player.coins -= price;
+            player.inventory[tool] = (player.inventory[tool] || 0) + 1;
+            socket.emit('entityUpdate', player);
+            notify(socket.id, `Bought ${tool} for ${price} coins.`, 'success');
+          } else {
+            notify(socket.id, `Not enough coins! Need ${price}.`, 'error');
+          }
+        }
+      }
+    }
+  });
+
   socket.on('build_fence', () => {
     const player = players.get(socket.id);
     if (player) {
