@@ -3,7 +3,7 @@ import { updatePlant } from './logic/PlantLogic.js';
 import { moveAnimal } from './logic/AnimalLogic.js';
 import { SeasonManager } from './logic/SeasonManager.js';
 import type { Animal, Plant, EnvironmentState } from 'common';
-import { getChunkCoords } from 'common';
+import { getChunkCoords, getNeighbors } from 'common';
 
 export class GameEngine {
   private seasonManager: SeasonManager;
@@ -22,11 +22,29 @@ export class GameEngine {
 
     const updates: { oldEntity: any, newEntity: any, cq: number, cr: number }[] = [];
 
+    // Find all sprinklers and their ranges
+    const sprinklerPositions = new Set<string>();
+    chunks.forEach(chunk => {
+      chunk.entities.forEach(entity => {
+        if (entity.type === 'sprinkler') {
+          sprinklerPositions.add(`${entity.pos.q},${entity.pos.r}`);
+          getNeighbors(entity.pos).forEach(n => {
+            sprinklerPositions.add(`${n.q},${n.r}`);
+          });
+        }
+      });
+    });
+
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
         let updated: any = entity;
         if (entity.type === 'plant') {
-          updated = updatePlant(entity as Plant, now, environment.weather);
+          const plant = entity as Plant;
+          const posKey = `${plant.pos.q},${plant.pos.r}`;
+          if (sprinklerPositions.has(posKey)) {
+            plant.lastWatered = now;
+          }
+          updated = updatePlant(plant, now, environment.weather);
         } else if (entity.type === 'animal' && (entity as Animal).nextMoveTime < now) {
           updated = moveAnimal(entity as Animal, this.world);
         }

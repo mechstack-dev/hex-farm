@@ -47,7 +47,12 @@ io.on('connection', (socket) => {
     socket.emit('init', { playerId: socket.id, worldSeed: "mmo-seed" });
     socket.emit('environmentUpdate', environment);
     io.emit('entityUpdate', player);
+    socket.emit('notification', { message: `Welcome to HexFarm, ${name}!`, type: 'info' });
   });
+
+  const notify = (socketId: string, message: string, type: 'info' | 'success' | 'error' = 'info') => {
+    io.to(socketId).emit('notification', { message, type });
+  };
 
   socket.on('move', (pos: Position) => {
     const player = players.get(socket.id);
@@ -162,8 +167,12 @@ io.on('connection', (socket) => {
         const seedsGained = Math.floor(Math.random() * 2) + 1;
         player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
 
+        notify(socket.id, `Harvested ${species}! Gained ${seedsGained} seeds.`, 'success');
+
         io.emit('entityRemove', { id: plant.id, pos: plant.pos });
         socket.emit('entityUpdate', player); // Update player inventory on client
+      } else if (plant) {
+        notify(socket.id, "This plant isn't ready yet.", 'info');
       }
     }
   });
@@ -173,12 +182,22 @@ io.on('connection', (socket) => {
     if (player) {
       const seedType = `${species}-seed`;
       if (!player.inventory[seedType] || player.inventory[seedType] <= 0) {
+        notify(socket.id, `You don't have any ${species} seeds!`, 'error');
         return;
       }
 
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const hasTilledSoil = entities.some(e => e.type === 'floor' && e.species === 'tilled');
       const isOccupiedByOther = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+
+      if (!hasTilledSoil) {
+        notify(socket.id, "You can only plant on tilled soil.", 'info');
+        return;
+      }
+      if (isOccupiedByOther) {
+        notify(socket.id, "This spot is occupied.", 'info');
+        return;
+      }
 
       if (hasTilledSoil && !isOccupiedByOther) {
         player.inventory[seedType]--;
@@ -222,12 +241,63 @@ io.on('connection', (socket) => {
       if (isNearMerchant) {
         const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35 };
         const price = seedPrices[species];
-        if (price !== undefined && player.coins >= price) {
-          player.coins -= price;
-          const seedType = `${species}-seed`;
-          player.inventory[seedType] = (player.inventory[seedType] || 0) + 1;
-          socket.emit('entityUpdate', player);
+        if (price !== undefined) {
+          if (player.coins >= price) {
+            player.coins -= price;
+            const seedType = `${species}-seed`;
+            player.inventory[seedType] = (player.inventory[seedType] || 0) + 1;
+            socket.emit('entityUpdate', player);
+            notify(socket.id, `Bought ${species} seed for ${price} coins.`, 'success');
+          } else {
+            notify(socket.id, `Not enough coins! Need ${price}.`, 'error');
+          }
         }
+      }
+    }
+  });
+
+  socket.on('buy_sprinkler', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
+      if (isNearMerchant) {
+        const price = 100;
+        if (player.coins >= price) {
+          player.coins -= price;
+          player.inventory['sprinkler-kit'] = (player.inventory['sprinkler-kit'] || 0) + 1;
+          socket.emit('entityUpdate', player);
+          notify(socket.id, `Bought Sprinkler Kit for ${price} coins.`, 'success');
+        } else {
+          notify(socket.id, `Not enough coins! Need ${price}.`, 'error');
+        }
+      }
+    }
+  });
+
+  socket.on('build_sprinkler', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      if (!player.inventory['sprinkler-kit'] || player.inventory['sprinkler-kit'] <= 0) {
+        notify(socket.id, "You don't have any sprinkler kits!", 'error');
+        return;
+      }
+
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+      if (!isOccupied) {
+        player.inventory['sprinkler-kit']--;
+        const sprinkler = {
+          id: `sprinkler-${player.pos.q}-${player.pos.r}`,
+          type: 'sprinkler' as const,
+          pos: { ...player.pos }
+        };
+        world.addEntity(sprinkler);
+        io.emit('entityUpdate', sprinkler);
+        socket.emit('entityUpdate', player);
+        notify(socket.id, "Sprinkler installed!", 'success');
+      } else {
+        notify(socket.id, "This spot is occupied.", 'info');
       }
     }
   });
@@ -239,18 +309,24 @@ io.on('connection', (socket) => {
       const animal = entities.find(e => e.type === 'animal') as any;
       if (animal) {
         if (animal.species === 'merchant') {
-          // Sell crops
-          const prices: Record<string, number> = { 'turnip': 10, 'carrot': 25, 'pumpkin': 50 };
+          // Sell crops and products
+          const prices: Record<string, number> = {
+            'turnip': 10, 'carrot': 25, 'pumpkin': 50,
+            'milk': 20, 'wool': 30, 'egg': 10
+          };
           let earned = 0;
-          Object.keys(prices).forEach(crop => {
-            if (player.inventory[crop] > 0) {
-              earned += player.inventory[crop] * prices[crop];
-              player.inventory[crop] = 0;
+          Object.keys(prices).forEach(item => {
+            if (player.inventory[item] > 0) {
+              earned += player.inventory[item] * prices[item];
+              player.inventory[item] = 0;
             }
           });
           if (earned > 0) {
             player.coins += earned;
             socket.emit('entityUpdate', player);
+            notify(socket.id, `Sold items for ${earned} coins!`, 'success');
+          } else {
+            notify(socket.id, "You don't have anything to sell.", 'info');
           }
           return;
         }
@@ -268,7 +344,10 @@ io.on('connection', (socket) => {
             world.updateEntity(animal);
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', animal);
+            notify(socket.id, `Collected ${product}!`, 'success');
           }
+        } else {
+            notify(socket.id, "This animal isn't ready to give anything yet.", 'info');
         }
       }
     }
