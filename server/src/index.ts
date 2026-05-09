@@ -37,7 +37,8 @@ io.on('connection', (socket) => {
         'turnip-seed': 5,
         'carrot-seed': 2,
         'pumpkin-seed': 1
-      }
+      },
+      coins: 0
     };
     players.set(socket.id, player);
     world.addEntity(player);
@@ -74,7 +75,7 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const isOccupied = entities.some(e => e.type !== 'player');
+      const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
       if (!isOccupied) {
         const fence = {
           id: `fence-${player.pos.q}-${player.pos.r}`,
@@ -88,6 +89,33 @@ io.on('connection', (socket) => {
         if (fence) {
           world.removeEntity(fence.id, fence.pos.q, fence.pos.r);
           io.emit('entityRemove', { id: fence.id, pos: fence.pos });
+        }
+      }
+    }
+  });
+
+  socket.on('plow', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const floor = entities.find(e => e.type === 'floor');
+      if (!floor) {
+        const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+        if (!isOccupied) {
+          const tilled = {
+            id: `floor-${player.pos.q}-${player.pos.r}`,
+            type: 'floor' as const,
+            species: 'tilled',
+            pos: { ...player.pos }
+          };
+          world.addEntity(tilled);
+          io.emit('entityUpdate', tilled);
+        }
+      } else {
+        const isOccupiedByPlant = entities.some(e => e.type === 'plant');
+        if (!isOccupiedByPlant) {
+          world.removeEntity(floor.id, floor.pos.q, floor.pos.r);
+          io.emit('entityRemove', { id: floor.id, pos: floor.pos });
         }
       }
     }
@@ -125,8 +153,10 @@ io.on('connection', (socket) => {
       }
 
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const isOccupied = entities.some(e => e.type !== 'player');
-      if (!isOccupied) {
+      const hasTilledSoil = entities.some(e => e.type === 'floor' && e.species === 'tilled');
+      const isOccupiedByOther = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+
+      if (hasTilledSoil && !isOccupiedByOther) {
         player.inventory[seedType]--;
 
         const now = Date.now();
@@ -166,6 +196,23 @@ io.on('connection', (socket) => {
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const animal = entities.find(e => e.type === 'animal') as any;
       if (animal) {
+        if (animal.species === 'merchant') {
+          // Sell crops
+          const prices: Record<string, number> = { 'turnip': 10, 'carrot': 25, 'pumpkin': 50 };
+          let earned = 0;
+          Object.keys(prices).forEach(crop => {
+            if (player.inventory[crop] > 0) {
+              earned += player.inventory[crop] * prices[crop];
+              player.inventory[crop] = 0;
+            }
+          });
+          if (earned > 0) {
+            player.coins += earned;
+            socket.emit('entityUpdate', player);
+          }
+          return;
+        }
+
         const now = Date.now();
         const GAME_DAY = 24 * 60 * 1000;
         if (now - animal.lastProductTime >= GAME_DAY) {

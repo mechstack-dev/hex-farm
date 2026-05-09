@@ -4,7 +4,7 @@ import { axialToPixel } from 'common';
 import { socket } from '../network';
 
 const HEX_SIZE = 30;
-const TYPE_ORDER: Record<string, number> = { 'fence': 1, 'plant': 2, 'obstacle': 3, 'animal': 4, 'player': 5 };
+const TYPE_ORDER: Record<string, number> = { 'floor': 0, 'fence': 1, 'plant': 2, 'obstacle': 3, 'animal': 4, 'player': 5 };
 
 export class HexRenderer {
   private app: PIXI.Application;
@@ -64,23 +64,44 @@ export class HexRenderer {
   }
 
   drawTree(x: number, y: number) {
-    // Trunk
+    // Trunk with shading
     this.graphics.rect(x - 4, y, 8, 15);
     this.graphics.fill({ color: 0x8B4513, alpha: 1 });
-    // Foliage
-    this.graphics.circle(x, y - 5, HEX_SIZE * 0.7);
+    this.graphics.rect(x + 2, y, 2, 15);
+    this.graphics.fill({ color: 0x5D2E0C, alpha: 1 });
+
+    // Layered foliage for depth
+    this.graphics.circle(x, y - 8, HEX_SIZE * 0.7);
     this.graphics.fill({ color: 0x228B22, alpha: 1 });
+    this.graphics.circle(x - 5, y - 12, HEX_SIZE * 0.5);
+    this.graphics.fill({ color: 0x2E8B57, alpha: 1 });
+    this.graphics.circle(x + 5, y - 10, HEX_SIZE * 0.4);
+    this.graphics.fill({ color: 0x3CB371, alpha: 1 });
+
+    // Highlights
+    this.graphics.circle(x - 3, y - 15, 4);
+    this.graphics.fill({ color: 0x90EE90, alpha: 0.3 });
   }
 
   drawRock(x: number, y: number) {
     this.graphics.poly([
-        x - 10, y + 10,
-        x + 10, y + 10,
-        x + 8, y - 5,
-        x - 5, y - 8,
+        x - 12, y + 10,
+        x + 12, y + 10,
+        x + 10, y - 5,
+        x - 2, y - 10,
+        x - 10, y - 5,
     ]);
     this.graphics.fill({ color: 0x808080, alpha: 1 });
     this.graphics.stroke({ color: 0x333333, width: 1 });
+
+    // Shading/cracks
+    this.graphics.moveTo(x - 5, y - 5);
+    this.graphics.lineTo(x + 2, y + 2);
+    this.graphics.stroke({ color: 0x555555, width: 1 });
+
+    // Highlight
+    this.graphics.circle(x - 4, y - 6, 3);
+    this.graphics.fill({ color: 0xAAAAAA, alpha: 0.5 });
   }
 
   drawPlant(plant: Plant, x: number, y: number) {
@@ -94,19 +115,33 @@ export class HexRenderer {
 
     if (stage < 5) {
         // Sprout
-        this.graphics.circle(x, y, size);
+        this.graphics.circle(x, y + 5, size);
         this.graphics.fill({ color: 0x32CD32, alpha: 1 });
+        // Leaves
+        this.graphics.ellipse(x - 4, y, 4, 8);
+        this.graphics.fill({ color: 0x228B22, alpha: 1 });
+        this.graphics.ellipse(x + 4, y, 4, 8);
+        this.graphics.fill({ color: 0x228B22, alpha: 1 });
     } else {
         // Mature
         this.graphics.circle(x, y, size);
         this.graphics.fill({ color, alpha: 1 });
+        this.graphics.stroke({ color: 0x000000, width: 1, alpha: 0.3 });
+
+        // Detail based on species
+        if (plant.species === 'pumpkin') {
+            this.graphics.moveTo(x, y - size);
+            this.graphics.lineTo(x, y + size);
+            this.graphics.stroke({ color: 0x8B4513, width: 1, alpha: 0.5 });
+        }
     }
 
     // Watering indicator
     const isWatered = (Date.now() - plant.lastWatered < 24 * 60 * 60 * 1000);
     if (isWatered) {
-        this.graphics.circle(x + 10, y + 10, 4);
-        this.graphics.fill({ color: 0x0000FF, alpha: 0.7 });
+        this.graphics.circle(x + 12, y + 12, 4);
+        this.graphics.fill({ color: 0x0000FF, alpha: 0.8 });
+        this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
     }
   }
 
@@ -122,6 +157,9 @@ export class HexRenderer {
     } else if (animal.species === 'chicken') {
         color = 0xFFFF00;
         sizeScale = 0.5;
+    } else if (animal.species === 'merchant') {
+        color = 0x800080; // Purple
+        sizeScale = 1.2;
     }
 
     this.graphics.ellipse(x, y, HEX_SIZE * 0.5 * sizeScale, HEX_SIZE * 0.3 * sizeScale);
@@ -138,6 +176,29 @@ export class HexRenderer {
     ]);
     this.graphics.fill({ color: 0x8B4513, alpha: 1 });
     this.graphics.stroke({ color: 0x3d2b1f, width: 2 });
+  }
+
+  drawFloor(entity: Entity, x: number, y: number) {
+    if (entity.species === 'tilled') {
+        const size = HEX_SIZE * 0.9;
+        this.graphics.poly([
+            x + size * Math.cos(0), y + size * Math.sin(0),
+            x + size * Math.cos(Math.PI/3), y + size * Math.sin(Math.PI/3),
+            x + size * Math.cos(2*Math.PI/3), y + size * Math.sin(2*Math.PI/3),
+            x + size * Math.cos(Math.PI), y + size * Math.sin(Math.PI),
+            x + size * Math.cos(4*Math.PI/3), y + size * Math.sin(4*Math.PI/3),
+            x + size * Math.cos(5*Math.PI/3), y + size * Math.sin(5*Math.PI/3),
+        ]);
+        this.graphics.fill({ color: 0x5D3A1A, alpha: 1 });
+        this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
+
+        // Furrows
+        for (let i = -2; i <= 2; i++) {
+            this.graphics.moveTo(x - size * 0.5, y + i * 4);
+            this.graphics.lineTo(x + size * 0.5, y + i * 4);
+            this.graphics.stroke({ color: 0x3D2B1F, width: 1, alpha: 0.5 });
+        }
+    }
   }
 
   drawHex(q: number, r: number, color: number) {
@@ -253,8 +314,13 @@ export class HexRenderer {
         this.updatePlantLabel(entity as any, x, y);
       } else if (entity.type === 'animal') {
         this.drawAnimal(entity as any, x, y);
+        if ((entity as any).species === 'merchant') {
+          this.updateMerchantLabel(entity as any, x, y);
+        }
       } else if (entity.type === 'fence') {
         this.drawFence(x, y);
+      } else if (entity.type === 'floor') {
+        this.drawFloor(entity, x, y);
       }
     });
 
@@ -282,23 +348,42 @@ export class HexRenderer {
     label.y = y - HEX_SIZE * 0.6;
   }
 
-  updatePlantLabel(plant: Plant, x: number, y: number) {
-    if (plant.growthStage < 5) {
-        if (this.plantLabels.has(plant.id)) {
-            this.plantLabels.get(plant.id)!.destroy();
-            this.plantLabels.delete(plant.id);
-        }
-        return;
+  updateMerchantLabel(animal: Animal, x: number, y: number) {
+    let label = this.playerLabels.get(animal.id);
+    if (!label) {
+        label = new PIXI.Text({
+            text: 'Merchant',
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 14,
+                fill: 0xFF00FF,
+                stroke: { color: 0x000000, width: 2 },
+                align: 'center'
+            }
+        });
+        label.anchor.set(0.5, 1.5);
+        this.container.addChild(label);
+        this.playerLabels.set(animal.id, label);
     }
+    label.x = x;
+    label.y = y - HEX_SIZE * 0.6;
+  }
+
+  updatePlantLabel(plant: Plant, x: number, y: number) {
+    const isMature = plant.growthStage >= 5;
+    const percentage = Math.floor((plant.growthStage / 5) * 100);
+    const text = isMature
+        ? plant.species.charAt(0).toUpperCase() + plant.species.slice(1)
+        : `${percentage}%`;
 
     let label = this.plantLabels.get(plant.id);
     if (!label) {
         label = new PIXI.Text({
-            text: plant.species.charAt(0).toUpperCase() + plant.species.slice(1),
+            text,
             style: {
                 fontFamily: 'Arial',
-                fontSize: 12,
-                fill: 0xFFFF00,
+                fontSize: isMature ? 12 : 10,
+                fill: isMature ? 0xFFFF00 : 0xFFFFFF,
                 stroke: { color: 0x000000, width: 2 },
                 align: 'center'
             }
@@ -306,6 +391,10 @@ export class HexRenderer {
         label.anchor.set(0.5, 1.5);
         this.container.addChild(label);
         this.plantLabels.set(plant.id, label);
+    } else {
+        label.text = text;
+        label.style.fill = isMature ? 0xFFFF00 : 0xFFFFFF;
+        label.style.fontSize = isMature ? 12 : 10;
     }
     label.x = x;
     label.y = y - HEX_SIZE * 0.4;

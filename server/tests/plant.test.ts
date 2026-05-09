@@ -1,5 +1,5 @@
-import { updatePlant } from '../src/logic/PlantLogic.js';
-import type { Plant } from 'common';
+import { updatePlant } from '../src/logic/PlantLogic';
+import type { Plant } from '../../common/src/types';
 
 describe('PlantLogic', () => {
   it('grows plants over time', () => {

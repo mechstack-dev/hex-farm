@@ -1,6 +1,6 @@
 export const CHUNK_SIZE = 16;
 
-export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence';
+export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor';
 
 export interface Position {
   q: number;
@@ -34,6 +34,7 @@ export interface Player extends Entity {
   type: 'player';
   name: string;
   inventory: Record<string, number>;
+  coins: number;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
