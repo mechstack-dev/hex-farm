@@ -172,6 +172,20 @@ export class HexRenderer {
     this.graphics.ellipse(x, bounceY, HEX_SIZE * 0.5 * sizeScale, HEX_SIZE * 0.3 * sizeScale);
     this.graphics.fill({ color, alpha: 1 });
     this.graphics.stroke({ color: 0x000000, width: 1 });
+
+    // Eyes
+    this.graphics.circle(x + HEX_SIZE * 0.3 * sizeScale, bounceY - HEX_SIZE * 0.1 * sizeScale, 2);
+    this.graphics.fill({ color: 0x000000, alpha: 1 });
+
+    // Patterns/Details
+    if (animal.species === 'cow') {
+        this.graphics.circle(x - 5, bounceY, 4);
+        this.graphics.fill({ color: 0x000000, alpha: 0.8 });
+    } else if (animal.species === 'chicken') {
+        this.graphics.moveTo(x + 5, bounceY - 5);
+        this.graphics.lineTo(x + 10, bounceY - 5);
+        this.graphics.stroke({ color: 0xFF0000, width: 2 }); // Comb
+    }
   }
 
   drawFence(x: number, y: number) {
@@ -474,6 +488,23 @@ export class HexRenderer {
         this.overlay.rect(0, 0, this.app.screen.width, this.app.screen.height);
         this.overlay.fill({ color, alpha });
     }
+
+    // Draw Sun/Moon
+    const sunMoonAlpha = 0.8;
+    let smColor = 0xFFFF00; // Sun
+    let smX = this.app.screen.width * timeOfDay;
+    let smY = 50 + Math.sin(timeOfDay * Math.PI) * 100;
+
+    if (timeOfDay < 0.25 || timeOfDay > 0.75) {
+        smColor = 0xCCCCCC; // Moon
+        // Adjust position for moon
+        const moonTime = (timeOfDay + 0.5) % 1.0;
+        smX = this.app.screen.width * moonTime;
+        smY = 50 + Math.sin(moonTime * Math.PI) * 100;
+    }
+
+    this.overlay.circle(smX, smY, 20);
+    this.overlay.fill({ color: smColor, alpha: sunMoonAlpha });
   }
 
   destroy() {

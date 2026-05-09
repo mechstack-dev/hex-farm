@@ -67,7 +67,16 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Animals:** Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
   - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops and animal products in your inventory for coins.
     - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Milk (20), Wool (30), Egg (10).
-    - **Purchasing:** Stand near or at the merchant's position and press **4** (Turnip Seed - 5 coins), **5** (Carrot Seed - 15 coins), **6** (Pumpkin Seed - 35 coins), or **7** (Sprinkler Kit - 100 coins).
+    - **Purchasing:** Stand near or at the merchant's position and press:
+      - **4**: Turnip Seed (5 coins)
+      - **5**: Carrot Seed (15 coins)
+      - **6**: Pumpkin Seed (35 coins)
+      - **7**: Sprinkler Kit (100 coins)
+      - **8**: Hoe (50 coins)
+      - **9**: Watering Can (50 coins)
+      - **0**: Axe (50 coins)
+      - **-**: Pickaxe (50 coins)
+    - **Merchant Compass:** A UI element shows the distance and direction to the merchant when you are far from (0,0).
 8. **Inventory:** Harvested crops, collected animal products, and seeds are added to the player's inventory, which is visible in the UI.
 9. **Economy:** Players earn coins by selling crops to the merchant and spend them to buy seeds.
 7. **Observation:** Watching the world slowly change over days and weeks.
@@ -129,7 +138,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Infrastructure:** Building and removing fences.
 - [x] **Smooth Animations:** Continuous interpolation for player and animal movement, and swaying/bouncing effects for plants/animals.
 - [x] **Automation:** Sprinklers to automate watering.
-- [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites. (Ongoing: improved PixiJS shapes and shading)
+- [x] **UI/UX:** Merchant Compass to help players find the origin.
+- [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites. (Ongoing: improved PixiJS shapes, shading, and animal details)
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
 - [x] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.
 - [x] **More Animals:** Add more species with unique behaviors (e.g., chickens).

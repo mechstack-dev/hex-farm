@@ -11,7 +11,7 @@
       "growthStage": 5,
       "plantedAt": 1778242463717,
       "lastWatered": 0,
-      "lastUpdate": 1778341303005
+      "lastUpdate": 1778362770240
     },
     {
       "id": "fence-2-0",
@@ -32,18 +32,7 @@
       "growthStage": 5,
       "plantedAt": 1778253168204,
       "lastWatered": 0,
-      "lastUpdate": 1778341303005
-    },
-    {
-      "id": "animal--15--14",
-      "type": "animal",
-      "species": "sheep",
-      "pos": {
-        "q": -15,
-        "r": -14
-      },
-      "nextMoveTime": 1778341305049.8613,
-      "lastProductTime": 0
+      "lastUpdate": 1778362770240
     },
     {
       "id": "animal--2-16",
@@ -51,20 +40,9 @@
       "species": "sheep",
       "pos": {
         "q": 5,
-        "r": 7
+        "r": 6
       },
-      "nextMoveTime": 1778341312453.6616,
-      "lastProductTime": 0
-    },
-    {
-      "id": "animal-3-15",
-      "type": "animal",
-      "species": "cow",
-      "pos": {
-        "q": 4,
-        "r": 17
-      },
-      "nextMoveTime": 1778341309888.9246,
+      "nextMoveTime": 1778362785027.1453,
       "lastProductTime": 0
     },
     {
@@ -96,17 +74,17 @@
       "growthStage": 5,
       "plantedAt": 1778319338136,
       "lastWatered": 1778319339448,
-      "lastUpdate": 1778341303005
+      "lastUpdate": 1778362770240
     },
     {
       "id": "animal--14--2",
       "type": "animal",
       "species": "sheep",
       "pos": {
-        "q": -14,
-        "r": -2
+        "q": -13,
+        "r": -3
       },
-      "nextMoveTime": 1778341312047.5632,
+      "nextMoveTime": 1778362774499.9473,
       "lastProductTime": 0
     },
     {
@@ -115,9 +93,9 @@
       "species": "sheep",
       "pos": {
         "q": 2,
-        "r": -6
+        "r": -7
       },
-      "nextMoveTime": 1778341307995.6467,
+      "nextMoveTime": 1778362781242.6318,
       "lastProductTime": 0
     },
     {
@@ -147,21 +125,10 @@
       "type": "animal",
       "species": "sheep",
       "pos": {
-        "q": -2,
-        "r": 20
+        "q": -3,
+        "r": 22
       },
-      "nextMoveTime": 1778341306355.3784,
-      "lastProductTime": 0
-    },
-    {
-      "id": "animal-0-24",
-      "type": "animal",
-      "species": "chicken",
-      "pos": {
-        "q": 1,
-        "r": 24
-      },
-      "nextMoveTime": 1778341309921.7478,
+      "nextMoveTime": 1778362771096.8225,
       "lastProductTime": 0
     },
     {
@@ -169,10 +136,10 @@
       "type": "animal",
       "species": "cow",
       "pos": {
-        "q": 21,
-        "r": -15
+        "q": 22,
+        "r": -16
       },
-      "nextMoveTime": 1778341309110.073,
+      "nextMoveTime": 1778362775984.4404,
       "lastProductTime": 0
     },
     {
@@ -191,21 +158,10 @@
       "type": "animal",
       "species": "cow",
       "pos": {
-        "q": 20,
-        "r": 5
+        "q": 19,
+        "r": 7
       },
-      "nextMoveTime": 1778341308936.9302,
-      "lastProductTime": 0
-    },
-    {
-      "id": "animal-28-3",
-      "type": "animal",
-      "species": "sheep",
-      "pos": {
-        "q": 28,
-        "r": 0
-      },
-      "nextMoveTime": 1778341310203.959,
+      "nextMoveTime": 1778362781519.3564,
       "lastProductTime": 0
     },
     {
@@ -213,10 +169,10 @@
       "type": "animal",
       "species": "sheep",
       "pos": {
-        "q": 2,
-        "r": 4
+        "q": 1,
+        "r": 5
       },
-      "nextMoveTime": 1778341303249.4553,
+      "nextMoveTime": 1778362771586.255,
       "lastProductTime": 0
     },
     {
@@ -225,9 +181,9 @@
       "species": "chicken",
       "pos": {
         "q": 3,
-        "r": -9
+        "r": -6
       },
-      "nextMoveTime": 1778341310257.953,
+      "nextMoveTime": 1778362774350.1277,
       "lastProductTime": 0
     },
     {
@@ -235,10 +191,10 @@
       "type": "animal",
       "species": "cow",
       "pos": {
-        "q": 23,
+        "q": 25,
         "r": -10
       },
-      "nextMoveTime": 1778341307006.8867,
+      "nextMoveTime": 1778362771513.858,
       "lastProductTime": 0
     },
     {
@@ -257,10 +213,10 @@
       "type": "animal",
       "species": "chicken",
       "pos": {
-        "q": 20,
-        "r": -7
+        "q": 18,
+        "r": -6
       },
-      "nextMoveTime": 1778341308035.2502,
+      "nextMoveTime": 1778362770328.7102,
       "lastProductTime": 0
     },
     {
@@ -455,10 +411,10 @@
       "type": "animal",
       "species": "chicken",
       "pos": {
-        "q": -28,
-        "r": -11
+        "q": -30,
+        "r": -13
       },
-      "nextMoveTime": 1778341309761.6265,
+      "nextMoveTime": 1778362784001.679,
       "lastProductTime": 0
     },
     {
@@ -470,6 +426,61 @@
         "r": 16
       },
       "nextMoveTime": 1778341308072.2322,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-0-24",
+      "type": "animal",
+      "species": "chicken",
+      "pos": {
+        "q": -1,
+        "r": 25
+      },
+      "nextMoveTime": 1778362782608.7722,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-28-3",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": 27,
+        "r": 0
+      },
+      "nextMoveTime": 1778362774219.8242,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal--24--13",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": -23,
+        "r": -14
+      },
+      "nextMoveTime": 1778362774905.0947,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal--15--14",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": -19,
+        "r": -11
+      },
+      "nextMoveTime": 1778362774675.7031,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-3-15",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": 4,
+        "r": 16
+      },
+      "nextMoveTime": 1778362773766.7512,
       "lastProductTime": 0
     }
   ],

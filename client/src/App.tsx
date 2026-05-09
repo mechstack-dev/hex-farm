@@ -139,6 +139,14 @@ function App() {
         socket.emit('buy_seed', 'pumpkin');
       } else if (e.key.toLowerCase() === '7') {
         socket.emit('buy_sprinkler');
+      } else if (e.key.toLowerCase() === '8') {
+        socket.emit('buy_tool', 'hoe');
+      } else if (e.key.toLowerCase() === '9') {
+        socket.emit('buy_tool', 'watering-can');
+      } else if (e.key.toLowerCase() === '0') {
+        socket.emit('buy_tool', 'axe');
+      } else if (e.key.toLowerCase() === '-') {
+        socket.emit('buy_tool', 'pickaxe');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -150,6 +158,29 @@ function App() {
       renderer.current.renderWorld(Array.from(entities.values()), playerPos, environment);
     }
   }, [entities, playerPos, environment]);
+
+  const getMerchantDirection = () => {
+    if (playerPos.q === 0 && playerPos.r === 0) return null;
+
+    // Simple compass logic: just distance and general direction
+    const dist = Math.sqrt(playerPos.q * playerPos.q + playerPos.r * playerPos.r + playerPos.q * playerPos.r);
+    if (dist < 5) return null; // Hide if close enough
+
+    // Calculate angle in axial coordinates is tricky, but let's just use a simple arrow
+    // based on q and r
+    let arrow = '↑';
+    if (playerPos.q > 0 && playerPos.r >= 0) arrow = '↖';
+    else if (playerPos.q > 0 && playerPos.r < 0) arrow = playerPos.q > -playerPos.r ? '←' : '↙';
+    else if (playerPos.q <= 0 && playerPos.r < 0) arrow = '↘';
+    else if (playerPos.q < 0 && playerPos.r <= 0) arrow = '↗';
+    else if (playerPos.q < 0 && playerPos.r > 0) arrow = -playerPos.q > playerPos.r ? '→' : '↘';
+    else if (playerPos.q >= 0 && playerPos.r > 0) arrow = '↖';
+
+    // Actually, a better way is to use pixel coordinates for angle
+    // We don't have axialToPixel here, but we can approximate or just use q,r
+    // Let's use a simpler heuristic for now or just show the distance.
+    return { arrow, dist: Math.round(dist) };
+  };
 
   const categorizedInventory = () => {
     const categories: Record<string, {name: string, items: [string, number][]}> = {
@@ -197,10 +228,15 @@ function App() {
           <p>Time: {Math.floor(environment.timeOfDay * 24).toString().padStart(2, '0')}:{Math.floor((environment.timeOfDay * 24 * 60) % 60).toString().padStart(2, '0')}</p>
         </div>
         <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
+        {getMerchantDirection() && (
+          <p style={{ color: '#FF00FF', fontWeight: 'bold' }}>
+            Merchant: {getMerchantDirection()?.dist} hexes away {getMerchantDirection()?.arrow}
+          </p>
+        )}
         <p>Use WASD or Arrow Keys to move</p>
         <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>X</b> to Clear</p>
         <p>Plowing, Watering, and Clearing require tools (Hoe, Watering Can, Axe, Pickaxe)</p>
-        <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>7</b> to Buy Sprinkler (Near Merchant)</p>
+        <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>7</b> to Buy Sprinkler, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
           <h3>Inventory</h3>
