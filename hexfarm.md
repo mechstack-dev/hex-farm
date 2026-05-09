@@ -56,17 +56,18 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 
 ### Farming (Current)
 1. **Planting:** Players can plant specific seeds on empty hexes by pressing **1** (Turnip), **2** (Carrot), or **3** (Pumpkin).
-3. **Plowing:** Pressing **P** plows the current hex, creating tilled soil. Land must be plowed before seeds can be planted. Pressing **P** again on empty tilled soil removes it.
+3. **Plowing:** Pressing **P** plows the current hex, creating tilled soil. Requires a **Hoe** in inventory. Land must be plowed before seeds can be planted. Pressing **P** again on empty tilled soil removes it.
 4. **Paths:** Pressing **R** builds a path at the player's position. Paths are decorative and persistent. Pressing **R** again on a path removes it.
-5. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). A blue indicator appears on watered plants.
+5. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). Requires a **Watering Can** in inventory. A blue indicator appears on watered plants.
 6. **Automation:** Pressing **K** installs a **Sprinkler** if you have a Sprinkler Kit in your inventory. Sprinklers automatically water all plants in the same hex and 6 neighboring hexes.
 5. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
+6. **Clearing:** Pressing **X** clears an obstacle at the player's current position. Trees require an **Axe**, and rocks require a **Pickaxe**.
 6. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
-7. **Interacting:** Pressing **E** interacts with animals at the player's current position.
+7. **Interacting:** Pressing **E** interacts with animals at or adjacent to the player's position.
    - **Animals:** Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
   - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops and animal products in your inventory for coins.
     - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Milk (20), Wool (30), Egg (10).
-    - **Purchasing:** Stand near the merchant and press **4** (Turnip Seed - 5 coins), **5** (Carrot Seed - 15 coins), **6** (Pumpkin Seed - 35 coins), or **7** (Sprinkler Kit - 100 coins).
+    - **Purchasing:** Stand near or at the merchant's position and press **4** (Turnip Seed - 5 coins), **5** (Carrot Seed - 15 coins), **6** (Pumpkin Seed - 35 coins), or **7** (Sprinkler Kit - 100 coins).
 8. **Inventory:** Harvested crops, collected animal products, and seeds are added to the player's inventory, which is visible in the UI.
 9. **Economy:** Players earn coins by selling crops to the merchant and spend them to buy seeds.
 7. **Observation:** Watching the world slowly change over days and weeks.
@@ -136,6 +137,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Land Preparation:** Plowing (tilled soil) mechanic.
 - [x] **Infrastructure:** Building paths.
 - [x] **UX:** In-game notifications for actions and errors.
+- [x] **Tool Requirements:** Plowing, watering, and clearing now require specific tools.
+- [x] **Obstacle Removal:** Players can clear trees and rocks using axes and pickaxes.
 
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.

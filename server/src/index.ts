@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import { distance, GAME_DAY } from 'common';
+import { distance, GAME_DAY, getNeighbors } from 'common';
 import type { Player, Position, Plant } from 'common';
 
 const app = express();
@@ -36,7 +36,11 @@ io.on('connection', (socket) => {
       inventory: {
         'turnip-seed': 5,
         'carrot-seed': 2,
-        'pumpkin-seed': 1
+        'pumpkin-seed': 1,
+        'hoe': 1,
+        'watering-can': 1,
+        'axe': 1,
+        'pickaxe': 1
       },
       coins: 0
     };
@@ -102,6 +106,10 @@ io.on('connection', (socket) => {
   socket.on('plow', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!player.inventory['hoe'] || player.inventory['hoe'] <= 0) {
+        notify(socket.id, "You need a hoe to plow land!", 'error');
+        return;
+      }
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const floor = entities.find(e => e.type === 'floor');
       if (!floor) {
@@ -223,6 +231,10 @@ io.on('connection', (socket) => {
   socket.on('water', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!player.inventory['watering-can'] || player.inventory['watering-can'] <= 0) {
+        notify(socket.id, "You need a watering can!", 'error');
+        return;
+      }
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       if (plant) {
@@ -236,7 +248,10 @@ io.on('connection', (socket) => {
   socket.on('buy_seed', (species: string) => {
     const player = players.get(socket.id);
     if (player) {
-      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const entities = [
+        ...world.getEntitiesAt(player.pos.q, player.pos.r),
+        ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
+      ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
         const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35 };
@@ -259,7 +274,10 @@ io.on('connection', (socket) => {
   socket.on('buy_sprinkler', () => {
     const player = players.get(socket.id);
     if (player) {
-      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const entities = [
+        ...world.getEntitiesAt(player.pos.q, player.pos.r),
+        ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
+      ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
         const price = 100;
@@ -302,10 +320,42 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('interact', () => {
+  socket.on('clear_obstacle', () => {
     const player = players.get(socket.id);
     if (player) {
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const obstacle = entities.find(e => e.type === 'obstacle');
+      if (obstacle) {
+        if (obstacle.id.startsWith('tree')) {
+          if (!player.inventory['axe'] || player.inventory['axe'] <= 0) {
+            notify(socket.id, "You need an axe to cut down trees!", 'error');
+            return;
+          }
+          world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
+          notify(socket.id, "Cut down tree.", 'success');
+        } else if (obstacle.id.startsWith('rock')) {
+          if (!player.inventory['pickaxe'] || player.inventory['pickaxe'] <= 0) {
+            notify(socket.id, "You need a pickaxe to break rocks!", 'error');
+            return;
+          }
+          world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
+          notify(socket.id, "Broke rock.", 'success');
+        }
+      } else {
+        notify(socket.id, "Nothing to clear here.", 'info');
+      }
+    }
+  });
+
+  socket.on('interact', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = [
+        ...world.getEntitiesAt(player.pos.q, player.pos.r),
+        ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
+      ];
       const animal = entities.find(e => e.type === 'animal') as any;
       if (animal) {
         if (animal.species === 'merchant') {
