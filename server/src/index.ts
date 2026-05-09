@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
       }
 
       const entities = world.getEntitiesAt(pos.q, pos.r);
-      const isBlocked = entities.some(e => e.type === 'obstacle' || e.type === 'animal' || e.type === 'fence');
+      const isBlocked = entities.some(e => e.type === 'obstacle' || e.type === 'fence');
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
         player.pos = pos;
@@ -186,6 +186,24 @@ io.on('connection', (socket) => {
         plant.lastWatered = Date.now();
         world.updateEntity(plant);
         io.emit('entityUpdate', plant);
+      }
+    }
+  });
+
+  socket.on('buy_seed', (species: string) => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
+      if (isNearMerchant) {
+        const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35 };
+        const price = seedPrices[species];
+        if (price !== undefined && player.coins >= price) {
+          player.coins -= price;
+          const seedType = `${species}-seed`;
+          player.inventory[seedType] = (player.inventory[seedType] || 0) + 1;
+          socket.emit('entityUpdate', player);
+        }
       }
     }
   });
