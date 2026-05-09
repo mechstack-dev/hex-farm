@@ -185,6 +185,25 @@ export class HexRenderer {
     this.graphics.stroke({ color: 0x3d2b1f, width: 2 });
   }
 
+  drawSprinkler(x: number, y: number) {
+    // Base
+    this.graphics.circle(x, y, 8);
+    this.graphics.fill({ color: 0x4682B4, alpha: 1 });
+    this.graphics.stroke({ color: 0x333333, width: 1 });
+
+    // Rotating head (animated)
+    const angle = Date.now() / 200;
+    const hx = x + Math.cos(angle) * 10;
+    const hy = y + Math.sin(angle) * 10;
+
+    this.graphics.moveTo(x, y);
+    this.graphics.lineTo(hx, hy);
+    this.graphics.stroke({ color: 0x87CEEB, width: 3 });
+
+    this.graphics.circle(hx, hy, 3);
+    this.graphics.fill({ color: 0x00BFFF, alpha: 1 });
+  }
+
   drawFloor(entity: Entity, x: number, y: number) {
     if (entity.species === 'tilled') {
         const size = HEX_SIZE * 0.9;
@@ -346,6 +365,8 @@ export class HexRenderer {
         }
       } else if (entity.type === 'fence') {
         this.drawFence(x, y);
+      } else if (entity.type === 'sprinkler') {
+        this.drawSprinkler(x, y);
       } else if (entity.type === 'floor') {
         this.drawFloor(entity, x, y);
       }

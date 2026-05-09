@@ -11,7 +11,7 @@
       "growthStage": 5,
       "plantedAt": 1778242463717,
       "lastWatered": 0,
-      "lastUpdate": 1778319372137
+      "lastUpdate": 1778330079569
     },
     {
       "id": "fence-2-0",
@@ -32,7 +32,7 @@
       "growthStage": 5,
       "plantedAt": 1778253168204,
       "lastWatered": 0,
-      "lastUpdate": 1778319372137
+      "lastUpdate": 1778330079569
     },
     {
       "id": "animal--15--14",
@@ -40,9 +40,9 @@
       "species": "sheep",
       "pos": {
         "q": -15,
-        "r": -15
+        "r": -14
       },
-      "nextMoveTime": 1778319372820.0828,
+      "nextMoveTime": 1778330083313.305,
       "lastProductTime": 0
     },
     {
@@ -50,10 +50,10 @@
       "type": "animal",
       "species": "sheep",
       "pos": {
-        "q": 4,
-        "r": 7
+        "q": 2,
+        "r": 8
       },
-      "nextMoveTime": 1778319384913.5242,
+      "nextMoveTime": 1778330083652.1292,
       "lastProductTime": 0
     },
     {
@@ -61,10 +61,10 @@
       "type": "animal",
       "species": "cow",
       "pos": {
-        "q": 2,
-        "r": 16
+        "q": 3,
+        "r": 17
       },
-      "nextMoveTime": 1778319377213.6687,
+      "nextMoveTime": 1778330089793.321,
       "lastProductTime": 0
     },
     {
@@ -93,10 +93,21 @@
         "q": 0,
         "r": -1
       },
-      "growthStage": 0.04655416666666665,
+      "growthStage": 5,
       "plantedAt": 1778319338136,
       "lastWatered": 1778319339448,
-      "lastUpdate": 1778319372137
+      "lastUpdate": 1778330079569
+    },
+    {
+      "id": "animal--14--2",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": -14,
+        "r": -2
+      },
+      "nextMoveTime": 1778330087364.498,
+      "lastProductTime": 0
     },
     {
       "id": "animal--2--8",
@@ -106,7 +117,7 @@
         "q": 0,
         "r": -5
       },
-      "nextMoveTime": 1778319375375.174,
+      "nextMoveTime": 1778330081764.1243,
       "lastProductTime": 0
     },
     {
@@ -114,10 +125,21 @@
       "type": "animal",
       "species": "chicken",
       "pos": {
-        "q": 29,
-        "r": -1
+        "q": 31,
+        "r": 0
       },
-      "nextMoveTime": 1778319381242.987,
+      "nextMoveTime": 1778330087973.5823,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-29--5",
+      "type": "animal",
+      "species": "chicken",
+      "pos": {
+        "q": 31,
+        "r": -6
+      },
+      "nextMoveTime": 1778330083777.2078,
       "lastProductTime": 0
     }
   ]
