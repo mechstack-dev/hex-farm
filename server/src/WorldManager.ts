@@ -95,7 +95,8 @@ export class WorldManager {
     const key = chunkToKey(cq, cr);
     let chunk = this.chunks.get(key);
     if (!chunk) {
-      const staticEntities = this.generator.generateStaticEntities(cq, cr, CHUNK_SIZE);
+      const staticEntities = this.generator.generateStaticEntities(cq, cr, CHUNK_SIZE)
+        .filter(e => !this.persistentEntities.has(e.id));
       chunk = { q: cq, r: cr, entities: staticEntities };
 
       // Add persistent entities that belong to this chunk

@@ -18,6 +18,19 @@ export class Generator {
 
     for (let q = cq * chunkSize; q < (cq + 1) * chunkSize; q++) {
       for (let r = cr * chunkSize; r < (cr + 1) * chunkSize; r++) {
+        // Spawn merchant at origin
+        if (q === 0 && r === 0) {
+            entities.push({
+                id: 'animal-merchant',
+                type: 'animal',
+                species: 'merchant',
+                pos: { q: 0, r: 0 },
+                nextMoveTime: Infinity, // Merchant doesn't move
+                lastProductTime: 0
+            } as unknown as Entity);
+            continue;
+        }
+
         const n = this.noise(q * 0.1, r * 0.1);
         if (n > 0.5) {
           entities.push({

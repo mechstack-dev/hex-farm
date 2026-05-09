@@ -11,6 +11,7 @@ function App() {
   const renderer = useRef<HexRenderer | null>(null);
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
   const [playerInventory, setPlayerInventory] = useState<Record<string, number>>({});
+  const [playerCoins, setPlayerCoins] = useState<number>(0);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
   const loadedChunks = useRef<Set<string>>(new Set());
@@ -62,6 +63,7 @@ function App() {
       if (entity.id === socket.id) {
         setPlayerPos(entity.pos);
         setPlayerInventory((entity as any).inventory || {});
+        setPlayerCoins((entity as any).coins || 0);
         requestChunksAround(entity.pos.q, entity.pos.r);
       }
     });
@@ -112,6 +114,8 @@ function App() {
         socket.emit('build_fence');
       } else if (e.key.toLowerCase() === 'e') {
         socket.emit('interact');
+      } else if (e.key.toLowerCase() === 'p') {
+        socket.emit('plow');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -135,9 +139,9 @@ function App() {
           <p>Day: {environment.dayCount + 1}</p>
           <p>Time: {Math.floor(environment.timeOfDay * 24).toString().padStart(2, '0')}:{Math.floor((environment.timeOfDay * 24 * 60) % 60).toString().padStart(2, '0')}</p>
         </div>
-        <p>Position: {playerPos.q}, {playerPos.r}</p>
+        <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1, 2, 3</b> to Plant, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Build/Remove Fence, <b>E</b> to Interact with Animals</p>
+        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Build/Remove Fence, <b>E</b> to Interact</p>
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}>
           <h3>Inventory</h3>
           {Object.entries(playerInventory).length === 0 ? <p>Empty</p> : (
