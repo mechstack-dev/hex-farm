@@ -1,4 +1,5 @@
 export const CHUNK_SIZE = 16;
+export const GAME_DAY = 24 * 60 * 1000; // 24 minutes
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor';
 

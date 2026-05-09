@@ -119,7 +119,7 @@ export class WorldManager {
     const chunk = this.getChunk(cq, cr);
     chunk.entities.push(entity);
 
-    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal') {
+    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor') {
       if (!this.persistentEntities.has(entity.id)) {
           this.addToPersistence(entity);
           this.markDirty();

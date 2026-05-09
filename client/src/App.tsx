@@ -116,6 +116,8 @@ function App() {
         socket.emit('interact');
       } else if (e.key.toLowerCase() === 'p') {
         socket.emit('plow');
+      } else if (e.key.toLowerCase() === 'r') {
+        socket.emit('build_path');
       } else if (e.key.toLowerCase() === '4') {
         socket.emit('buy_seed', 'turnip');
       } else if (e.key.toLowerCase() === '5') {
@@ -147,7 +149,7 @@ function App() {
         </div>
         <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Build/Remove Fence, <b>E</b> to Interact</p>
+        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Build Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Build/Remove Fence, <b>E</b> to Interact</p>
         <p>Press <b>4, 5, 6</b> to Buy Seeds (Near Merchant)</p>
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}>
           <h3>Inventory</h3>

@@ -1,9 +1,8 @@
-import { Season, Weather, EnvironmentState } from 'common';
+import { Season, Weather, EnvironmentState, GAME_DAY } from 'common';
 
 export class SeasonManager {
   private startTime: number;
-  // Let's make a day 24 minutes instead of 24 hours for testing/gameplay purposes
-  private DAY_DURATION = 24 * 60 * 1000;
+  private DAY_DURATION = GAME_DAY;
   private SEASON_DURATION = 7 * this.DAY_DURATION; // 7 days per season
 
   private currentSeason: Season = 'spring';

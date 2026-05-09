@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import { distance } from 'common';
+import { distance, GAME_DAY } from 'common';
 import type { Player, Position, Plant } from 'common';
 
 const app = express();
@@ -111,12 +111,36 @@ io.on('connection', (socket) => {
           world.addEntity(tilled);
           io.emit('entityUpdate', tilled);
         }
-      } else {
+      } else if (floor.species === 'tilled') {
         const isOccupiedByPlant = entities.some(e => e.type === 'plant');
         if (!isOccupiedByPlant) {
           world.removeEntity(floor.id, floor.pos.q, floor.pos.r);
           io.emit('entityRemove', { id: floor.id, pos: floor.pos });
         }
+      }
+    }
+  });
+
+  socket.on('build_path', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const floor = entities.find(e => e.type === 'floor');
+      if (!floor) {
+        const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+        if (!isOccupied) {
+          const path = {
+            id: `floor-${player.pos.q}-${player.pos.r}`,
+            type: 'floor' as const,
+            species: 'path',
+            pos: { ...player.pos }
+          };
+          world.addEntity(path);
+          io.emit('entityUpdate', path);
+        }
+      } else if (floor.species === 'path') {
+        world.removeEntity(floor.id, floor.pos.q, floor.pos.r);
+        io.emit('entityRemove', { id: floor.id, pos: floor.pos });
       }
     }
   });
@@ -232,7 +256,6 @@ io.on('connection', (socket) => {
         }
 
         const now = Date.now();
-        const GAME_DAY = 24 * 60 * 1000;
         if (now - animal.lastProductTime >= GAME_DAY) {
           let product = '';
           if (animal.species === 'cow') product = 'milk';

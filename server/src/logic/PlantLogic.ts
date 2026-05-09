@@ -1,9 +1,7 @@
 import type { Plant, Weather } from 'common';
+import { GAME_DAY } from 'common';
 
 const WATER_BONUS = 2;
-
-// One game day is 24 minutes
-const GAME_DAY = 24 * 60 * 1000;
 
 const SPECIES_GROWTH: Record<string, number> = {
   'turnip': GAME_DAY,   // 1 day per stage

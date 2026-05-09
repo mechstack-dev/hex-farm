@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import type { Entity, Position, Plant, Animal, EnvironmentState } from 'common';
-import { axialToPixel } from 'common';
+import { axialToPixel, GAME_DAY } from 'common';
 import { socket } from '../network';
 
 const HEX_SIZE = 30;
@@ -141,7 +141,7 @@ export class HexRenderer {
     }
 
     // Watering indicator
-    const isWatered = (Date.now() - plant.lastWatered < 24 * 60 * 60 * 1000);
+    const isWatered = (Date.now() - plant.lastWatered < GAME_DAY);
     if (isWatered) {
         this.graphics.circle(x + 12, y + 12, 4);
         this.graphics.fill({ color: 0x0000FF, alpha: 0.8 });
@@ -204,6 +204,26 @@ export class HexRenderer {
             this.graphics.moveTo(x - size * 0.5, y + i * 4);
             this.graphics.lineTo(x + size * 0.5, y + i * 4);
             this.graphics.stroke({ color: 0x3D2B1F, width: 1, alpha: 0.5 });
+        }
+    } else if (entity.species === 'path') {
+        const size = HEX_SIZE * 0.8;
+        this.graphics.poly([
+            x + size * Math.cos(0), y + size * Math.sin(0),
+            x + size * Math.cos(Math.PI/3), y + size * Math.sin(Math.PI/3),
+            x + size * Math.cos(2*Math.PI/3), y + size * Math.sin(2*Math.PI/3),
+            x + size * Math.cos(Math.PI), y + size * Math.sin(Math.PI),
+            x + size * Math.cos(4*Math.PI/3), y + size * Math.sin(4*Math.PI/3),
+            x + size * Math.cos(5*Math.PI/3), y + size * Math.sin(5*Math.PI/3),
+        ]);
+        this.graphics.fill({ color: 0xC2B280, alpha: 1 }); // Sand/Gravel color
+        this.graphics.stroke({ color: 0x8B7D6B, width: 1 });
+
+        // Pebbles
+        for (let i = 0; i < 5; i++) {
+            const px = x + (Math.sin(i * 1.5) * size * 0.6);
+            const py = y + (Math.cos(i * 1.5) * size * 0.6);
+            this.graphics.circle(px, py, 2);
+            this.graphics.fill({ color: 0x808080, alpha: 0.8 });
         }
     }
   }

@@ -56,8 +56,9 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 
 ### Farming (Current)
 1. **Planting:** Players can plant specific seeds on empty hexes by pressing **1** (Turnip), **2** (Carrot), or **3** (Pumpkin).
-3. **Plowing:** Pressing **P** plows the current hex, creating tilled soil. Land must be plowed before seeds can be planted.
-4. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for 24 hours. A blue indicator appears on watered plants.
+3. **Plowing:** Pressing **P** plows the current hex, creating tilled soil. Land must be plowed before seeds can be planted. Pressing **P** again on empty tilled soil removes it.
+4. **Paths:** Pressing **R** builds a path at the player's position. Paths are decorative and persistent. Pressing **R** again on a path removes it.
+5. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). A blue indicator appears on watered plants.
 5. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
 6. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
 7. **Interacting:** Pressing **E** interacts with animals at the player's current position.
@@ -129,6 +130,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **More Animals:** Add more species with unique behaviors (e.g., chickens).
 - [x] **Economy:** Basic merchant system, currency (coins), and seed purchasing.
 - [x] **Land Preparation:** Plowing (tilled soil) mechanic.
+- [x] **Infrastructure:** Building paths.
 
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.
