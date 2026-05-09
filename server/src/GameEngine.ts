@@ -37,10 +37,6 @@ export class GameEngine {
       });
     });
 
-    if (updates.length > 0) {
-      this.world.markDirty();
-    }
-
     updates.forEach(({ oldEntity, newEntity, cq, cr }) => {
       const { cq: newCQ, cr: newCR } = getChunkCoords(newEntity.pos.q, newEntity.pos.r);
 
@@ -50,8 +46,7 @@ export class GameEngine {
         this.world.addEntity(newEntity);
       } else {
         // Stayed in the same chunk, just update it
-        const chunk = this.world.getChunk(cq, cr);
-        chunk.entities = chunk.entities.map(e => e.id === oldEntity.id ? newEntity : e);
+        this.world.updateEntity(newEntity);
       }
       updatedEntities.push(newEntity);
     });

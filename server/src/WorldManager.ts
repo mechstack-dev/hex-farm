@@ -118,11 +118,27 @@ export class WorldManager {
     const chunk = this.getChunk(cq, cr);
     chunk.entities.push(entity);
 
-    if (entity.type === 'plant' || entity.type === 'fence') {
+    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal') {
       if (!this.persistentEntities.has(entity.id)) {
           this.addToPersistence(entity);
           this.markDirty();
       }
+    }
+  }
+
+  updateEntity(entity: Entity) {
+    const { cq, cr } = getChunkCoords(entity.pos.q, entity.pos.r);
+    const chunk = this.getChunk(cq, cr);
+    chunk.entities = chunk.entities.map(e => e.id === entity.id ? entity : e);
+
+    if (this.persistentEntities.has(entity.id)) {
+      this.persistentEntities.set(entity.id, entity);
+      const key = chunkToKey(cq, cr);
+      const chunkPersistent = this.persistentByChunk.get(key);
+      if (chunkPersistent) {
+        this.persistentByChunk.set(key, chunkPersistent.map(e => e.id === entity.id ? entity : e));
+      }
+      this.markDirty();
     }
   }
 

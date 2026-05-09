@@ -27,6 +27,7 @@ export interface Animal extends Entity {
   type: 'animal';
   species: string;
   nextMoveTime: number;
+  lastProductTime: number;
 }
 
 export interface Player extends Entity {

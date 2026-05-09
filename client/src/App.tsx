@@ -110,6 +110,8 @@ function App() {
         socket.emit('harvest');
       } else if (e.key.toLowerCase() === 'f') {
         socket.emit('build_fence');
+      } else if (e.key.toLowerCase() === 'e') {
+        socket.emit('interact');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -135,7 +137,7 @@ function App() {
         </div>
         <p>Position: {playerPos.q}, {playerPos.r}</p>
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1, 2, 3</b> to Plant, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Build/Remove Fence</p>
+        <p>Press <b>1, 2, 3</b> to Plant, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Build/Remove Fence, <b>E</b> to Interact with Animals</p>
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px' }}>
           <h3>Inventory</h3>
           {Object.entries(playerInventory).length === 0 ? <p>Empty</p> : (

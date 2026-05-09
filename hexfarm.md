@@ -59,8 +59,9 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 2. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for 24 hours. A blue indicator appears on watered plants.
 3. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
 4. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
-5. **Inventory:** Harvested crops and seeds are added to the player's inventory, which is visible in the UI.
-5. **Observation:** Watching the world slowly change over days and weeks.
+5. **Interacting:** Pressing **E** interacts with animals at the player's current position. Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
+6. **Inventory:** Harvested crops, collected animal products, and seeds are added to the player's inventory, which is visible in the UI.
+7. **Observation:** Watching the world slowly change over days and weeks.
 6. **Social:** Coming across other players' farms and observing their progress.
 
 ---
@@ -106,10 +107,11 @@ The project is organized as a **TypeScript Monorepo**:
 ## 7. TODO / Roadmap
 
 ### High Priority
-- [x] **Persistence:** Basic file-based persistence for plants and fences.
+- [x] **Persistence:** Basic file-based persistence for plants, fences, and animals.
 - [x] **Harvesting:** Allow players to harvest mature plants and gain resources.
 - [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
-- [x] **Animal Spawning:** Deterministic spawning of cows and sheep in the procedural world.
+- [x] **Animal Spawning:** Deterministic spawning of cows, sheep, and chickens in the procedural world.
+- [x] **Animal Products:** Collect resources (milk, wool, eggs) from animals by interacting with them.
 - [x] **Multiple Crops:** Support for different plant species with unique growth durations.
 - [x] **Seasons & Weather:** Implement the real-time seasonal cycle and dynamic weather (rain waters plants).
 - [x] **Day/Night Cycle:** Visual representation of time of day with light/dark overlays.
