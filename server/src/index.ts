@@ -154,8 +154,34 @@ io.on('connection', (socket) => {
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       if (plant) {
         plant.lastWatered = Date.now();
-        world.markDirty();
+        world.updateEntity(plant);
         io.emit('entityUpdate', plant);
+      }
+    }
+  });
+
+  socket.on('interact', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const animal = entities.find(e => e.type === 'animal') as any;
+      if (animal) {
+        const now = Date.now();
+        const GAME_DAY = 24 * 60 * 1000;
+        if (now - animal.lastProductTime >= GAME_DAY) {
+          let product = '';
+          if (animal.species === 'cow') product = 'milk';
+          else if (animal.species === 'sheep') product = 'wool';
+          else if (animal.species === 'chicken') product = 'egg';
+
+          if (product) {
+            player.inventory[product] = (player.inventory[product] || 0) + 1;
+            animal.lastProductTime = now;
+            world.updateEntity(animal);
+            socket.emit('entityUpdate', player);
+            io.emit('entityUpdate', animal);
+          }
+        }
       }
     }
   });

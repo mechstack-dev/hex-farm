@@ -8,10 +8,10 @@
         "q": 1,
         "r": 0
       },
-      "growthStage": 0,
+      "growthStage": 5,
       "plantedAt": 1778242463717,
       "lastWatered": 0,
-      "lastUpdate": 1778242463717
+      "lastUpdate": 1778287256905
     },
     {
       "id": "fence-2-0",
@@ -29,10 +29,43 @@
         "q": 1,
         "r": 1
       },
-      "growthStage": 0,
+      "growthStage": 5,
       "plantedAt": 1778253168204,
       "lastWatered": 0,
-      "lastUpdate": 1778253168204
+      "lastUpdate": 1778287256905
+    },
+    {
+      "id": "animal--15--14",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": -15,
+        "r": -12
+      },
+      "nextMoveTime": 1778287258967.132,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal--2--8",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": -1,
+        "r": -8
+      },
+      "nextMoveTime": 1778287262007.962,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal--2-16",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": 0,
+        "r": 11
+      },
+      "nextMoveTime": 1778287263872.4214,
+      "lastProductTime": 0
     }
   ]
 }
