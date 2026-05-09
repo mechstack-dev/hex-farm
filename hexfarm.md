@@ -62,9 +62,9 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 6. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
 7. **Interacting:** Pressing **E** interacts with animals at the player's current position.
    - **Animals:** Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
-   - **Merchant:** A merchant resides at (0,0). Interacting with them sells all harvested crops in your inventory for coins.
+  - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops in your inventory for coins. You can also buy seeds from the merchant by pressing **4** (Turnip), **5** (Carrot), or **6** (Pumpkin) while standing on the same hex.
 8. **Inventory:** Harvested crops, collected animal products, and seeds are added to the player's inventory, which is visible in the UI.
-9. **Economy:** Players earn coins by selling crops to the merchant.
+9. **Economy:** Players earn coins by selling crops to the merchant and spend them to buy seeds.
 7. **Observation:** Watching the world slowly change over days and weeks.
 6. **Social:** Coming across other players' farms and observing their progress.
 
@@ -122,19 +122,19 @@ The project is organized as a **TypeScript Monorepo**:
 
 ### Medium Priority
 - [x] **Infrastructure:** Building and removing fences.
-- [x] **Smooth Animations:** Continuous interpolation for player and animal movement.
+- [x] **Smooth Animations:** Continuous interpolation for player and animal movement, and swaying/bouncing effects for plants/animals.
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites. (Ongoing: improved PixiJS shapes and shading)
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
 - [x] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.
 - [x] **More Animals:** Add more species with unique behaviors (e.g., chickens).
-- [x] **Economy:** Basic merchant system and currency (coins).
+- [x] **Economy:** Basic merchant system, currency (coins), and seed purchasing.
 - [x] **Land Preparation:** Plowing (tilled soil) mechanic.
 
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.
 - [ ] **Tools & Upgrades:** Specialized equipment for better farming efficiency.
 - [ ] **Advanced Infrastructure:** Building paths and simple farm buildings.
-- [ ] **Purchasable Items:** Spend coins on seeds, tools, or decorations from the merchant.
+- [ ] **Purchasable Items:** Spend coins on more than just seeds (tools, decorations) from the merchant.
 
 ---
 

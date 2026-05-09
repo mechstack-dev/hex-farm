@@ -108,6 +108,10 @@ export class HexRenderer {
     const stage = Math.floor(plant.growthStage);
     const size = (stage + 1) * (HEX_SIZE / 6);
 
+    // Simple swaying animation
+    const sway = Math.sin(Date.now() / 500 + x) * 2;
+    const swayX = stage < 5 ? x + sway : x;
+
     let color = 0x00FF00;
     if (plant.species === 'carrot') color = 0xFFA500;
     else if (plant.species === 'pumpkin') color = 0xFF8C00;
@@ -115,12 +119,12 @@ export class HexRenderer {
 
     if (stage < 5) {
         // Sprout
-        this.graphics.circle(x, y + 5, size);
+        this.graphics.circle(swayX, y + 5, size);
         this.graphics.fill({ color: 0x32CD32, alpha: 1 });
         // Leaves
-        this.graphics.ellipse(x - 4, y, 4, 8);
+        this.graphics.ellipse(swayX - 4, y, 4, 8);
         this.graphics.fill({ color: 0x228B22, alpha: 1 });
-        this.graphics.ellipse(x + 4, y, 4, 8);
+        this.graphics.ellipse(swayX + 4, y, 4, 8);
         this.graphics.fill({ color: 0x228B22, alpha: 1 });
     } else {
         // Mature
@@ -146,6 +150,9 @@ export class HexRenderer {
   }
 
   drawAnimal(animal: Animal, x: number, y: number) {
+    // Simple bounce animation
+    const bounce = Math.abs(Math.sin(Date.now() / 300 + x)) * 3;
+    const bounceY = y - bounce;
     let color = 0xFFFFFF;
     let sizeScale = 1.0;
     if (animal.species === 'cow') {
@@ -162,7 +169,7 @@ export class HexRenderer {
         sizeScale = 1.2;
     }
 
-    this.graphics.ellipse(x, y, HEX_SIZE * 0.5 * sizeScale, HEX_SIZE * 0.3 * sizeScale);
+    this.graphics.ellipse(x, bounceY, HEX_SIZE * 0.5 * sizeScale, HEX_SIZE * 0.3 * sizeScale);
     this.graphics.fill({ color, alpha: 1 });
     this.graphics.stroke({ color: 0x000000, width: 1 });
   }
