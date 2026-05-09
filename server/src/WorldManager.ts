@@ -9,6 +9,7 @@ export class WorldManager {
   private generator: Generator;
   private persistentEntities: Map<string, Entity> = new Map(); // id -> Entity
   private persistentByChunk: Map<string, Entity[]> = new Map(); // chunkKey -> Entity[]
+  private removedStaticIds: Set<string> = new Set();
   private players: Map<string, Player> = new Map();
   private dataFilePath = path.join(process.cwd(), 'data', 'world.json');
   private isDirty: boolean = false;
@@ -33,6 +34,9 @@ export class WorldManager {
         const data = JSON.parse(fs.readFileSync(this.dataFilePath, 'utf8'));
         const entities: Entity[] = data.entities || [];
         entities.forEach(e => this.addToPersistence(e));
+
+        const removedIds: string[] = data.removedStaticIds || [];
+        this.removedStaticIds = new Set(removedIds);
 
         // Re-distribute persistent entities into chunks if they are already loaded
         entities.forEach(entity => {
@@ -81,7 +85,8 @@ export class WorldManager {
 
     try {
       const data = {
-        entities: Array.from(this.persistentEntities.values())
+        entities: Array.from(this.persistentEntities.values()),
+        removedStaticIds: Array.from(this.removedStaticIds)
       };
       await fs.promises.writeFile(this.dataFilePath, JSON.stringify(data, null, 2));
       console.log('World state saved successfully.');
@@ -96,7 +101,7 @@ export class WorldManager {
     let chunk = this.chunks.get(key);
     if (!chunk) {
       const staticEntities = this.generator.generateStaticEntities(cq, cr, CHUNK_SIZE)
-        .filter(e => !this.persistentEntities.has(e.id));
+        .filter(e => !this.persistentEntities.has(e.id) && !this.removedStaticIds.has(e.id));
       chunk = { q: cq, r: cr, entities: staticEntities };
 
       // Add persistent entities that belong to this chunk
@@ -119,7 +124,7 @@ export class WorldManager {
     const chunk = this.getChunk(cq, cr);
     chunk.entities.push(entity);
 
-    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor') {
+    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler') {
       if (!this.persistentEntities.has(entity.id)) {
           this.addToPersistence(entity);
           this.markDirty();
@@ -140,6 +145,9 @@ export class WorldManager {
         this.persistentByChunk.set(key, chunkPersistent.map(e => e.id === entity.id ? entity : e));
       }
       this.markDirty();
+    } else if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler') {
+        this.addToPersistence(entity);
+        this.markDirty();
     }
   }
 
@@ -150,6 +158,9 @@ export class WorldManager {
 
     if (this.persistentEntities.has(id)) {
         this.removeFromPersistence(id, q, r);
+        this.markDirty();
+    } else if (id.startsWith('tree-') || id.startsWith('rock-')) {
+        this.removedStaticIds.add(id);
         this.markDirty();
     }
   }

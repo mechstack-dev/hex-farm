@@ -129,6 +129,8 @@ function App() {
         socket.emit('build_path');
       } else if (e.key.toLowerCase() === 'k') {
         socket.emit('build_sprinkler');
+      } else if (e.key.toLowerCase() === 'x') {
+        socket.emit('clear_obstacle');
       } else if (e.key.toLowerCase() === '4') {
         socket.emit('buy_seed', 'turnip');
       } else if (e.key.toLowerCase() === '5') {
@@ -196,7 +198,8 @@ function App() {
         </div>
         <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact</p>
+        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>X</b> to Clear</p>
+        <p>Plowing, Watering, and Clearing require tools (Hoe, Watering Can, Axe, Pickaxe)</p>
         <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>7</b> to Buy Sprinkler (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
