@@ -376,6 +376,29 @@ export class HexRenderer {
         // Lock
         this.graphics.rect(x - 2, y - 6, 4, 3);
         this.graphics.fill({ color: 0xFFD700, alpha: 1 });
+    } else if (entity.species === 'well') {
+        // Base (Circular stone wall)
+        this.graphics.circle(x, y, 15);
+        this.graphics.fill({ color: 0x808080, alpha: 1 });
+        this.graphics.stroke({ color: 0x333333, width: 2 });
+
+        // Inner water
+        this.graphics.circle(x, y, 10);
+        this.graphics.fill({ color: 0x4169E1, alpha: 1 });
+
+        // Roof support posts
+        this.graphics.rect(x - 12, y - 5, 3, 10);
+        this.graphics.rect(x + 9, y - 5, 3, 10);
+        this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+
+        // Roof
+        this.graphics.poly([
+            x - 16, y - 5,
+            x + 16, y - 5,
+            x, y - 20
+        ]);
+        this.graphics.fill({ color: 0xA52A2A, alpha: 1 });
+        this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
     }
   }
 
