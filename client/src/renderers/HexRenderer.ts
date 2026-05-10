@@ -174,6 +174,12 @@ export class HexRenderer {
             this.graphics.fill({ color: 0x228B22, alpha: 1 }); // Green stalk
             this.graphics.ellipse(x, y - size * 0.5, 4, 8);
             this.graphics.fill({ color: 0xFFFF00, alpha: 1 }); // Yellow cob
+        } else if (plant.species === 'wheat') {
+            for (let i = -1; i <= 1; i++) {
+                this.graphics.moveTo(x + i * 4, y + size);
+                this.graphics.lineTo(x + i * 4, y - size);
+                this.graphics.stroke({ color: 0xDAA520, width: 2 });
+            }
         }
     }
 
@@ -264,6 +270,31 @@ export class HexRenderer {
     this.graphics.fill({ color: 0x00BFFF, alpha: 1 });
   }
 
+  drawScarecrow(x: number, y: number) {
+    // Post
+    this.graphics.rect(x - 2, y, 4, 15);
+    this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+
+    // Arms
+    this.graphics.rect(x - 15, y - 5, 30, 3);
+    this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+
+    // Shirt
+    this.graphics.poly([
+        x - 10, y - 5,
+        x + 10, y - 5,
+        x + 8, y + 10,
+        x - 8, y + 10,
+    ]);
+    this.graphics.fill({ color: 0x0000FF, alpha: 1 });
+
+    // Head (Straw hat)
+    this.graphics.circle(x, y - 12, 6);
+    this.graphics.fill({ color: 0xF5F5DC, alpha: 1 });
+    this.graphics.rect(x - 10, y - 14, 20, 2);
+    this.graphics.fill({ color: 0xDEB887, alpha: 1 });
+  }
+
   drawFloor(entity: Entity, x: number, y: number) {
     if (entity.species === 'tilled') {
         const size = HEX_SIZE * 0.9;
@@ -304,6 +335,23 @@ export class HexRenderer {
             this.graphics.circle(px, py, 2);
             this.graphics.fill({ color: 0x808080, alpha: 0.8 });
         }
+    } else if (entity.species === 'grass') {
+        for (let i = 0; i < 3; i++) {
+            const gx = x + (i - 1) * 6;
+            this.graphics.moveTo(gx, y + 5);
+            this.graphics.lineTo(gx + 2, y - 5);
+            this.graphics.stroke({ color: 0x228B22, width: 2, alpha: 0.6 });
+        }
+    } else if (entity.species === 'flower') {
+        this.graphics.circle(x, y, 3);
+        this.graphics.fill({ color: 0xFF69B4, alpha: 0.8 });
+        this.graphics.circle(x, y, 1);
+        this.graphics.fill({ color: 0xFFFF00, alpha: 1 });
+    } else if (entity.species === 'sunflower') {
+        this.graphics.circle(x, y, 5);
+        this.graphics.fill({ color: 0xFFFF00, alpha: 0.9 });
+        this.graphics.circle(x, y, 2);
+        this.graphics.fill({ color: 0x4B2C20, alpha: 1 });
     }
   }
 
@@ -418,6 +466,8 @@ export class HexRenderer {
           this.drawTree(x, y);
         } else if (entity.species === 'rock' || (!entity.species && entity.id.startsWith('rock'))) {
           this.drawRock(x, y);
+        } else if (entity.species === 'scarecrow') {
+          this.drawScarecrow(x, y);
         }
       } else if (entity.type === 'plant') {
         this.drawPlant(entity as any, x, y);

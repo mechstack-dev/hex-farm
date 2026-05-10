@@ -53,6 +53,16 @@ export class Generator {
             species: 'rock',
             pos: { q, r }
           });
+        } else if (chunkRng() < 0.1) {
+          // Decorative floor
+          const rand = chunkRng();
+          const species = rand < 0.7 ? 'grass' : (rand < 0.9 ? 'flower' : 'sunflower');
+          entities.push({
+            id: `floor-${q}-${r}`,
+            type: 'floor',
+            species,
+            pos: { q, r }
+          });
         } else if (chunkRng() < 0.01) {
           // Spawn animal
           const rand = chunkRng();

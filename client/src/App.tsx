@@ -109,14 +109,21 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === '1') {
-        socket.emit('plant', 'turnip');
-      } else if (e.key.toLowerCase() === '2') {
-        socket.emit('plant', 'carrot');
-      } else if (e.key.toLowerCase() === '3') {
-        socket.emit('plant', 'pumpkin');
-      } else if (e.key.toLowerCase() === '4' && e.shiftKey) {
-        socket.emit('plant', 'corn');
+      if (e.code === 'Digit1') {
+        if (e.shiftKey) socket.emit('buy_seed', 'turnip');
+        else socket.emit('plant', 'turnip');
+      } else if (e.code === 'Digit2') {
+        if (e.shiftKey) socket.emit('buy_seed', 'carrot');
+        else socket.emit('plant', 'carrot');
+      } else if (e.code === 'Digit3') {
+        if (e.shiftKey) socket.emit('buy_seed', 'pumpkin');
+        else socket.emit('plant', 'pumpkin');
+      } else if (e.code === 'Digit4') {
+        if (e.shiftKey) socket.emit('buy_seed', 'corn');
+        else socket.emit('plant', 'corn');
+      } else if (e.code === 'Digit5') {
+        if (e.shiftKey) socket.emit('buy_seed', 'wheat');
+        else socket.emit('plant', 'wheat');
       } else if (e.key.toLowerCase() === 'i') {
         socket.emit('water');
       } else if (e.key.toLowerCase() === 'h') {
@@ -131,18 +138,14 @@ function App() {
         socket.emit('build_path');
       } else if (e.key.toLowerCase() === 'k') {
         socket.emit('build_sprinkler');
+      } else if (e.key.toLowerCase() === 'b') {
+        if (e.shiftKey) socket.emit('buy_kit', 'scarecrow-kit');
+        else socket.emit('build_scarecrow');
       } else if (e.key.toLowerCase() === 'x') {
         socket.emit('clear_obstacle');
-      } else if (e.key.toLowerCase() === '4') {
-        socket.emit('buy_seed', 'turnip');
-      } else if (e.key.toLowerCase() === '5') {
-        socket.emit('buy_seed', 'carrot');
-      } else if (e.key.toLowerCase() === '6') {
-        if (e.shiftKey) socket.emit('buy_seed', 'corn');
-        else socket.emit('buy_seed', 'pumpkin');
       } else if (e.key.toLowerCase() === '7') {
         if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
-        else socket.emit('buy_sprinkler');
+        else socket.emit('buy_kit', 'sprinkler-kit');
       } else if (e.key.toLowerCase() === '8') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
         else socket.emit('buy_tool', 'hoe');
@@ -213,7 +216,7 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat'].includes(item)) categories.crops.items.push([item, count]);
         else if (['wood', 'stone'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
@@ -256,9 +259,10 @@ function App() {
           </p>
         )}
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1, 2, 3</b> to Plant, <b>Shift+4</b> for Corn, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
+        <p>Press <b>1-5</b> to Plant, <b>Shift + 1-5</b> to Buy Seeds (Turnip, Carrot, Pumpkin, Corn, Wheat)</p>
+        <p>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
         <p>Plowing, Watering, Clearing, and Fishing require tools (Hoe, Watering Can, Axe, Pickaxe, Fishing Rod)</p>
-        <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>Shift+6</b> for Corn Seed, <b>7</b> to Buy Sprinkler, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
+        <p>Press <b>7</b> to Buy Sprinkler, <b>Shift+B</b> for Scarecrow Kit, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
         <p>Press <b>Shift + 7, 8, 9, 0, -</b> to Buy Fishing Rod or Copper Tools (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
