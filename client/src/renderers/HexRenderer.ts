@@ -333,10 +333,12 @@ export class HexRenderer {
 
     // Draw background hexes around player
     const viewRadius = 15;
-    for (let q = this.lastPlayerPos.q - viewRadius; q <= this.lastPlayerPos.q + viewRadius; q++) {
-      for (let r = this.lastPlayerPos.r - viewRadius; r <= this.lastPlayerPos.r + viewRadius; r++) {
-         this.drawHex(q, r, bgColor);
-      }
+    for (let q = -viewRadius; q <= viewRadius; q++) {
+        const r1 = Math.max(-viewRadius, -q - viewRadius);
+        const r2 = Math.min(viewRadius, -q + viewRadius);
+        for (let r = r1; r <= r2; r++) {
+            this.drawHex(this.lastPlayerPos.q + q, this.lastPlayerPos.r + r, bgColor);
+        }
     }
 
     // Highlight current player hex

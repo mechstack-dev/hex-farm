@@ -124,7 +124,7 @@ export class WorldManager {
     const chunk = this.getChunk(cq, cr);
     chunk.entities.push(entity);
 
-    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler') {
+    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler' || entity.type === 'player') {
       if (!this.persistentEntities.has(entity.id)) {
           this.addToPersistence(entity);
           this.markDirty();
@@ -145,20 +145,22 @@ export class WorldManager {
         this.persistentByChunk.set(key, chunkPersistent.map(e => e.id === entity.id ? entity : e));
       }
       this.markDirty();
-    } else if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler') {
+    } else if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler' || entity.type === 'player') {
         this.addToPersistence(entity);
         this.markDirty();
     }
   }
 
-  removeEntity(id: string, q: number, r: number) {
+  removeEntity(id: string, q: number, r: number, permanent: boolean = false) {
     const { cq, cr } = getChunkCoords(q, r);
     const chunk = this.getChunk(cq, cr);
     chunk.entities = chunk.entities.filter(e => e.id !== id);
 
     if (this.persistentEntities.has(id)) {
-        this.removeFromPersistence(id, q, r);
-        this.markDirty();
+        if (permanent || !id.startsWith('player-')) {
+          this.removeFromPersistence(id, q, r);
+          this.markDirty();
+        }
     } else if (id.startsWith('tree-') || id.startsWith('rock-')) {
         this.removedStaticIds.add(id);
         this.markDirty();
@@ -178,6 +180,10 @@ export class WorldManager {
 
   getActiveChunks(): WorldChunk[] {
     return Array.from(this.chunks.values());
+  }
+
+  getPersistentEntity(id: string): Entity | undefined {
+    return this.persistentEntities.get(id);
   }
 
   updateChunkEntities(cq: number, cr: number, newEntities: Entity[]) {

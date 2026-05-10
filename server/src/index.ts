@@ -28,27 +28,50 @@ io.on('connection', (socket) => {
   console.log('a user connected', socket.id);
 
   socket.on('join', (name: string) => {
-    const player: Player = {
-      id: socket.id,
-      type: 'player',
-      name,
-      pos: { q: 0, r: 0 },
-      inventory: {
-        'turnip-seed': 5,
-        'carrot-seed': 2,
-        'pumpkin-seed': 1,
-        'hoe': 1,
-        'watering-can': 1,
-        'axe': 1,
-        'pickaxe': 1
-      },
-      coins: 0
-    };
+    // Sanitize name to prevent path traversal and other issues
+    const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+    if (!sanitizedName) {
+      notify(socket.id, "Invalid name!", 'error');
+      return;
+    }
+
+    const playerId = `player-${sanitizedName.toLowerCase().replace(/\s+/g, '-')}`;
+
+    // Prevent multiple connections with same name
+    for (const p of players.values()) {
+        if (p.id === playerId) {
+            notify(socket.id, "This player is already logged in!", 'error');
+            return;
+        }
+    }
+
+    // Check if player exists in world manager (persistent)
+    let player = world.getPersistentEntity(playerId) as Player;
+
+    if (!player) {
+      player = {
+        id: playerId,
+        type: 'player',
+        name,
+        pos: { q: 0, r: 0 },
+        inventory: {
+          'turnip-seed': 5,
+          'carrot-seed': 2,
+          'pumpkin-seed': 1,
+          'hoe': 1,
+          'watering-can': 1,
+          'axe': 1,
+          'pickaxe': 1
+        },
+        coins: 0
+      };
+    }
+
     players.set(socket.id, player);
     world.addEntity(player);
 
     const { environment } = engine.tick(); // Just to get current state
-    socket.emit('init', { playerId: socket.id, worldSeed: "mmo-seed" });
+    socket.emit('init', { playerId: player.id, worldSeed: "mmo-seed" });
     socket.emit('environmentUpdate', environment);
     io.emit('entityUpdate', player);
     socket.emit('notification', { message: `Welcome to HexFarm, ${name}!`, type: 'info' });
@@ -89,7 +112,10 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const toolPrices: Record<string, number> = { 'hoe': 50, 'watering-can': 50, 'axe': 50, 'pickaxe': 50 };
+        const toolPrices: Record<string, number> = {
+          'hoe': 50, 'watering-can': 50, 'axe': 50, 'pickaxe': 50,
+          'copper-hoe': 200, 'copper-watering-can': 200, 'copper-axe': 200, 'copper-pickaxe': 200
+        };
         const price = toolPrices[tool];
         if (price !== undefined) {
           if (player.coins >= price) {
@@ -131,31 +157,41 @@ io.on('connection', (socket) => {
   socket.on('plow', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!player.inventory['hoe'] || player.inventory['hoe'] <= 0) {
+      const hasCopperHoe = player.inventory['copper-hoe'] > 0;
+      if (!hasCopperHoe && (!player.inventory['hoe'] || player.inventory['hoe'] <= 0)) {
         notify(socket.id, "You need a hoe to plow land!", 'error');
         return;
       }
-      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const floor = entities.find(e => e.type === 'floor');
-      if (!floor) {
-        const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
-        if (!isOccupied) {
-          const tilled = {
-            id: `floor-${player.pos.q}-${player.pos.r}`,
-            type: 'floor' as const,
-            species: 'tilled',
-            pos: { ...player.pos }
-          };
-          world.addEntity(tilled);
-          io.emit('entityUpdate', tilled);
+
+      const targets = hasCopperHoe ? [player.pos, ...getNeighbors(player.pos)] : [player.pos];
+
+      targets.forEach(pos => {
+        const entities = world.getEntitiesAt(pos.q, pos.r);
+        const floor = entities.find(e => e.type === 'floor');
+        if (!floor) {
+          const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+          if (!isOccupied) {
+            const tilled = {
+              id: `floor-${pos.q}-${pos.r}`,
+              type: 'floor' as const,
+              species: 'tilled',
+              pos: { ...pos }
+            };
+            world.addEntity(tilled);
+            io.emit('entityUpdate', tilled);
+          }
+        } else if (floor.species === 'tilled') {
+          // For copper hoe, we don't want to accidentally un-plow multiple hexes easily?
+          // Let's only un-plow the current hex if specifically targeted without copper or if it's the center.
+          if (pos.q === player.pos.q && pos.r === player.pos.r) {
+            const isOccupiedByPlant = entities.some(e => e.type === 'plant');
+            if (!isOccupiedByPlant) {
+              world.removeEntity(floor.id, floor.pos.q, floor.pos.r);
+              io.emit('entityRemove', { id: floor.id, pos: floor.pos });
+            }
+          }
         }
-      } else if (floor.species === 'tilled') {
-        const isOccupiedByPlant = entities.some(e => e.type === 'plant');
-        if (!isOccupiedByPlant) {
-          world.removeEntity(floor.id, floor.pos.q, floor.pos.r);
-          io.emit('entityRemove', { id: floor.id, pos: floor.pos });
-        }
-      }
+      });
     }
   });
 
@@ -256,17 +292,23 @@ io.on('connection', (socket) => {
   socket.on('water', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!player.inventory['watering-can'] || player.inventory['watering-can'] <= 0) {
+      const hasCopperWateringCan = player.inventory['copper-watering-can'] > 0;
+      if (!hasCopperWateringCan && (!player.inventory['watering-can'] || player.inventory['watering-can'] <= 0)) {
         notify(socket.id, "You need a watering can!", 'error');
         return;
       }
-      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
-      if (plant) {
-        plant.lastWatered = Date.now();
-        world.updateEntity(plant);
-        io.emit('entityUpdate', plant);
-      }
+
+      const targets = hasCopperWateringCan ? [player.pos, ...getNeighbors(player.pos)] : [player.pos];
+
+      targets.forEach(pos => {
+        const entities = world.getEntitiesAt(pos.q, pos.r);
+        const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
+        if (plant) {
+          plant.lastWatered = Date.now();
+          world.updateEntity(plant);
+          io.emit('entityUpdate', plant);
+        }
+      });
     }
   });
 
@@ -352,21 +394,29 @@ io.on('connection', (socket) => {
       const obstacle = entities.find(e => e.type === 'obstacle');
       if (obstacle) {
         if (obstacle.id.startsWith('tree')) {
-          if (!player.inventory['axe'] || player.inventory['axe'] <= 0) {
+          const hasCopperAxe = player.inventory['copper-axe'] > 0;
+          if (!hasCopperAxe && (!player.inventory['axe'] || player.inventory['axe'] <= 0)) {
             notify(socket.id, "You need an axe to cut down trees!", 'error');
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          const amount = hasCopperAxe ? 2 : 1;
+          player.inventory['wood'] = (player.inventory['wood'] || 0) + amount;
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
-          notify(socket.id, "Cut down tree.", 'success');
+          socket.emit('entityUpdate', player);
+          notify(socket.id, `Cut down tree. Gained ${amount} wood.`, 'success');
         } else if (obstacle.id.startsWith('rock')) {
-          if (!player.inventory['pickaxe'] || player.inventory['pickaxe'] <= 0) {
+          const hasCopperPickaxe = player.inventory['copper-pickaxe'] > 0;
+          if (!hasCopperPickaxe && (!player.inventory['pickaxe'] || player.inventory['pickaxe'] <= 0)) {
             notify(socket.id, "You need a pickaxe to break rocks!", 'error');
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          const amount = hasCopperPickaxe ? 2 : 1;
+          player.inventory['stone'] = (player.inventory['stone'] || 0) + amount;
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
-          notify(socket.id, "Broke rock.", 'success');
+          socket.emit('entityUpdate', player);
+          notify(socket.id, `Broke rock. Gained ${amount} stone.`, 'success');
         }
       } else {
         notify(socket.id, "Nothing to clear here.", 'info');
@@ -387,7 +437,8 @@ io.on('connection', (socket) => {
           // Sell crops and products
           const prices: Record<string, number> = {
             'turnip': 10, 'carrot': 25, 'pumpkin': 50,
-            'milk': 20, 'wool': 30, 'egg': 10
+            'milk': 20, 'wool': 30, 'egg': 10,
+            'wood': 5, 'stone': 5
           };
           let earned = 0;
           Object.keys(prices).forEach(item => {
@@ -437,8 +488,9 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       world.removeEntity(player.id, player.pos.q, player.pos.r);
+      // We don't remove persistent players, but we remove them from the active chunks
       players.delete(socket.id);
-      io.emit('entityRemove', { id: socket.id, pos: player.pos });
+      io.emit('entityRemove', { id: player.id, pos: player.pos });
     }
   });
 });
