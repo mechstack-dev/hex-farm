@@ -61,22 +61,22 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 5. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). Requires a **Watering Can** in inventory. A blue indicator appears on watered plants.
 6. **Automation:** Pressing **K** installs a **Sprinkler** if you have a Sprinkler Kit in your inventory. Sprinklers automatically water all plants in the same hex and 6 neighboring hexes.
 5. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
-6. **Clearing:** Pressing **X** clears an obstacle at the player's current position. Trees require an **Axe**, and rocks require a **Pickaxe**.
-6. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
-7. **Interacting:** Pressing **E** interacts with animals at or adjacent to the player's position.
+6. **Clearing:** Pressing **X** clears an obstacle at the player's current position. Trees require an **Axe**, and rocks require a **Pickaxe**. Water cannot be cleared.
+7. **Fishing:** Pressing **J** while standing next to water will attempt to fish if you have a **Fishing Rod**. You can catch Fish (rare, high value) or Junk (common, low value).
+8. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
+9. **Interacting:** Pressing **E** interacts with animals at or adjacent to the player's position.
    - **Animals:** Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
   - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops, animal products, and gathered resources in your inventory for coins.
-    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Milk (20), Wool (30), Egg (10), Wood (5), Stone (5).
+    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Milk (20), Wool (30), Egg (10), Wood (5), Stone (5), Fish (40), Junk (2).
     - **Purchasing:** Stand near or at the merchant's position and press:
       - **4**: Turnip Seed (5 coins)
       - **5**: Carrot Seed (15 coins)
       - **6**: Pumpkin Seed (35 coins)
-      - **7**: Sprinkler Kit (100 coins)
-      - **8**: Hoe (50 coins)
-      - **9**: Watering Can (50 coins)
-      - **0**: Axe (50 coins)
-      - **-**: Pickaxe (50 coins)
-      - **Copper Upgrades (200 coins each):** Enhanced Hoe/Watering Can (1-hex radius effect), Axe/Pickaxe (Double resources). (Available via socket events/merchant interactions).
+      - **7**: Sprinkler Kit (100 coins) / **Shift+7**: Fishing Rod (150 coins)
+      - **8**: Hoe (50 coins) / **Shift+8**: Copper Hoe (200 coins)
+      - **9**: Watering Can (50 coins) / **Shift+9**: Copper Watering Can (200 coins)
+      - **0**: Axe (50 coins) / **Shift+0**: Copper Axe (200 coins)
+      - **-**: Pickaxe (50 coins) / **Shift+-**: Copper Pickaxe (200 coins)
     - **Merchant Compass:** A UI element shows the distance and direction to the merchant when you are far from (0,0).
 8. **Inventory:** Harvested crops, collected animal products, and seeds are added to the player's inventory, which is visible in the UI.
 9. **Economy:** Players earn coins by selling crops to the merchant and spend them to buy seeds.
@@ -150,10 +150,11 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **UX:** In-game notifications for actions and errors.
 - [x] **Tool Requirements:** Plowing, watering, and clearing now require specific tools.
 - [x] **Obstacle Removal:** Players can clear trees and rocks using axes and pickaxes. Gathers wood and stone.
+- [x] **Water & Fishing:** Procedural water generation and fishing mechanics.
 
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.
-- [x] **Tools & Upgrades:** Copper tools (Hoe, Watering Can, Axe, Pickaxe) with enhanced efficiency.
+- [x] **Tools & Upgrades:** Copper tools (Hoe, Watering Can, Axe, Pickaxe) with enhanced efficiency, and Fishing Rod.
 - [ ] **Advanced Infrastructure:** Building simple farm buildings.
 - [ ] **Purchasable Items:** Spend coins on more than just seeds (tools, decorations) from the merchant.
 

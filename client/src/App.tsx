@@ -138,9 +138,11 @@ function App() {
       } else if (e.key.toLowerCase() === '6') {
         socket.emit('buy_seed', 'pumpkin');
       } else if (e.key.toLowerCase() === '7') {
-        socket.emit('buy_sprinkler');
+        if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
+        else socket.emit('buy_sprinkler');
       } else if (e.key.toLowerCase() === '8') {
-        socket.emit('buy_tool', 'hoe');
+        if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
+        else socket.emit('buy_tool', 'hoe');
       } else if (e.key.toLowerCase() === '9') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-watering-can');
         else socket.emit('buy_tool', 'watering-can');
@@ -150,9 +152,8 @@ function App() {
       } else if (e.key.toLowerCase() === '-') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-pickaxe');
         else socket.emit('buy_tool', 'pickaxe');
-      } else if (e.key.toLowerCase() === '8') {
-        if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
-        else socket.emit('buy_tool', 'hoe');
+      } else if (e.key.toLowerCase() === 'j') {
+        socket.emit('fish');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -168,23 +169,33 @@ function App() {
   const getMerchantDirection = () => {
     if (playerPos.q === 0 && playerPos.r === 0) return null;
 
-    // Simple compass logic: just distance and general direction
+    // Distance in hexes
     const dist = Math.sqrt(playerPos.q * playerPos.q + playerPos.r * playerPos.r + playerPos.q * playerPos.r);
-    if (dist < 5) return null; // Hide if close enough
+    if (dist < 5) return null;
 
-    // Calculate angle in axial coordinates is tricky, but let's just use a simple arrow
-    // based on q and r
-    let arrow = '↑';
-    if (playerPos.q > 0 && playerPos.r >= 0) arrow = '↖';
-    else if (playerPos.q > 0 && playerPos.r < 0) arrow = playerPos.q > -playerPos.r ? '←' : '↙';
-    else if (playerPos.q <= 0 && playerPos.r < 0) arrow = '↘';
-    else if (playerPos.q < 0 && playerPos.r <= 0) arrow = '↗';
-    else if (playerPos.q < 0 && playerPos.r > 0) arrow = -playerPos.q > playerPos.r ? '→' : '↘';
-    else if (playerPos.q >= 0 && playerPos.r > 0) arrow = '↖';
+    // Convert axial to approx pixel to get angle towards (0,0)
+    // x = size * 3/2 * q
+    // y = size * sqrt(3) * (r + q/2)
+    // Vector towards merchant (0,0) is (-x, -y)
+    const px = 1.5 * playerPos.q;
+    const py = Math.sqrt(3) * (playerPos.r + playerPos.q / 2);
 
-    // Actually, a better way is to use pixel coordinates for angle
-    // We don't have axialToPixel here, but we can approximate or just use q,r
-    // Let's use a simpler heuristic for now or just show the distance.
+    const angle = Math.atan2(-py, -px); // Angle from player to (0,0)
+    const deg = angle * 180 / Math.PI;
+
+    // Normalize to 0-360
+    const normalized = (deg + 360) % 360;
+
+    let arrow = '→';
+    if (normalized >= 337.5 || normalized < 22.5) arrow = '→';
+    else if (normalized >= 22.5 && normalized < 67.5) arrow = '↘';
+    else if (normalized >= 67.5 && normalized < 112.5) arrow = '↓';
+    else if (normalized >= 112.5 && normalized < 157.5) arrow = '↙';
+    else if (normalized >= 157.5 && normalized < 202.5) arrow = '←';
+    else if (normalized >= 202.5 && normalized < 247.5) arrow = '↖';
+    else if (normalized >= 247.5 && normalized < 292.5) arrow = '↑';
+    else if (normalized >= 292.5 && normalized < 337.5) arrow = '↗';
+
     return { arrow, dist: Math.round(dist) };
   };
 
@@ -242,10 +253,10 @@ function App() {
           </p>
         )}
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>X</b> to Clear</p>
-        <p>Plowing, Watering, and Clearing require tools (Hoe, Watering Can, Axe, Pickaxe)</p>
+        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
+        <p>Plowing, Watering, Clearing, and Fishing require tools (Hoe, Watering Can, Axe, Pickaxe, Fishing Rod)</p>
         <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>7</b> to Buy Sprinkler, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
-        <p>Press <b>Shift + 8, 9, 0, -</b> to Buy Copper Tools (200 coins) (Near Merchant)</p>
+        <p>Press <b>Shift + 7, 8, 9, 0, -</b> to Buy Fishing Rod or Copper Tools (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
           <h3>Inventory</h3>
