@@ -115,6 +115,8 @@ function App() {
         socket.emit('plant', 'carrot');
       } else if (e.key.toLowerCase() === '3') {
         socket.emit('plant', 'pumpkin');
+      } else if (e.key.toLowerCase() === '4' && e.shiftKey) {
+        socket.emit('plant', 'corn');
       } else if (e.key.toLowerCase() === 'i') {
         socket.emit('water');
       } else if (e.key.toLowerCase() === 'h') {
@@ -136,7 +138,8 @@ function App() {
       } else if (e.key.toLowerCase() === '5') {
         socket.emit('buy_seed', 'carrot');
       } else if (e.key.toLowerCase() === '6') {
-        socket.emit('buy_seed', 'pumpkin');
+        if (e.shiftKey) socket.emit('buy_seed', 'corn');
+        else socket.emit('buy_seed', 'pumpkin');
       } else if (e.key.toLowerCase() === '7') {
         if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
         else socket.emit('buy_sprinkler');
@@ -210,9 +213,9 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn'].includes(item)) categories.crops.items.push([item, count]);
         else if (['wood', 'stone'].includes(item)) categories.resources.items.push([item, count]);
-        else if (['milk', 'wool', 'egg'].includes(item)) categories.products.items.push([item, count]);
+        else if (['milk', 'wool', 'egg', 'truffle'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
 
@@ -253,9 +256,9 @@ function App() {
           </p>
         )}
         <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
+        <p>Press <b>1, 2, 3</b> to Plant, <b>Shift+4</b> for Corn, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
         <p>Plowing, Watering, Clearing, and Fishing require tools (Hoe, Watering Can, Axe, Pickaxe, Fishing Rod)</p>
-        <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>7</b> to Buy Sprinkler, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
+        <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>Shift+6</b> for Corn Seed, <b>7</b> to Buy Sprinkler, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
         <p>Press <b>Shift + 7, 8, 9, 0, -</b> to Buy Fishing Rod or Copper Tools (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
