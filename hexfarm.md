@@ -65,8 +65,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 6. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
 7. **Interacting:** Pressing **E** interacts with animals at or adjacent to the player's position.
    - **Animals:** Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
-  - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops and animal products in your inventory for coins.
-    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Milk (20), Wool (30), Egg (10).
+  - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops, animal products, and gathered resources in your inventory for coins.
+    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Milk (20), Wool (30), Egg (10), Wood (5), Stone (5).
     - **Purchasing:** Stand near or at the merchant's position and press:
       - **4**: Turnip Seed (5 coins)
       - **5**: Carrot Seed (15 coins)
@@ -76,6 +76,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
       - **9**: Watering Can (50 coins)
       - **0**: Axe (50 coins)
       - **-**: Pickaxe (50 coins)
+      - **Copper Upgrades (200 coins each):** Enhanced Hoe/Watering Can (1-hex radius effect), Axe/Pickaxe (Double resources). (Available via socket events/merchant interactions).
     - **Merchant Compass:** A UI element shows the distance and direction to the merchant when you are far from (0,0).
 8. **Inventory:** Harvested crops, collected animal products, and seeds are added to the player's inventory, which is visible in the UI.
 9. **Economy:** Players earn coins by selling crops to the merchant and spend them to buy seeds.
@@ -125,7 +126,7 @@ The project is organized as a **TypeScript Monorepo**:
 ## 7. TODO / Roadmap
 
 ### High Priority
-- [x] **Persistence:** Basic file-based persistence for plants, fences, and animals.
+- [x] **Persistence:** Basic file-based persistence for players, plants, fences, and animals.
 - [x] **Harvesting:** Allow players to harvest mature plants and gain resources.
 - [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
 - [x] **Animal Spawning:** Deterministic spawning of cows, sheep, and chickens in the procedural world.
@@ -148,11 +149,11 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Infrastructure:** Building paths.
 - [x] **UX:** In-game notifications for actions and errors.
 - [x] **Tool Requirements:** Plowing, watering, and clearing now require specific tools.
-- [x] **Obstacle Removal:** Players can clear trees and rocks using axes and pickaxes.
+- [x] **Obstacle Removal:** Players can clear trees and rocks using axes and pickaxes. Gathers wood and stone.
 
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.
-- [ ] **Tools & Upgrades:** Specialized equipment for better farming efficiency.
+- [x] **Tools & Upgrades:** Copper tools (Hoe, Watering Can, Axe, Pickaxe) with enhanced efficiency.
 - [ ] **Advanced Infrastructure:** Building simple farm buildings.
 - [ ] **Purchasable Items:** Spend coins on more than just seeds (tools, decorations) from the merchant.
 

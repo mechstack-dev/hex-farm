@@ -142,11 +142,17 @@ function App() {
       } else if (e.key.toLowerCase() === '8') {
         socket.emit('buy_tool', 'hoe');
       } else if (e.key.toLowerCase() === '9') {
-        socket.emit('buy_tool', 'watering-can');
+        if (e.shiftKey) socket.emit('buy_tool', 'copper-watering-can');
+        else socket.emit('buy_tool', 'watering-can');
       } else if (e.key.toLowerCase() === '0') {
-        socket.emit('buy_tool', 'axe');
+        if (e.shiftKey) socket.emit('buy_tool', 'copper-axe');
+        else socket.emit('buy_tool', 'axe');
       } else if (e.key.toLowerCase() === '-') {
-        socket.emit('buy_tool', 'pickaxe');
+        if (e.shiftKey) socket.emit('buy_tool', 'copper-pickaxe');
+        else socket.emit('buy_tool', 'pickaxe');
+      } else if (e.key.toLowerCase() === '8') {
+        if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
+        else socket.emit('buy_tool', 'hoe');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -186,6 +192,7 @@ function App() {
     const categories: Record<string, {name: string, items: [string, number][]}> = {
         seeds: { name: 'Seeds', items: [] },
         crops: { name: 'Crops', items: [] },
+        resources: { name: 'Resources', items: [] },
         products: { name: 'Animal Products', items: [] },
         tools: { name: 'Tools/Kits', items: [] }
     };
@@ -193,6 +200,7 @@ function App() {
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
         else if (['turnip', 'carrot', 'pumpkin'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['wood', 'stone'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
@@ -237,6 +245,7 @@ function App() {
         <p>Press <b>1, 2, 3</b> to Plant, <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>E</b> to Interact, <b>X</b> to Clear</p>
         <p>Plowing, Watering, and Clearing require tools (Hoe, Watering Can, Axe, Pickaxe)</p>
         <p>Press <b>4, 5, 6</b> to Buy Seeds, <b>7</b> to Buy Sprinkler, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
+        <p>Press <b>Shift + 8, 9, 0, -</b> to Buy Copper Tools (200 coins) (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
           <h3>Inventory</h3>
