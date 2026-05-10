@@ -91,7 +91,9 @@ io.on('connection', (socket) => {
       }
 
       const entities = world.getEntitiesAt(pos.q, pos.r);
-      const isBlocked = entities.some(e => e.type === 'obstacle' || e.type === 'fence');
+      const isBlocked = entities.some(e =>
+        (e.type === 'obstacle' || e.type === 'fence')
+      );
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
         player.pos = pos;
@@ -114,6 +116,7 @@ io.on('connection', (socket) => {
       if (isNearMerchant) {
         const toolPrices: Record<string, number> = {
           'hoe': 50, 'watering-can': 50, 'axe': 50, 'pickaxe': 50,
+          'fishing-rod': 150,
           'copper-hoe': 200, 'copper-watering-can': 200, 'copper-axe': 200, 'copper-pickaxe': 200
         };
         const price = toolPrices[tool];
@@ -393,7 +396,7 @@ io.on('connection', (socket) => {
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const obstacle = entities.find(e => e.type === 'obstacle');
       if (obstacle) {
-        if (obstacle.id.startsWith('tree')) {
+        if (obstacle.species === 'tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
           const hasCopperAxe = player.inventory['copper-axe'] > 0;
           if (!hasCopperAxe && (!player.inventory['axe'] || player.inventory['axe'] <= 0)) {
             notify(socket.id, "You need an axe to cut down trees!", 'error');
@@ -405,7 +408,7 @@ io.on('connection', (socket) => {
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, `Cut down tree. Gained ${amount} wood.`, 'success');
-        } else if (obstacle.id.startsWith('rock')) {
+        } else if (obstacle.species === 'rock' || (!obstacle.species && obstacle.id.startsWith('rock'))) {
           const hasCopperPickaxe = player.inventory['copper-pickaxe'] > 0;
           if (!hasCopperPickaxe && (!player.inventory['pickaxe'] || player.inventory['pickaxe'] <= 0)) {
             notify(socket.id, "You need a pickaxe to break rocks!", 'error');
@@ -417,6 +420,8 @@ io.on('connection', (socket) => {
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, `Broke rock. Gained ${amount} stone.`, 'success');
+        } else if (obstacle.species === 'water') {
+          notify(socket.id, "You can't clear water!", 'info');
         }
       } else {
         notify(socket.id, "Nothing to clear here.", 'info');
@@ -438,7 +443,7 @@ io.on('connection', (socket) => {
           const prices: Record<string, number> = {
             'turnip': 10, 'carrot': 25, 'pumpkin': 50,
             'milk': 20, 'wool': 30, 'egg': 10,
-            'wood': 5, 'stone': 5
+            'wood': 5, 'stone': 5, 'fish': 40, 'junk': 2
           };
           let earned = 0;
           Object.keys(prices).forEach(item => {
@@ -476,6 +481,38 @@ io.on('connection', (socket) => {
             notify(socket.id, "This animal isn't ready to give anything yet.", 'info');
         }
       }
+    }
+  });
+
+  socket.on('fish', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      if (!player.inventory['fishing-rod'] || player.inventory['fishing-rod'] <= 0) {
+        notify(socket.id, "You need a fishing rod!", 'error');
+        return;
+      }
+
+      const neighbors = getNeighbors(player.pos);
+      const isNearWater = neighbors.some(n =>
+        world.getEntitiesAt(n.q, n.r).some(e => e.type === 'obstacle' && e.species === 'water')
+      );
+
+      if (!isNearWater) {
+        notify(socket.id, "You need to be near water to fish!", 'info');
+        return;
+      }
+
+      const rand = Math.random();
+      if (rand < 0.3) {
+        player.inventory['fish'] = (player.inventory['fish'] || 0) + 1;
+        notify(socket.id, "You caught a fish!", 'success');
+      } else if (rand < 0.6) {
+        player.inventory['junk'] = (player.inventory['junk'] || 0) + 1;
+        notify(socket.id, "You caught some junk...", 'info');
+      } else {
+        notify(socket.id, "Nothing's biting.", 'info');
+      }
+      socket.emit('entityUpdate', player);
     }
   });
 

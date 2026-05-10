@@ -64,44 +64,74 @@ export class HexRenderer {
   }
 
   drawTree(x: number, y: number) {
+    const seed = Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453);
+    const scale = 0.8 + (seed % 0.4);
+
     // Trunk with shading
-    this.graphics.rect(x - 4, y, 8, 15);
+    this.graphics.rect(x - 4 * scale, y, 8 * scale, 15 * scale);
     this.graphics.fill({ color: 0x8B4513, alpha: 1 });
-    this.graphics.rect(x + 2, y, 2, 15);
+    this.graphics.rect(x + 2 * scale, y, 2 * scale, 15 * scale);
     this.graphics.fill({ color: 0x5D2E0C, alpha: 1 });
 
     // Layered foliage for depth
-    this.graphics.circle(x, y - 8, HEX_SIZE * 0.7);
+    this.graphics.circle(x, y - 8 * scale, HEX_SIZE * 0.7 * scale);
     this.graphics.fill({ color: 0x228B22, alpha: 1 });
-    this.graphics.circle(x - 5, y - 12, HEX_SIZE * 0.5);
+    this.graphics.circle(x - 5 * scale, y - 12 * scale, HEX_SIZE * 0.5 * scale);
     this.graphics.fill({ color: 0x2E8B57, alpha: 1 });
-    this.graphics.circle(x + 5, y - 10, HEX_SIZE * 0.4);
+    this.graphics.circle(x + 5 * scale, y - 10 * scale, HEX_SIZE * 0.4 * scale);
     this.graphics.fill({ color: 0x3CB371, alpha: 1 });
 
     // Highlights
-    this.graphics.circle(x - 3, y - 15, 4);
+    this.graphics.circle(x - 3 * scale, y - 15 * scale, 4 * scale);
     this.graphics.fill({ color: 0x90EE90, alpha: 0.3 });
   }
 
   drawRock(x: number, y: number) {
+    const seed = Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453);
+    const scale = 0.7 + (seed % 0.6);
+
     this.graphics.poly([
-        x - 12, y + 10,
-        x + 12, y + 10,
-        x + 10, y - 5,
-        x - 2, y - 10,
-        x - 10, y - 5,
+        x - 12 * scale, y + 10 * scale,
+        x + 12 * scale, y + 10 * scale,
+        x + 10 * scale, y - 5 * scale,
+        x - 2 * scale, y - 10 * scale,
+        x - 10 * scale, y - 5 * scale,
     ]);
     this.graphics.fill({ color: 0x808080, alpha: 1 });
     this.graphics.stroke({ color: 0x333333, width: 1 });
 
     // Shading/cracks
-    this.graphics.moveTo(x - 5, y - 5);
-    this.graphics.lineTo(x + 2, y + 2);
+    this.graphics.moveTo(x - 5 * scale, y - 5 * scale);
+    this.graphics.lineTo(x + 2 * scale, y + 2 * scale);
     this.graphics.stroke({ color: 0x555555, width: 1 });
 
     // Highlight
-    this.graphics.circle(x - 4, y - 6, 3);
+    this.graphics.circle(x - 4 * scale, y - 6 * scale, 3 * scale);
     this.graphics.fill({ color: 0xAAAAAA, alpha: 0.5 });
+  }
+
+  drawWater(x: number, y: number) {
+    const size = HEX_SIZE * 1.0;
+    this.graphics.poly([
+        x + size * Math.cos(0), y + size * Math.sin(0),
+        x + size * Math.cos(Math.PI/3), y + size * Math.sin(Math.PI/3),
+        x + size * Math.cos(2*Math.PI/3), y + size * Math.sin(2*Math.PI/3),
+        x + size * Math.cos(Math.PI), y + size * Math.sin(Math.PI),
+        x + size * Math.cos(4*Math.PI/3), y + size * Math.sin(4*Math.PI/3),
+        x + size * Math.cos(5*Math.PI/3), y + size * Math.sin(5*Math.PI/3),
+    ]);
+    this.graphics.fill({ color: 0x4169E1, alpha: 0.8 }); // Royal Blue
+    this.graphics.stroke({ color: 0x1E90FF, width: 1 }); // Dodger Blue
+
+    // Waves animation
+    const offset = (Date.now() / 1000) % (Math.PI * 2);
+    for (let i = -1; i <= 1; i++) {
+        const wx = x + Math.sin(offset + i) * 5;
+        const wy = y + i * 8;
+        this.graphics.moveTo(wx - 10, wy);
+        this.graphics.bezierCurveTo(wx - 5, wy - 3, wx + 5, wy + 3, wx + 10, wy);
+        this.graphics.stroke({ color: 0xADD8E6, width: 1, alpha: 0.4 });
+    }
   }
 
   drawPlant(plant: Plant, x: number, y: number) {
@@ -366,9 +396,11 @@ export class HexRenderer {
         this.drawPlayer(x, y, entity.id === socket.id ? 0xFF0000 : 0x0000FF);
         this.updatePlayerLabel(entity as any, x, y);
       } else if (entity.type === 'obstacle') {
-        if (entity.id.startsWith('tree')) {
+        if (entity.species === 'water') {
+            this.drawWater(x, y);
+        } else if (entity.species === 'tree' || (!entity.species && entity.id.startsWith('tree'))) {
           this.drawTree(x, y);
-        } else {
+        } else if (entity.species === 'rock' || (!entity.species && entity.id.startsWith('rock'))) {
           this.drawRock(x, y);
         }
       } else if (entity.type === 'plant') {

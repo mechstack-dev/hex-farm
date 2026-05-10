@@ -32,16 +32,25 @@ export class Generator {
         }
 
         const n = this.noise(q * 0.1, r * 0.1);
-        if (n > 0.5) {
+        if (n < -0.4) {
+          entities.push({
+            id: `water-${q}-${r}`,
+            type: 'obstacle',
+            species: 'water',
+            pos: { q, r }
+          });
+        } else if (n > 0.5) {
           entities.push({
             id: `tree-${q}-${r}`,
             type: 'obstacle',
+            species: 'tree',
             pos: { q, r }
           });
         } else if (chunkRng() < 0.05) {
           entities.push({
             id: `rock-${q}-${r}`,
             type: 'obstacle',
+            species: 'rock',
             pos: { q, r }
           });
         } else if (chunkRng() < 0.01) {
