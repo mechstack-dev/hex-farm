@@ -56,16 +56,27 @@ export class WorldManager {
 
   private addToPersistence(entity: Entity) {
     this.persistentEntities.set(entity.id, entity);
+    this.addToChunkIndex(entity);
+  }
+
+  private addToChunkIndex(entity: Entity) {
     const { cq, cr } = getChunkCoords(entity.pos.q, entity.pos.r);
     const key = chunkToKey(cq, cr);
     if (!this.persistentByChunk.has(key)) {
         this.persistentByChunk.set(key, []);
     }
-    this.persistentByChunk.get(key)!.push(entity);
+    const chunkEntities = this.persistentByChunk.get(key)!;
+    if (!chunkEntities.find(e => e.id === entity.id)) {
+        chunkEntities.push(entity);
+    }
   }
 
   private removeFromPersistence(id: string, q: number, r: number) {
     this.persistentEntities.delete(id);
+    this.removeFromChunkIndex(id, q, r);
+  }
+
+  private removeFromChunkIndex(id: string, q: number, r: number) {
     const { cq, cr } = getChunkCoords(q, r);
     const key = chunkToKey(cq, cr);
     const chunkEntities = this.persistentByChunk.get(key);
@@ -122,11 +133,19 @@ export class WorldManager {
   addEntity(entity: Entity) {
     const { cq, cr } = getChunkCoords(entity.pos.q, entity.pos.r);
     const chunk = this.getChunk(cq, cr);
-    chunk.entities.push(entity);
+    if (!chunk.entities.find(e => e.id === entity.id)) {
+        chunk.entities.push(entity);
+    }
 
-    if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler' || entity.type === 'player') {
+    const isPersistentType = ['plant', 'fence', 'animal', 'floor', 'sprinkler', 'player'].includes(entity.type);
+    if (isPersistentType) {
       if (!this.persistentEntities.has(entity.id)) {
           this.addToPersistence(entity);
+          this.markDirty();
+      } else {
+          // If already persistent, ensure it's in the correct chunk index
+          this.addToChunkIndex(entity);
+          this.persistentEntities.set(entity.id, entity); // Update data
           this.markDirty();
       }
     }
@@ -145,9 +164,12 @@ export class WorldManager {
         this.persistentByChunk.set(key, chunkPersistent.map(e => e.id === entity.id ? entity : e));
       }
       this.markDirty();
-    } else if (entity.type === 'plant' || entity.type === 'fence' || entity.type === 'animal' || entity.type === 'floor' || entity.type === 'sprinkler' || entity.type === 'player') {
+    } else {
+      const isPersistentType = ['plant', 'fence', 'animal', 'floor', 'sprinkler', 'player'].includes(entity.type);
+      if (isPersistentType) {
         this.addToPersistence(entity);
         this.markDirty();
+      }
     }
   }
 
@@ -159,8 +181,12 @@ export class WorldManager {
     if (this.persistentEntities.has(id)) {
         if (permanent || !id.startsWith('player-')) {
           this.removeFromPersistence(id, q, r);
-          this.markDirty();
+        } else {
+          // For players being removed from active state, we still want to remove them from chunk index
+          // but keep them in persistentEntities.
+          this.removeFromChunkIndex(id, q, r);
         }
+        this.markDirty();
     } else if (id.startsWith('tree-') || id.startsWith('rock-')) {
         this.removedStaticIds.add(id);
         this.markDirty();

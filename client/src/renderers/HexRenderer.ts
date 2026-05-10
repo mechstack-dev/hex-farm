@@ -16,6 +16,7 @@ export class HexRenderer {
   private lastEntities: Entity[] = [];
   private lastPlayerPos: Position = { q: 0, r: 0 };
   private lastEnvironment: EnvironmentState | null = null;
+  private rainDrops: { x: number, y: number, speed: number, length: number }[] = [];
   private interpolatedPositions: Map<string, { x: number, y: number }> = new Map();
   private interpolatedCamera: { x: number, y: number } = { x: 0, y: 0 };
   private playerLabels: Map<string, PIXI.Text> = new Map();
@@ -146,6 +147,7 @@ export class HexRenderer {
     if (plant.species === 'carrot') color = 0xFFA500;
     else if (plant.species === 'pumpkin') color = 0xFF8C00;
     else if (plant.species === 'turnip') color = 0xFFFFFF;
+    else if (plant.species === 'corn') color = 0xFFFF00;
 
     if (stage < 5) {
         // Sprout
@@ -167,6 +169,11 @@ export class HexRenderer {
             this.graphics.moveTo(x, y - size);
             this.graphics.lineTo(x, y + size);
             this.graphics.stroke({ color: 0x8B4513, width: 1, alpha: 0.5 });
+        } else if (plant.species === 'corn') {
+            this.graphics.rect(x - 2, y - size, 4, size * 2);
+            this.graphics.fill({ color: 0x228B22, alpha: 1 }); // Green stalk
+            this.graphics.ellipse(x, y - size * 0.5, 4, 8);
+            this.graphics.fill({ color: 0xFFFF00, alpha: 1 }); // Yellow cob
         }
     }
 
@@ -194,6 +201,9 @@ export class HexRenderer {
     } else if (animal.species === 'chicken') {
         color = 0xFFFF00;
         sizeScale = 0.5;
+    } else if (animal.species === 'pig') {
+        color = 0xFFC0CB; // Pink
+        sizeScale = 0.7;
     } else if (animal.species === 'merchant') {
         color = 0x800080; // Purple
         sizeScale = 1.2;
@@ -215,6 +225,12 @@ export class HexRenderer {
         this.graphics.moveTo(x + 5, bounceY - 5);
         this.graphics.lineTo(x + 10, bounceY - 5);
         this.graphics.stroke({ color: 0xFF0000, width: 2 }); // Comb
+    } else if (animal.species === 'pig') {
+        this.graphics.circle(x + 10 * sizeScale, bounceY, 4 * sizeScale);
+        this.graphics.fill({ color: 0xFF69B4, alpha: 1 }); // Snout
+        this.graphics.circle(x + 10 * sizeScale, bounceY - 1, 1);
+        this.graphics.circle(x + 10 * sizeScale, bounceY + 1, 1);
+        this.graphics.fill({ color: 0x000000, alpha: 1 });
     }
   }
 
@@ -420,7 +436,36 @@ export class HexRenderer {
       }
     });
 
-    this.drawDayNightOverlay(timeOfDay);
+    this.drawDayNightOverlay(timeOfDay, this.lastEnvironment.weather);
+    if (this.lastEnvironment.weather === 'rainy') {
+        this.drawRain();
+    }
+  }
+
+  drawRain() {
+    if (this.rainDrops.length === 0) {
+        for (let i = 0; i < 100; i++) {
+            this.rainDrops.push({
+                x: Math.random() * this.app.screen.width,
+                y: Math.random() * this.app.screen.height,
+                speed: 10 + Math.random() * 10,
+                length: 10 + Math.random() * 10
+            });
+        }
+    }
+
+    this.overlay.beginPath();
+    this.rainDrops.forEach(drop => {
+        drop.y += drop.speed;
+        if (drop.y > this.app.screen.height) {
+            drop.y = -drop.length;
+            drop.x = Math.random() * this.app.screen.width;
+        }
+
+        this.overlay.moveTo(drop.x, drop.y);
+        this.overlay.lineTo(drop.x, drop.y + drop.length);
+    });
+    this.overlay.stroke({ color: 0xADD8E6, width: 1, alpha: 0.4 });
   }
 
   updatePlayerLabel(player: any, x: number, y: number) {
@@ -496,7 +541,7 @@ export class HexRenderer {
     label.y = y - HEX_SIZE * 0.4;
   }
 
-  drawDayNightOverlay(timeOfDay: number) {
+  drawDayNightOverlay(timeOfDay: number, weather: string) {
     this.overlay.clear();
 
     // Calculate alpha and color based on time of day
@@ -516,6 +561,15 @@ export class HexRenderer {
         color = 0x330033;
     } else { // 19:12 - 0:00 (Night)
         alpha = 0.6;
+    }
+
+    // Weather adjustments
+    if (weather === 'rainy') {
+        alpha = Math.max(alpha, 0.4);
+        color = 0x1a1a2e; // Dark stormy blue
+    } else if (weather === 'cloudy') {
+        alpha = Math.max(alpha, 0.2);
+        color = 0x4a4e69; // Gloomy gray
     }
 
     if (alpha > 0) {

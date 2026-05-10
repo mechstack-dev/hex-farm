@@ -324,7 +324,7 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35 };
+        const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25 };
         const price = seedPrices[species];
         if (price !== undefined) {
           if (player.coins >= price) {
@@ -441,8 +441,8 @@ io.on('connection', (socket) => {
         if (animal.species === 'merchant') {
           // Sell crops and products
           const prices: Record<string, number> = {
-            'turnip': 10, 'carrot': 25, 'pumpkin': 50,
-            'milk': 20, 'wool': 30, 'egg': 10,
+            'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35,
+            'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60,
             'wood': 5, 'stone': 5, 'fish': 40, 'junk': 2
           };
           let earned = 0;
@@ -468,6 +468,7 @@ io.on('connection', (socket) => {
           if (animal.species === 'cow') product = 'milk';
           else if (animal.species === 'sheep') product = 'wool';
           else if (animal.species === 'chicken') product = 'egg';
+          else if (animal.species === 'pig') product = 'truffle';
 
           if (product) {
             player.inventory[product] = (player.inventory[product] || 0) + 1;

@@ -57,8 +57,13 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 ### Farming (Current)
 1. **Planting:** Players can plant specific seeds on empty hexes by pressing **1** (Turnip), **2** (Carrot), or **3** (Pumpkin).
 3. **Plowing:** Pressing **P** plows the current hex, creating tilled soil. Requires a **Hoe** in inventory. Land must be plowed before seeds can be planted. Pressing **P** again on empty tilled soil removes it.
-4. **Paths:** Pressing **R** builds a path at the player's position. Paths are decorative and persistent. Pressing **R** again on a path removes it.
-5. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). Requires a **Watering Can** in inventory. A blue indicator appears on watered plants.
+4. **Planting:** Players can plant specific seeds on empty tilled soil:
+   - **1**: Turnip
+   - **2**: Carrot
+   - **3**: Pumpkin
+   - **Shift+4**: Corn
+5. **Paths:** Pressing **R** builds a path at the player's position. Paths are decorative and persistent. Pressing **R** again on a path removes it.
+6. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). Requires a **Watering Can** in inventory. A blue indicator appears on watered plants.
 6. **Automation:** Pressing **K** installs a **Sprinkler** if you have a Sprinkler Kit in your inventory. Sprinklers automatically water all plants in the same hex and 6 neighboring hexes.
 5. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
 6. **Clearing:** Pressing **X** clears an obstacle at the player's current position. Trees require an **Axe**, and rocks require a **Pickaxe**. Water cannot be cleared.
@@ -71,7 +76,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
     - **Purchasing:** Stand near or at the merchant's position and press:
       - **4**: Turnip Seed (5 coins)
       - **5**: Carrot Seed (15 coins)
-      - **6**: Pumpkin Seed (35 coins)
+      - **6**: Pumpkin Seed (35 coins) / **Shift+6**: Corn Seed (25 coins)
       - **7**: Sprinkler Kit (100 coins) / **Shift+7**: Fishing Rod (150 coins)
       - **8**: Hoe (50 coins) / **Shift+8**: Copper Hoe (200 coins)
       - **9**: Watering Can (50 coins) / **Shift+9**: Copper Watering Can (200 coins)
@@ -129,9 +134,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Persistence:** Basic file-based persistence for players, plants, fences, and animals.
 - [x] **Harvesting:** Allow players to harvest mature plants and gain resources.
 - [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
-- [x] **Animal Spawning:** Deterministic spawning of cows, sheep, and chickens in the procedural world.
-- [x] **Animal Products:** Collect resources (milk, wool, eggs) from animals by interacting with them.
-- [x] **Multiple Crops:** Support for different plant species with unique growth durations.
+- [x] **Animal Spawning:** Deterministic spawning of cows, sheep, chickens, and pigs in the procedural world.
+- [x] **Animal Products:** Collect resources (milk, wool, eggs, truffles) from animals by interacting with them.
+- [x] **Multiple Crops:** Support for different plant species (Turnip, Carrot, Pumpkin, Corn) with unique growth durations.
 - [x] **Seasons & Weather:** Implement the real-time seasonal cycle and dynamic weather (rain waters plants).
 - [x] **Day/Night Cycle:** Visual representation of time of day with light/dark overlays.
 

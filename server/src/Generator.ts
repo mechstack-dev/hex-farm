@@ -56,7 +56,7 @@ export class Generator {
         } else if (chunkRng() < 0.01) {
           // Spawn animal
           const rand = chunkRng();
-          const species = rand < 0.33 ? 'cow' : (rand < 0.66 ? 'sheep' : 'chicken');
+          const species = rand < 0.25 ? 'cow' : (rand < 0.5 ? 'sheep' : (rand < 0.75 ? 'chicken' : 'pig'));
           entities.push({
             id: `animal-${q}-${r}`,
             type: 'animal',
