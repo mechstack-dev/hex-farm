@@ -144,13 +144,12 @@ function App() {
       } else if (e.key.toLowerCase() === 'k') {
         socket.emit('build_sprinkler');
       } else if (e.key.toLowerCase() === 'b') {
-        if (e.shiftKey) socket.emit('buy_kit', 'scarecrow-kit');
-        else socket.emit('build_scarecrow');
+        socket.emit('build_scarecrow');
       } else if (e.key.toLowerCase() === 'x') {
-        socket.emit('clear_obstacle');
+        if (e.shiftKey) socket.emit('sell_junk');
+        else socket.emit('clear_obstacle');
       } else if (e.code === 'Digit7') {
         if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
-        else socket.emit('buy_kit', 'sprinkler-kit');
       } else if (e.code === 'Digit8') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
         else socket.emit('buy_tool', 'hoe');
@@ -166,11 +165,13 @@ function App() {
       } else if (e.key.toLowerCase() === 'j') {
         socket.emit('fish');
       } else if (e.key.toLowerCase() === 'l') {
-        if (e.shiftKey) socket.emit('buy_kit', 'shed-kit');
-        else socket.emit('build_building', 'shed');
+        socket.emit('build_building', 'shed');
       } else if (e.key.toLowerCase() === 'v') {
-        if (e.shiftKey) socket.emit('buy_kit', 'chest-kit');
-        else socket.emit('build_building', 'chest');
+        socket.emit('build_building', 'chest');
+      } else if (e.key.toLowerCase() === 'u') {
+        socket.emit('build_building', 'well');
+      } else if (e.key.toLowerCase() === 'g') {
+        socket.emit('fertilize');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -301,9 +302,12 @@ function App() {
         )}
         <p>Use WASD or Arrow Keys to move</p>
         <p>Press <b>1-6</b> to Plant, <b>Shift + 1-6</b> to Buy Seeds (Turnip, Carrot, Pumpkin, Corn, Wheat, Apple Tree)</p>
-        <p>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
-        <p>Plowing, Watering, Clearing, and Fishing require tools (Hoe, Watering Can, Axe, Pickaxe, Fishing Rod)</p>
-        <p>Press <b>7</b> to Buy Sprinkler, <b>Shift+B</b> for Scarecrow Kit, <b>Shift+L</b> for Shed Kit, <b>Shift+V</b> for Chest Kit, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
+        <p>Press <b>P</b> to Plow, <b>R</b> to Path (1S), <b>I</b> to Water, <b>G</b> to Fertilize (1 Junk), <b>F</b> to Fence (2W)</p>
+        <p>Press <b>K</b> to Sprinkler (5S), <b>B</b> to Scarecrow (2W), <b>L</b> to Shed (10W, 5S), <b>V</b> to Chest (5W, 2S), <b>U</b> to Well (5W, 10S)</p>
+        <p>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
+        <p>Plowing, Watering, Clearing, and Fishing require tools. Wells provide infinite water nearby.</p>
+        <p>Press <b>Shift+X</b> to Sell Resources (Wood, Stone, Junk) near Merchant</p>
+        <p>Press <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
         <p>Press <b>Shift + 7, 8, 9, 0, -</b> to Buy Fishing Rod or Copper Tools (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
