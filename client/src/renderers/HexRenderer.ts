@@ -186,6 +186,25 @@ export class HexRenderer {
         this.graphics.fill({ color: 0x228B22, alpha: 1 });
         this.graphics.ellipse(swayX + 4, y, 4, 8);
         this.graphics.fill({ color: 0x228B22, alpha: 1 });
+    } else if (plant.species === 'apple-tree') {
+        // Mature Apple Tree
+        // Trunk
+        this.graphics.rect(x - 3, y, 6, 15);
+        this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+        // Foliage
+        this.graphics.circle(x, y - 5, HEX_SIZE * 0.7);
+        this.graphics.fill({ color: 0x228B22, alpha: 1 });
+
+        // Apples
+        const hasApples = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
+        if (hasApples) {
+            for (let i = 0; i < 5; i++) {
+                const ax = x + Math.cos(i * 1.2) * 12;
+                const ay = y - 5 + Math.sin(i * 1.2) * 12;
+                this.graphics.circle(ax, ay, 3);
+                this.graphics.fill({ color: 0xFF0000, alpha: 1 });
+            }
+        }
     } else {
         // Mature
         this.graphics.circle(x, y, size);
@@ -343,6 +362,20 @@ export class HexRenderer {
         this.graphics.rect(x - 5, y, 10, 10);
         this.graphics.fill({ color: 0x5D3A1A, alpha: 1 });
         this.graphics.stroke({ color: 0x000000, width: 1 });
+    } else if (entity.species === 'chest') {
+        // Base
+        this.graphics.rect(x - 10, y - 5, 20, 12);
+        this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+        this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
+
+        // Lid
+        this.graphics.rect(x - 10, y - 8, 20, 4);
+        this.graphics.fill({ color: 0xA0522D, alpha: 1 });
+        this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
+
+        // Lock
+        this.graphics.rect(x - 2, y - 6, 4, 3);
+        this.graphics.fill({ color: 0xFFD700, alpha: 1 });
     }
   }
 

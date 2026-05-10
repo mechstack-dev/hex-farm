@@ -13,7 +13,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Hexagonal Grid:** Uses axial coordinates (q, r) for all positions.
 - **Movement:** Players can move in 6 directions using WASD or Arrow keys.
 - **Real-time Synchronization:** Socket.io is used to sync player positions and entity states across all clients.
-- **Collision Detection:** Players cannot walk through static obstacles like trees and rocks.
+- **Collision Detection:** Players cannot walk through static obstacles like trees and rocks, or buildings like Sheds and Chests.
 
 ### Entity System
 - **Players:** Persistent entities with unique IDs and names.
@@ -63,6 +63,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **3**: Pumpkin
    - **4**: Corn
    - **5**: Wheat
+   - **6**: Apple Tree
 5. **Paths:** Pressing **R** builds a path at the player's position. Paths are decorative and persistent. Pressing **R** again on a path removes it.
 6. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). Requires a **Watering Can** in inventory. A blue indicator appears on watered plants.
 6. **Automation:** Pressing **K** installs a **Sprinkler** if you have a Sprinkler Kit in your inventory. Sprinklers automatically water all plants in the same hex and 6 neighboring hexes.
@@ -72,19 +73,23 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 6. **Clearing:** Pressing **X** clears an obstacle at the player's current position or immediate neighbors. Trees require an **Axe**, and rocks require a **Pickaxe**. Water cannot be cleared.
 7. **Fishing:** Pressing **J** while standing next to water will attempt to fish if you have a **Fishing Rod**. You can catch Fish (rare, high value) or Junk (common, low value).
 8. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
-9. **Interacting:** Pressing **E** interacts with animals at or adjacent to the player's position.
-   - **Animals:** Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
+9. **Interacting:** Pressing **E** interacts with animals, fruit trees, or buildings at or adjacent to the player's position.
+   - **Animals:** Cows, sheep, chickens, and pigs provide milk, wool, eggs, and truffles once per game day.
+   - **Apple Trees:** Mature apple trees provide an apple once per game day.
+   - **Chests:** Interacting with a chest deposits all crops, animal products, and resources from your inventory. If your inventory has none of these, it withdraws everything from the chest.
   - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops, animal products, and gathered resources in your inventory for coins.
-    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Corn (35), Wheat (30), Milk (20), Wool (30), Egg (10), Wood (5), Stone (5), Fish (40), Junk (2).
+    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Corn (35), Wheat (30), Apple (15), Milk (20), Wool (30), Egg (10), Truffle (60), Wood (5), Stone (5), Fish (40), Junk (2).
     - **Purchasing:** Stand near or at the merchant's position and press:
       - **Shift+1**: Turnip Seed (5 coins)
       - **Shift+2**: Carrot Seed (15 coins)
       - **Shift+3**: Pumpkin Seed (35 coins)
       - **Shift+4**: Corn Seed (25 coins)
       - **Shift+5**: Wheat Seed (20 coins)
+      - **Shift+6**: Apple Tree Seed (50 coins)
       - **7**: Sprinkler Kit (100 coins) / **Shift+7**: Fishing Rod (150 coins)
       - **Shift+B**: Scarecrow Kit (50 coins)
       - **Shift+L**: Shed Kit (250 coins)
+      - **Shift+V**: Chest Kit (150 coins)
       - **8**: Hoe (50 coins) / **Shift+8**: Copper Hoe (200 coins)
       - **9**: Watering Can (50 coins) / **Shift+9**: Copper Watering Can (200 coins)
       - **0**: Axe (50 coins) / **Shift+0**: Copper Axe (200 coins)
@@ -155,7 +160,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **UI/UX:** Merchant Compass to help players find the origin.
 - [x] **Terrain Variety:** Procedural generation of grass, flowers, and sunflowers.
 - [x] **Seasonal Visuals:** Dynamic color changes for trees and terrain based on the current season.
-- [x] **Advanced Infrastructure:** Building farm buildings like the Shed.
+- [x] **Advanced Infrastructure:** Building farm buildings like the Shed and Chest.
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites. (Ongoing: improved PixiJS shapes, shading, and animal details)
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
 - [x] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.
@@ -170,6 +175,8 @@ The project is organized as a **TypeScript Monorepo**:
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.
 - [x] **Tools & Upgrades:** Copper tools (Hoe, Watering Can, Axe, Pickaxe) with enhanced efficiency, and Fishing Rod.
+- [x] **Fruit Trees:** Apple trees that can be harvested once a day.
+- [x] **Storage:** Chests to store items.
 - [ ] **Animal Breeding:** Mechanism for animals to reproduce.
 - [ ] **Purchasable Items:** Spend coins on more than just seeds (tools, decorations) from the merchant.
 - [ ] **Expanded Buildings:** More variety in farm buildings with functional uses.
