@@ -7,7 +7,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 ### Procedural World Generation
 - The world is generated on-the-fly using **Simplex noise** for terrain and obstacle placement.
 - **Chunking System:** The world is divided into 16x16 hex chunks (defined by `CHUNK_SIZE` in `common/src/types.ts`). Chunks are loaded and unloaded dynamically as players move.
-- **Static Entities:** Trees and rocks are generated deterministically based on chunk coordinates and a global seed.
+  - **Static Entities:** Trees and rocks are generated deterministically based on chunk coordinates and a global seed. Decorative terrain such as grass and flowers are also procedurally generated.
 
 ### Navigation and Interaction
 - **Hexagonal Grid:** Uses axial coordinates (q, r) for all positions.
@@ -61,23 +61,28 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **1**: Turnip
    - **2**: Carrot
    - **3**: Pumpkin
-   - **Shift+4**: Corn
+   - **4**: Corn
+   - **5**: Wheat
 5. **Paths:** Pressing **R** builds a path at the player's position. Paths are decorative and persistent. Pressing **R** again on a path removes it.
 6. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). Requires a **Watering Can** in inventory. A blue indicator appears on watered plants.
 6. **Automation:** Pressing **K** installs a **Sprinkler** if you have a Sprinkler Kit in your inventory. Sprinklers automatically water all plants in the same hex and 6 neighboring hexes.
+7. **Protection:** Pressing **B** installs a **Scarecrow** if you have a Scarecrow Kit. Scarecrows are decorative but persistent structures that can be placed to define your farm space.
 5. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
-6. **Clearing:** Pressing **X** clears an obstacle at the player's current position. Trees require an **Axe**, and rocks require a **Pickaxe**. Water cannot be cleared.
+6. **Clearing:** Pressing **X** clears an obstacle at the player's current position or immediate neighbors. Trees require an **Axe**, and rocks require a **Pickaxe**. Water cannot be cleared.
 7. **Fishing:** Pressing **J** while standing next to water will attempt to fish if you have a **Fishing Rod**. You can catch Fish (rare, high value) or Junk (common, low value).
 8. **Building:** Pressing **F** builds or removes a fence at the player's current position. Fences block movement.
 9. **Interacting:** Pressing **E** interacts with animals at or adjacent to the player's position.
    - **Animals:** Cows, sheep, and chickens provide milk, wool, and eggs once per game day.
   - **Merchant:** A merchant resides at (0,0). Interacting with them (**E**) sells all harvested crops, animal products, and gathered resources in your inventory for coins.
-    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Milk (20), Wool (30), Egg (10), Wood (5), Stone (5), Fish (40), Junk (2).
+    - **Prices:** Turnip (10), Carrot (25), Pumpkin (50), Corn (35), Wheat (30), Milk (20), Wool (30), Egg (10), Wood (5), Stone (5), Fish (40), Junk (2).
     - **Purchasing:** Stand near or at the merchant's position and press:
-      - **4**: Turnip Seed (5 coins)
-      - **5**: Carrot Seed (15 coins)
-      - **6**: Pumpkin Seed (35 coins) / **Shift+6**: Corn Seed (25 coins)
+      - **Shift+1**: Turnip Seed (5 coins)
+      - **Shift+2**: Carrot Seed (15 coins)
+      - **Shift+3**: Pumpkin Seed (35 coins)
+      - **Shift+4**: Corn Seed (25 coins)
+      - **Shift+5**: Wheat Seed (20 coins)
       - **7**: Sprinkler Kit (100 coins) / **Shift+7**: Fishing Rod (150 coins)
+      - **Shift+B**: Scarecrow Kit (50 coins)
       - **8**: Hoe (50 coins) / **Shift+8**: Copper Hoe (200 coins)
       - **9**: Watering Can (50 coins) / **Shift+9**: Copper Watering Can (200 coins)
       - **0**: Axe (50 coins) / **Shift+0**: Copper Axe (200 coins)
@@ -145,6 +150,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Smooth Animations:** Continuous interpolation for player and animal movement, and swaying/bouncing effects for plants/animals.
 - [x] **Automation:** Sprinklers to automate watering.
 - [x] **UI/UX:** Merchant Compass to help players find the origin.
+- [x] **Terrain Variety:** Procedural generation of grass and flowers.
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites. (Ongoing: improved PixiJS shapes, shading, and animal details)
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
 - [x] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.

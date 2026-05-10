@@ -171,9 +171,14 @@ io.on('connection', (socket) => {
       targets.forEach(pos => {
         const entities = world.getEntitiesAt(pos.q, pos.r);
         const floor = entities.find(e => e.type === 'floor');
-        if (!floor) {
+        const isDecorative = floor && ['grass', 'flower', 'sunflower'].includes(floor.species || '');
+
+        if (!floor || isDecorative) {
           const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
           if (!isOccupied) {
+            if (isDecorative) {
+              world.removeEntity(floor!.id, floor!.pos.q, floor!.pos.r);
+            }
             const tilled = {
               id: `floor-${pos.q}-${pos.r}`,
               type: 'floor' as const,
@@ -324,7 +329,7 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25 };
+        const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20 };
         const price = seedPrices[species];
         if (price !== undefined) {
           if (player.coins >= price) {
@@ -341,7 +346,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('buy_sprinkler', () => {
+  socket.on('buy_kit', (kit: string) => {
     const player = players.get(socket.id);
     if (player) {
       const entities = [
@@ -350,15 +355,49 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const price = 100;
-        if (player.coins >= price) {
-          player.coins -= price;
-          player.inventory['sprinkler-kit'] = (player.inventory['sprinkler-kit'] || 0) + 1;
-          socket.emit('entityUpdate', player);
-          notify(socket.id, `Bought Sprinkler Kit for ${price} coins.`, 'success');
-        } else {
-          notify(socket.id, `Not enough coins! Need ${price}.`, 'error');
+        const kitPrices: Record<string, number> = {
+          'sprinkler-kit': 100,
+          'scarecrow-kit': 50
+        };
+        const price = kitPrices[kit];
+        if (price !== undefined) {
+          if (player.coins >= price) {
+            player.coins -= price;
+            player.inventory[kit] = (player.inventory[kit] || 0) + 1;
+            socket.emit('entityUpdate', player);
+            notify(socket.id, `Bought ${kit.replace('-', ' ')} for ${price} coins.`, 'success');
+          } else {
+            notify(socket.id, `Not enough coins! Need ${price}.`, 'error');
+          }
         }
+      }
+    }
+  });
+
+  socket.on('build_scarecrow', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      if (!player.inventory['scarecrow-kit'] || player.inventory['scarecrow-kit'] <= 0) {
+        notify(socket.id, "You don't have any scarecrow kits!", 'error');
+        return;
+      }
+
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+      if (!isOccupied) {
+        player.inventory['scarecrow-kit']--;
+        const scarecrow = {
+          id: `scarecrow-${player.pos.q}-${player.pos.r}`,
+          type: 'obstacle' as const,
+          species: 'scarecrow',
+          pos: { ...player.pos }
+        };
+        world.addEntity(scarecrow);
+        io.emit('entityUpdate', scarecrow);
+        socket.emit('entityUpdate', player);
+        notify(socket.id, "Scarecrow installed!", 'success');
+      } else {
+        notify(socket.id, "This spot is occupied.", 'info');
       }
     }
   });
@@ -393,8 +432,14 @@ io.on('connection', (socket) => {
   socket.on('clear_obstacle', () => {
     const player = players.get(socket.id);
     if (player) {
-      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const obstacle = entities.find(e => e.type === 'obstacle');
+      const targets = [player.pos, ...getNeighbors(player.pos)];
+      let obstacle = null;
+      for (const pos of targets) {
+        const entities = world.getEntitiesAt(pos.q, pos.r);
+        obstacle = entities.find(e => e.type === 'obstacle' && e.species !== 'water');
+        if (obstacle) break;
+      }
+
       if (obstacle) {
         if (obstacle.species === 'tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
           const hasCopperAxe = player.inventory['copper-axe'] > 0;
@@ -420,11 +465,21 @@ io.on('connection', (socket) => {
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, `Broke rock. Gained ${amount} stone.`, 'success');
-        } else if (obstacle.species === 'water') {
-          notify(socket.id, "You can't clear water!", 'info');
+        } else if (obstacle.species === 'scarecrow') {
+          world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          player.inventory['scarecrow-kit'] = (player.inventory['scarecrow-kit'] || 0) + 1;
+          io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
+          socket.emit('entityUpdate', player);
+          notify(socket.id, "Removed scarecrow.", 'success');
         }
       } else {
-        notify(socket.id, "Nothing to clear here.", 'info');
+        // If no breakable obstacle found, check if there's water in the current hex to give the specific message
+        const currentEntities = world.getEntitiesAt(player.pos.q, player.pos.r);
+        if (currentEntities.some(e => e.type === 'obstacle' && e.species === 'water')) {
+            notify(socket.id, "You can't clear water!", 'info');
+        } else {
+            notify(socket.id, "Nothing to clear here.", 'info');
+        }
       }
     }
   });
@@ -441,7 +496,7 @@ io.on('connection', (socket) => {
         if (animal.species === 'merchant') {
           // Sell crops and products
           const prices: Record<string, number> = {
-            'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35,
+            'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
             'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60,
             'wood': 5, 'stone': 5, 'fish': 40, 'junk': 2
           };
