@@ -4,7 +4,7 @@ import { axialToPixel, GAME_DAY } from 'common';
 import { socket } from '../network';
 
 const HEX_SIZE = 30;
-const TYPE_ORDER: Record<string, number> = { 'floor': 0, 'fence': 1, 'plant': 2, 'obstacle': 3, 'animal': 4, 'player': 5 };
+const TYPE_ORDER: Record<string, number> = { 'floor': 0, 'fence': 1, 'plant': 2, 'building': 3, 'obstacle': 4, 'animal': 5, 'player': 6 };
 
 export class HexRenderer {
   private app: PIXI.Application;
@@ -67,6 +67,7 @@ export class HexRenderer {
   drawTree(x: number, y: number) {
     const seed = Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453);
     const scale = 0.8 + (seed % 0.4);
+    const season = this.lastEnvironment?.season || 'spring';
 
     // Trunk with shading
     this.graphics.rect(x - 4 * scale, y, 8 * scale, 15 * scale);
@@ -74,17 +75,44 @@ export class HexRenderer {
     this.graphics.rect(x + 2 * scale, y, 2 * scale, 15 * scale);
     this.graphics.fill({ color: 0x5D2E0C, alpha: 1 });
 
+    // Seasonal foliage colors
+    let foliageBase = 0x228B22;
+    let foliageMid = 0x2E8B57;
+    let foliageTop = 0x3CB371;
+    let highlight = 0x90EE90;
+
+    if (season === 'autumn') {
+        foliageBase = 0x8B4513; // Brown
+        foliageMid = 0xD2691E;  // Chocolate
+        foliageTop = 0xFF4500;  // OrangeRed
+        highlight = 0xFFD700;   // Gold
+    } else if (season === 'winter') {
+        foliageBase = 0x2F4F4F; // Dark Slate Gray
+        foliageMid = 0x556B2F;  // Dark Olive Green
+        foliageTop = 0x8FBC8F;  // Dark Sea Green
+        highlight = 0xFFFFFF;   // Snow (White)
+    } else if (season === 'summer') {
+        foliageBase = 0x006400; // Dark Green
+        foliageMid = 0x228B22;  // Forest Green
+        foliageTop = 0x32CD32;  // Lime Green
+        highlight = 0xADFF2F;   // Green Yellow
+    }
+
     // Layered foliage for depth
     this.graphics.circle(x, y - 8 * scale, HEX_SIZE * 0.7 * scale);
-    this.graphics.fill({ color: 0x228B22, alpha: 1 });
+    this.graphics.fill({ color: foliageBase, alpha: 1 });
     this.graphics.circle(x - 5 * scale, y - 12 * scale, HEX_SIZE * 0.5 * scale);
-    this.graphics.fill({ color: 0x2E8B57, alpha: 1 });
+    this.graphics.fill({ color: foliageMid, alpha: 1 });
     this.graphics.circle(x + 5 * scale, y - 10 * scale, HEX_SIZE * 0.4 * scale);
-    this.graphics.fill({ color: 0x3CB371, alpha: 1 });
+    this.graphics.fill({ color: foliageTop, alpha: 1 });
 
-    // Highlights
+    // Highlights (snow in winter)
     this.graphics.circle(x - 3 * scale, y - 15 * scale, 4 * scale);
-    this.graphics.fill({ color: 0x90EE90, alpha: 0.3 });
+    this.graphics.fill({ color: highlight, alpha: season === 'winter' ? 0.8 : 0.3 });
+    if (season === 'winter') {
+        this.graphics.circle(x + 4 * scale, y - 12 * scale, 3 * scale);
+        this.graphics.fill({ color: 0xFFFFFF, alpha: 0.8 });
+    }
   }
 
   drawRock(x: number, y: number) {
@@ -295,7 +323,31 @@ export class HexRenderer {
     this.graphics.fill({ color: 0xDEB887, alpha: 1 });
   }
 
+  drawBuilding(entity: Entity, x: number, y: number) {
+    if (entity.species === 'shed') {
+        // Main structure
+        this.graphics.rect(x - 15, y - 10, 30, 20);
+        this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+        this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+        // Roof
+        this.graphics.poly([
+            x - 18, y - 10,
+            x + 18, y - 10,
+            x, y - 25
+        ]);
+        this.graphics.fill({ color: 0xA52A2A, alpha: 1 });
+        this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+        // Door
+        this.graphics.rect(x - 5, y, 10, 10);
+        this.graphics.fill({ color: 0x5D3A1A, alpha: 1 });
+        this.graphics.stroke({ color: 0x000000, width: 1 });
+    }
+  }
+
   drawFloor(entity: Entity, x: number, y: number) {
+    const season = this.lastEnvironment?.season || 'spring';
     if (entity.species === 'tilled') {
         const size = HEX_SIZE * 0.9;
         this.graphics.poly([
@@ -336,15 +388,24 @@ export class HexRenderer {
             this.graphics.fill({ color: 0x808080, alpha: 0.8 });
         }
     } else if (entity.species === 'grass') {
+        let grassColor = 0x228B22;
+        if (season === 'autumn') grassColor = 0x8B4513;
+        else if (season === 'winter') grassColor = 0x8FBC8F;
+        else if (season === 'summer') grassColor = 0x32CD32;
+
         for (let i = 0; i < 3; i++) {
             const gx = x + (i - 1) * 6;
             this.graphics.moveTo(gx, y + 5);
             this.graphics.lineTo(gx + 2, y - 5);
-            this.graphics.stroke({ color: 0x228B22, width: 2, alpha: 0.6 });
+            this.graphics.stroke({ color: grassColor, width: 2, alpha: 0.6 });
         }
     } else if (entity.species === 'flower') {
+        let flowerColor = 0xFF69B4; // Pink
+        if (season === 'autumn') flowerColor = 0xFFD700; // Gold
+        else if (season === 'winter') flowerColor = 0xADD8E6; // Light Blue
+
         this.graphics.circle(x, y, 3);
-        this.graphics.fill({ color: 0xFF69B4, alpha: 0.8 });
+        this.graphics.fill({ color: flowerColor, alpha: 0.8 });
         this.graphics.circle(x, y, 1);
         this.graphics.fill({ color: 0xFFFF00, alpha: 1 });
     } else if (entity.species === 'sunflower') {
@@ -481,6 +542,8 @@ export class HexRenderer {
         this.drawFence(x, y);
       } else if (entity.type === 'sprinkler') {
         this.drawSprinkler(x, y);
+      } else if (entity.type === 'building') {
+        this.drawBuilding(entity, x, y);
       } else if (entity.type === 'floor') {
         this.drawFloor(entity, x, y);
       }
