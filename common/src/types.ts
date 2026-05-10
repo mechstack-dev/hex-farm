@@ -15,6 +15,11 @@ export interface Entity {
   species?: string;
 }
 
+export interface Building extends Entity {
+  type: 'building';
+  inventory?: Record<string, number>;
+}
+
 export interface Plant extends Entity {
   type: 'plant';
   species: string;
@@ -22,6 +27,7 @@ export interface Plant extends Entity {
   lastWatered: number;
   plantedAt: number;
   lastUpdate: number;
+  lastProductTime?: number;
 }
 
 export interface Animal extends Entity {

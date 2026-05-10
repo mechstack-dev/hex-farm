@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
 import { distance, GAME_DAY, getNeighbors } from 'common';
-import type { Player, Position, Plant } from 'common';
+import type { Player, Position, Plant, Building } from 'common';
 
 const app = express();
 const httpServer = createServer(app);
@@ -92,7 +92,7 @@ io.on('connection', (socket) => {
 
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
-        (e.type === 'obstacle' || e.type === 'fence')
+        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building')
       );
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
@@ -329,7 +329,10 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const seedPrices: Record<string, number> = { 'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20 };
+        const seedPrices: Record<string, number> = {
+          'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20,
+          'apple-tree': 50
+        };
         const price = seedPrices[species];
         if (price !== undefined) {
           if (player.coins >= price) {
@@ -358,7 +361,8 @@ io.on('connection', (socket) => {
         const kitPrices: Record<string, number> = {
           'sprinkler-kit': 100,
           'scarecrow-kit': 50,
-          'shed-kit': 250
+          'shed-kit': 250,
+          'chest-kit': 150
         };
         const price = kitPrices[kit];
         if (price !== undefined) {
@@ -443,11 +447,12 @@ io.on('connection', (socket) => {
       const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
       if (!isOccupied) {
         player.inventory[kitType]--;
-        const building = {
+        const building: Building = {
           id: `${species}-${player.pos.q}-${player.pos.r}`,
           type: 'building' as const,
           species,
-          pos: { ...player.pos }
+          pos: { ...player.pos },
+          inventory: species === 'chest' ? {} : undefined
         };
         world.addEntity(building);
         io.emit('entityUpdate', building);
@@ -541,12 +546,74 @@ io.on('connection', (socket) => {
       // Prioritize merchant if nearby
       const merchant = entities.find(e => e.type === 'animal' && e.species === 'merchant') as any;
       const animal = merchant || entities.find(e => e.type === 'animal') as any;
+      const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
+      const building = entities.find(e => e.type === 'building') as Building | undefined;
+
+      if (building && building.species === 'chest') {
+        const buildingInv = building.inventory || {};
+        const playerInv = player.inventory;
+        const categoriesToStore = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'milk', 'wool', 'egg', 'truffle', 'wood', 'stone', 'fish', 'junk'];
+
+        let hasAnythingToStore = false;
+        categoriesToStore.forEach(item => {
+            if (playerInv[item] > 0) {
+                buildingInv[item] = (buildingInv[item] || 0) + playerInv[item];
+                playerInv[item] = 0;
+                hasAnythingToStore = true;
+            }
+        });
+
+        if (hasAnythingToStore) {
+            building.inventory = buildingInv;
+            world.updateEntity(building);
+            socket.emit('entityUpdate', player);
+            io.emit('entityUpdate', building);
+            notify(socket.id, "Deposited items into chest.", 'success');
+        } else {
+            // If nothing to store, take everything out
+            let hasAnythingToTake = false;
+            Object.entries(buildingInv).forEach(([item, count]) => {
+                if (count > 0) {
+                    playerInv[item] = (playerInv[item] || 0) + count;
+                    buildingInv[item] = 0;
+                    hasAnythingToTake = true;
+                }
+            });
+
+            if (hasAnythingToTake) {
+                building.inventory = buildingInv;
+                world.updateEntity(building);
+                socket.emit('entityUpdate', player);
+                io.emit('entityUpdate', building);
+                notify(socket.id, "Withdrew items from chest.", 'success');
+            } else {
+                notify(socket.id, "The chest is empty.", 'info');
+            }
+        }
+        return;
+      }
+
+      if (plant && plant.species === 'apple-tree' && plant.growthStage >= 5) {
+        const now = Date.now();
+        if (now - (plant.lastProductTime || 0) >= GAME_DAY) {
+            player.inventory['apple'] = (player.inventory['apple'] || 0) + 1;
+            plant.lastProductTime = now;
+            world.updateEntity(plant);
+            socket.emit('entityUpdate', player);
+            io.emit('entityUpdate', plant);
+            notify(socket.id, "Harvested an apple from the tree!", 'success');
+        } else {
+            notify(socket.id, "This tree doesn't have any ripe apples yet.", 'info');
+        }
+        return;
+      }
 
       if (animal) {
         if (animal.species === 'merchant') {
           // Sell crops and products
           const prices: Record<string, number> = {
             'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
+            'apple': 15,
             'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60,
             'wood': 5, 'stone': 5, 'fish': 40, 'junk': 2
           };

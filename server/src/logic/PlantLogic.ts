@@ -9,6 +9,7 @@ const SPECIES_GROWTH: Record<string, number> = {
   'pumpkin': 3 * GAME_DAY,  // 3 days per stage
   'corn': 1.5 * GAME_DAY,   // 1.5 days per stage
   'wheat': 1.25 * GAME_DAY, // 1.25 days per stage
+  'apple-tree': 4 * GAME_DAY, // 4 days per stage
 };
 
 export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny'): Plant {
