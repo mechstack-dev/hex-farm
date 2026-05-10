@@ -49,7 +49,7 @@ The game uses axial coordinate math for:
 ## 3. User Experience (How to Play)
 
 ### Joining the Game
-Players join by entering a name and are spawned at the origin (0, 0) or their last saved position.
+Players join by entering a name in the login screen and are spawned at the origin (0, 0) or their last saved position.
 
 ### Movement
 Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows the player, and new chunks are requested from the server as the player approaches unexplored territory.
@@ -67,6 +67,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 6. **Care:** Pressing **I** waters the plant at the player's current position, doubling its growth rate for one game day (24 minutes). Requires a **Watering Can** in inventory. A blue indicator appears on watered plants.
 6. **Automation:** Pressing **K** installs a **Sprinkler** if you have a Sprinkler Kit in your inventory. Sprinklers automatically water all plants in the same hex and 6 neighboring hexes.
 7. **Protection:** Pressing **B** installs a **Scarecrow** if you have a Scarecrow Kit. Scarecrows are decorative but persistent structures that can be placed to define your farm space.
+9. **Construction:** Pressing **L** builds a **Shed** if you have a Shed Kit. Sheds are larger persistent buildings for your farm.
 5. **Harvesting:** Pressing **H** harvests a mature plant (at its final growth stage) at the player's current position. Harvesting grants the crop and a chance for new seeds.
 6. **Clearing:** Pressing **X** clears an obstacle at the player's current position or immediate neighbors. Trees require an **Axe**, and rocks require a **Pickaxe**. Water cannot be cleared.
 7. **Fishing:** Pressing **J** while standing next to water will attempt to fish if you have a **Fishing Rod**. You can catch Fish (rare, high value) or Junk (common, low value).
@@ -83,6 +84,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
       - **Shift+5**: Wheat Seed (20 coins)
       - **7**: Sprinkler Kit (100 coins) / **Shift+7**: Fishing Rod (150 coins)
       - **Shift+B**: Scarecrow Kit (50 coins)
+      - **Shift+L**: Shed Kit (250 coins)
       - **8**: Hoe (50 coins) / **Shift+8**: Copper Hoe (200 coins)
       - **9**: Watering Can (50 coins) / **Shift+9**: Copper Watering Can (200 coins)
       - **0**: Axe (50 coins) / **Shift+0**: Copper Axe (200 coins)
@@ -141,23 +143,25 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Inventory System:** Basic UI to show gathered resources and available seeds.
 - [x] **Animal Spawning:** Deterministic spawning of cows, sheep, chickens, and pigs in the procedural world.
 - [x] **Animal Products:** Collect resources (milk, wool, eggs, truffles) from animals by interacting with them.
-- [x] **Multiple Crops:** Support for different plant species (Turnip, Carrot, Pumpkin, Corn) with unique growth durations.
+- [x] **Multiple Crops:** Support for different plant species (Turnip, Carrot, Pumpkin, Corn, Wheat) with unique growth durations.
 - [x] **Seasons & Weather:** Implement the real-time seasonal cycle and dynamic weather (rain waters plants).
 - [x] **Day/Night Cycle:** Visual representation of time of day with light/dark overlays.
+- [x] **Login System:** Player name login to enable persistence across sessions.
 
 ### Medium Priority
-- [x] **Infrastructure:** Building and removing fences.
+- [x] **Infrastructure:** Building and removing fences and paths.
 - [x] **Smooth Animations:** Continuous interpolation for player and animal movement, and swaying/bouncing effects for plants/animals.
 - [x] **Automation:** Sprinklers to automate watering.
 - [x] **UI/UX:** Merchant Compass to help players find the origin.
-- [x] **Terrain Variety:** Procedural generation of grass and flowers.
+- [x] **Terrain Variety:** Procedural generation of grass, flowers, and sunflowers.
+- [x] **Seasonal Visuals:** Dynamic color changes for trees and terrain based on the current season.
+- [x] **Advanced Infrastructure:** Building farm buildings like the Shed.
 - [ ] **Better Graphics:** Replace colored hexes with actual pixel art sprites. (Ongoing: improved PixiJS shapes, shading, and animal details)
 - [ ] **Sound & Music:** Add relaxing ambient sounds and a gentle soundtrack.
 - [x] **World Persistence Scaling:** Implement chunk unloading on the server to handle millions of hexes efficiently.
 - [x] **More Animals:** Add more species with unique behaviors (e.g., chickens).
-- [x] **Economy:** Basic merchant system, currency (coins), and seed purchasing.
+- [x] **Economy:** Merchant system at (0,0), currency (coins), and seed/kit/tool purchasing.
 - [x] **Land Preparation:** Plowing (tilled soil) mechanic.
-- [x] **Infrastructure:** Building paths.
 - [x] **UX:** In-game notifications for actions and errors.
 - [x] **Tool Requirements:** Plowing, watering, and clearing now require specific tools.
 - [x] **Obstacle Removal:** Players can clear trees and rocks using axes and pickaxes. Gathers wood and stone.
@@ -166,8 +170,9 @@ The project is organized as a **TypeScript Monorepo**:
 ### Long Term
 - [ ] **Trading:** A system for players to exchange resources.
 - [x] **Tools & Upgrades:** Copper tools (Hoe, Watering Can, Axe, Pickaxe) with enhanced efficiency, and Fishing Rod.
-- [ ] **Advanced Infrastructure:** Building simple farm buildings.
+- [ ] **Animal Breeding:** Mechanism for animals to reproduce.
 - [ ] **Purchasable Items:** Spend coins on more than just seeds (tools, decorations) from the merchant.
+- [ ] **Expanded Buildings:** More variety in farm buildings with functional uses.
 
 ---
 

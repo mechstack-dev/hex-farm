@@ -9,6 +9,8 @@ import './App.css'
 function App() {
   const pixiContainer = useRef<HTMLDivElement>(null);
   const renderer = useRef<HexRenderer | null>(null);
+  const [isJoined, setIsJoined] = useState(false);
+  const [playerName, setPlayerName] = useState('');
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
   const [playerInventory, setPlayerInventory] = useState<Record<string, number>>({});
   const [playerCoins, setPlayerCoins] = useState<number>(0);
@@ -16,6 +18,7 @@ function App() {
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
   const [notifications, setNotifications] = useState<{id: number, message: string, type: string}[]>([]);
   const loadedChunks = useRef<Set<string>>(new Set());
+  const myIdRef = useRef<string | null>(null);
 
   const requestChunksAround = (q: number, r: number) => {
     const { cq, cr } = getChunkCoords(q, r);
@@ -39,7 +42,8 @@ function App() {
       renderer.current = new HexRenderer(pixiContainer.current);
     }
 
-    socket.on('init', () => {
+    socket.on('init', ({ playerId }: { playerId: string }) => {
+      myIdRef.current = playerId;
       requestChunksAround(0, 0);
     });
 
@@ -61,7 +65,7 @@ function App() {
         next.set(entity.id, entity);
         return next;
       });
-      if (entity.id === socket.id) {
+      if (myIdRef.current && entity.id === myIdRef.current) {
         setPlayerPos(entity.pos);
         setPlayerInventory((entity as any).inventory || {});
         setPlayerCoins((entity as any).coins || 0);
@@ -88,8 +92,6 @@ function App() {
         setNotifications(prev => prev.filter(n => n.id !== id));
       }, 5000);
     });
-
-    joinGame('Player' + Math.floor(Math.random() * 1000));
 
     return () => {
       renderer.current?.destroy();
@@ -143,23 +145,26 @@ function App() {
         else socket.emit('build_scarecrow');
       } else if (e.key.toLowerCase() === 'x') {
         socket.emit('clear_obstacle');
-      } else if (e.key.toLowerCase() === '7') {
+      } else if (e.code === 'Digit7') {
         if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
         else socket.emit('buy_kit', 'sprinkler-kit');
-      } else if (e.key.toLowerCase() === '8') {
+      } else if (e.code === 'Digit8') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
         else socket.emit('buy_tool', 'hoe');
-      } else if (e.key.toLowerCase() === '9') {
+      } else if (e.code === 'Digit9') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-watering-can');
         else socket.emit('buy_tool', 'watering-can');
-      } else if (e.key.toLowerCase() === '0') {
+      } else if (e.code === 'Digit0') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-axe');
         else socket.emit('buy_tool', 'axe');
-      } else if (e.key.toLowerCase() === '-') {
+      } else if (e.code === 'Minus') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-pickaxe');
         else socket.emit('buy_tool', 'pickaxe');
       } else if (e.key.toLowerCase() === 'j') {
         socket.emit('fish');
+      } else if (e.key.toLowerCase() === 'l') {
+        if (e.shiftKey) socket.emit('buy_kit', 'shed-kit');
+        else socket.emit('build_building', 'shed');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -225,8 +230,38 @@ function App() {
     return Object.values(categories).filter(c => c.items.length > 0);
   };
 
+  const handleJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (playerName.trim()) {
+      joinGame(playerName.trim());
+      setIsJoined(true);
+    }
+  };
+
   return (
     <div className="App">
+      {!isJoined && (
+        <div className="login-overlay" style={{
+          position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0,0,0,0.8)', color: 'white', display: 'flex',
+          flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+        }}>
+          <h1>Harvest Hex MMO</h1>
+          <form onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              style={{ padding: '10px', borderRadius: '5px', border: 'none' }}
+              autoFocus
+            />
+            <button type="submit" style={{ padding: '10px', borderRadius: '5px', border: 'none', background: '#28a745', color: 'white', cursor: 'pointer' }}>
+              Join Game
+            </button>
+          </form>
+        </div>
+      )}
       <div ref={pixiContainer} className="pixi-container" style={{ width: '100vw', height: '100vh' }} />
 
       <div className="notifications" style={{ position: 'absolute', top: 20, right: 20, pointerEvents: 'none', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
@@ -260,9 +295,9 @@ function App() {
         )}
         <p>Use WASD or Arrow Keys to move</p>
         <p>Press <b>1-5</b> to Plant, <b>Shift + 1-5</b> to Buy Seeds (Turnip, Carrot, Pumpkin, Corn, Wheat)</p>
-        <p>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
+        <p>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>H</b> to Harvest, <b>F</b> to Fence, <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
         <p>Plowing, Watering, Clearing, and Fishing require tools (Hoe, Watering Can, Axe, Pickaxe, Fishing Rod)</p>
-        <p>Press <b>7</b> to Buy Sprinkler, <b>Shift+B</b> for Scarecrow Kit, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
+        <p>Press <b>7</b> to Buy Sprinkler, <b>Shift+B</b> for Scarecrow Kit, <b>Shift+L</b> for Shed Kit, <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
         <p>Press <b>Shift + 7, 8, 9, 0, -</b> to Buy Fishing Rod or Copper Tools (Near Merchant)</p>
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>

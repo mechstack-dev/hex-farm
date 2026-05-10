@@ -357,7 +357,8 @@ io.on('connection', (socket) => {
       if (isNearMerchant) {
         const kitPrices: Record<string, number> = {
           'sprinkler-kit': 100,
-          'scarecrow-kit': 50
+          'scarecrow-kit': 50,
+          'shed-kit': 250
         };
         const price = kitPrices[kit];
         if (price !== undefined) {
@@ -429,6 +430,35 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('build_building', (species: string) => {
+    const player = players.get(socket.id);
+    if (player) {
+      const kitType = `${species}-kit`;
+      if (!player.inventory[kitType] || player.inventory[kitType] <= 0) {
+        notify(socket.id, `You don't have any ${species} kits!`, 'error');
+        return;
+      }
+
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+      if (!isOccupied) {
+        player.inventory[kitType]--;
+        const building = {
+          id: `${species}-${player.pos.q}-${player.pos.r}`,
+          type: 'building' as const,
+          species,
+          pos: { ...player.pos }
+        };
+        world.addEntity(building);
+        io.emit('entityUpdate', building);
+        socket.emit('entityUpdate', player);
+        notify(socket.id, `${species.charAt(0).toUpperCase() + species.slice(1)} built!`, 'success');
+      } else {
+        notify(socket.id, "This spot is occupied.", 'info');
+      }
+    }
+  });
+
   socket.on('clear_obstacle', () => {
     const player = players.get(socket.id);
     if (player) {
@@ -473,6 +503,23 @@ io.on('connection', (socket) => {
           notify(socket.id, "Removed scarecrow.", 'success');
         }
       } else {
+        // Also check for buildings
+        let building = null;
+        for (const pos of targets) {
+          const entities = world.getEntitiesAt(pos.q, pos.r);
+          building = entities.find(e => e.type === 'building');
+          if (building) break;
+        }
+        if (building) {
+          world.removeEntity(building.id, building.pos.q, building.pos.r);
+          const kitType = `${building.species}-kit`;
+          player.inventory[kitType] = (player.inventory[kitType] || 0) + 1;
+          io.emit('entityRemove', { id: building.id, pos: building.pos });
+          socket.emit('entityUpdate', player);
+          notify(socket.id, `Removed ${building.species}.`, 'success');
+          return;
+        }
+
         // If no breakable obstacle found, check if there's water in the current hex to give the specific message
         const currentEntities = world.getEntitiesAt(player.pos.q, player.pos.r);
         if (currentEntities.some(e => e.type === 'obstacle' && e.species === 'water')) {
@@ -491,7 +538,10 @@ io.on('connection', (socket) => {
         ...world.getEntitiesAt(player.pos.q, player.pos.r),
         ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
       ];
-      const animal = entities.find(e => e.type === 'animal') as any;
+      // Prioritize merchant if nearby
+      const merchant = entities.find(e => e.type === 'animal' && e.species === 'merchant') as any;
+      const animal = merchant || entities.find(e => e.type === 'animal') as any;
+
       if (animal) {
         if (animal.species === 'merchant') {
           // Sell crops and products
