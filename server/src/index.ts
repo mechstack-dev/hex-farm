@@ -63,9 +63,15 @@ io.on('connection', (socket) => {
           'axe': 1,
           'pickaxe': 1
         },
-        coins: 0
+        coins: 0,
+        stamina: 100,
+        maxStamina: 100
       };
     }
+
+    // Migration for existing players
+    if (player.stamina === undefined) player.stamina = 100;
+    if (player.maxStamina === undefined) player.maxStamina = 100;
 
     players.set(socket.id, player);
     world.addEntity(player);
@@ -105,6 +111,15 @@ io.on('connection', (socket) => {
     }
   });
 
+  const checkStamina = (player: Player, amount: number) => {
+    if (player.stamina < amount) {
+      notify(socket.id, "You're too tired!", 'error');
+      return false;
+    }
+    player.stamina -= amount;
+    return true;
+  };
+
   socket.on('buy_tool', (tool: string) => {
     const player = players.get(socket.id);
     if (player) {
@@ -137,6 +152,10 @@ io.on('connection', (socket) => {
   socket.on('build_fence', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (player.stamina < 5) {
+          notify(socket.id, "You're too tired to build!", 'error');
+          return;
+      }
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
       if (!isOccupied) {
@@ -145,6 +164,7 @@ io.on('connection', (socket) => {
           return;
         }
         player.inventory['wood'] -= 2;
+        player.stamina -= 5;
         const fence = {
           id: `fence-${player.pos.q}-${player.pos.r}`,
           type: 'fence' as const,
@@ -168,6 +188,7 @@ io.on('connection', (socket) => {
   socket.on('plow', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 5)) return;
       const hasCopperHoe = player.inventory['copper-hoe'] > 0;
       if (!hasCopperHoe && (!player.inventory['hoe'] || player.inventory['hoe'] <= 0)) {
         notify(socket.id, "You need a hoe to plow land!", 'error');
@@ -214,6 +235,7 @@ io.on('connection', (socket) => {
   socket.on('build_path', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 2)) return;
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const floor = entities.find(e => e.type === 'floor');
       if (!floor) {
@@ -343,6 +365,7 @@ io.on('connection', (socket) => {
   socket.on('water', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 2)) return;
       const hasCopperWateringCan = player.inventory['copper-watering-can'] > 0;
       const entities = [
         ...world.getEntitiesAt(player.pos.q, player.pos.r),
@@ -428,6 +451,7 @@ io.on('connection', (socket) => {
   socket.on('build_scarecrow', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 10)) return;
       const cost = { wood: 2, stone: 0 };
       if ((player.inventory['wood'] || 0) < cost.wood) {
         notify(socket.id, `Need ${cost.wood} wood to build a scarecrow!`, 'error');
@@ -457,6 +481,7 @@ io.on('connection', (socket) => {
   socket.on('build_sprinkler', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 10)) return;
       const cost = { wood: 0, stone: 5 };
       if ((player.inventory['stone'] || 0) < cost.stone) {
         notify(socket.id, `Need ${cost.stone} stone to build a sprinkler!`, 'error');
@@ -485,6 +510,7 @@ io.on('connection', (socket) => {
   socket.on('build_building', (species: string) => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 20)) return;
       const costs: Record<string, { wood: number, stone: number }> = {
         'shed': { wood: 10, stone: 5 },
         'chest': { wood: 5, stone: 2 },
@@ -527,6 +553,7 @@ io.on('connection', (socket) => {
   socket.on('clear_obstacle', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 10)) return;
       const targets = [player.pos, ...getNeighbors(player.pos)];
       let obstacle = null;
       for (const pos of targets) {
@@ -756,9 +783,33 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('consume', (item: string) => {
+    const player = players.get(socket.id);
+    if (player) {
+      if (!player.inventory[item] || player.inventory[item] <= 0) {
+        notify(socket.id, `You don't have any ${item}!`, 'error');
+        return;
+      }
+
+      if (item === 'apple') {
+        if (player.stamina >= player.maxStamina) {
+          notify(socket.id, "You're already full of energy!", 'info');
+          return;
+        }
+        player.inventory[item]--;
+        player.stamina = Math.min(player.maxStamina, player.stamina + 20);
+        socket.emit('entityUpdate', player);
+        notify(socket.id, "Ate an apple. Restored 20 stamina!", 'success');
+      } else {
+        notify(socket.id, `You can't eat ${item}!`, 'info');
+      }
+    }
+  });
+
   socket.on('fish', () => {
     const player = players.get(socket.id);
     if (player) {
+      if (!checkStamina(player, 5)) return;
       if (!player.inventory['fishing-rod'] || player.inventory['fishing-rod'] <= 0) {
         notify(socket.id, "You need a fishing rod!", 'error');
         return;

@@ -72,7 +72,7 @@ export class Generator {
             type: 'animal',
             species,
             pos: { q, r },
-            nextMoveTime: Date.now() + chunkRng() * 10000,
+            nextMoveTime: 0, // Will move on first engine tick
             lastProductTime: 0
           } as unknown as Entity);
         }

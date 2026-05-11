@@ -1,7 +1,17 @@
-import type { Plant, Weather } from 'common';
+import type { Plant, Weather, Season } from 'common';
 import { GAME_DAY } from 'common';
 
 const WATER_BONUS = 2;
+const SEASONAL_PENALTY = 0.5;
+
+const PREFERRED_SEASONS: Record<string, Season[]> = {
+  'turnip': ['spring'],
+  'carrot': ['spring', 'summer'],
+  'pumpkin': ['autumn'],
+  'corn': ['summer'],
+  'wheat': ['autumn'],
+  'apple-tree': ['spring', 'summer', 'autumn', 'winter'],
+};
 
 const SPECIES_GROWTH: Record<string, number> = {
   'turnip': GAME_DAY,   // 1 day per stage
@@ -12,14 +22,17 @@ const SPECIES_GROWTH: Record<string, number> = {
   'apple-tree': 4 * GAME_DAY, // 4 days per stage
 };
 
-export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny'): Plant {
+export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny', season: Season = 'spring'): Plant {
   const elapsed = now - plant.lastUpdate;
   const isWatered = (now - plant.lastWatered < GAME_DAY) || weather === 'rainy';
   
   const duration = SPECIES_GROWTH[plant.species] || SPECIES_GROWTH['turnip'];
 
+  const preferred = PREFERRED_SEASONS[plant.species] || PREFERRED_SEASONS['turnip'];
+  const seasonMultiplier = preferred.includes(season) ? 1.0 : SEASONAL_PENALTY;
+
   const effectiveTime = isWatered ? elapsed * WATER_BONUS : elapsed;
-  const growthIncrement = effectiveTime / duration;
+  const growthIncrement = (effectiveTime * seasonMultiplier) / duration;
   
   return {
     ...plant,
