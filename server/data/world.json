@@ -1,0 +1,495 @@
+{
+  "entities": [
+    {
+      "id": "player-tester",
+      "type": "player",
+      "name": "Tester",
+      "pos": {
+        "q": 0,
+        "r": 0
+      },
+      "inventory": {
+        "turnip-seed": 5,
+        "carrot-seed": 2,
+        "pumpkin-seed": 1,
+        "hoe": 1,
+        "watering-can": 1,
+        "axe": 1,
+        "pickaxe": 1
+      },
+      "coins": 0,
+      "stamina": 80,
+      "maxStamina": 100,
+      "skills": {
+        "farming": {
+          "level": 1,
+          "xp": 0
+        },
+        "foraging": {
+          "level": 1,
+          "xp": 0
+        },
+        "mining": {
+          "level": 1,
+          "xp": 0
+        },
+        "fishing": {
+          "level": 1,
+          "xp": 0
+        },
+        "cooking": {
+          "level": 1,
+          "xp": 0
+        }
+      },
+      "buffs": []
+    },
+    {
+      "id": "plant-2-9-1778523587969",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": 2,
+        "r": 9
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523587969,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "animal-13-2",
+      "type": "animal",
+      "species": "pig",
+      "pos": {
+        "q": 13,
+        "r": 3
+      },
+      "nextMoveTime": 1778523599939.5344,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-14-0",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": 13,
+        "r": 1
+      },
+      "nextMoveTime": 1778523593454.5938,
+      "lastProductTime": 0
+    },
+    {
+      "id": "plant-9--13-1778523587972",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": 9,
+        "r": -13
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523587972,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "plant-15--8-1778523587973",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": 15,
+        "r": -8
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523587973,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "animal--15--10",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": -15,
+        "r": -9
+      },
+      "nextMoveTime": 1778523596574.1516,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal--12-13",
+      "type": "animal",
+      "species": "cat",
+      "pos": {
+        "q": -13,
+        "r": 13
+      },
+      "nextMoveTime": 1778523597189.5068,
+      "lastProductTime": 0
+    },
+    {
+      "id": "plant--11-10-1778523588145",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": -11,
+        "r": 10
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588145,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "animal--8-7",
+      "type": "animal",
+      "species": "pig",
+      "pos": {
+        "q": -8,
+        "r": 6
+      },
+      "nextMoveTime": 1778523600038.5835,
+      "lastProductTime": 0
+    },
+    {
+      "id": "plant--4-15-1778523588146",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": -4,
+        "r": 15
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588146,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "plant--16-30-1778523588146",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": -16,
+        "r": 30
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588146,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "animal--7-28",
+      "type": "animal",
+      "species": "chicken",
+      "pos": {
+        "q": -7,
+        "r": 29
+      },
+      "nextMoveTime": 1778523596710.3215,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal--4-30",
+      "type": "animal",
+      "species": "chicken",
+      "pos": {
+        "q": -4,
+        "r": 31
+      },
+      "nextMoveTime": 1778523601643.1987,
+      "lastProductTime": 0
+    },
+    {
+      "id": "plant--2-18-1778523588147",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": -2,
+        "r": 18
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588147,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "animal-1-22",
+      "type": "animal",
+      "species": "dog",
+      "pos": {
+        "q": 1,
+        "r": 21
+      },
+      "nextMoveTime": 1778523597325.3481,
+      "lastProductTime": 0
+    },
+    {
+      "id": "plant-2-22-1778523588150",
+      "type": "plant",
+      "species": "berry-bush",
+      "pos": {
+        "q": 2,
+        "r": 22
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588150,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "plant-12-23-1778523588151",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": 12,
+        "r": 23
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588151,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "plant-13-27-1778523588151",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": 13,
+        "r": 27
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588151,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "plant-19--6-1778523588151",
+      "type": "plant",
+      "species": "berry-bush",
+      "pos": {
+        "q": 19,
+        "r": -6
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588151,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "animal-19--5",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": 19,
+        "r": -4
+      },
+      "nextMoveTime": 1778523603291.786,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-19--2",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": 20,
+        "r": -3
+      },
+      "nextMoveTime": 1778523601684.1707,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-20--13",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": 19,
+        "r": -13
+      },
+      "nextMoveTime": 1778523599502.824,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-26--11",
+      "type": "animal",
+      "species": "cat",
+      "pos": {
+        "q": 26,
+        "r": -10
+      },
+      "nextMoveTime": 1778523598153.2012,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-31--15",
+      "type": "animal",
+      "species": "chicken",
+      "pos": {
+        "q": 32,
+        "r": -15
+      },
+      "nextMoveTime": 1778523596590.3936,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-31--13",
+      "type": "animal",
+      "species": "chicken",
+      "pos": {
+        "q": 30,
+        "r": -13
+      },
+      "nextMoveTime": 1778523595180.2666,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-16-6",
+      "type": "animal",
+      "species": "pig",
+      "pos": {
+        "q": 15,
+        "r": 7
+      },
+      "nextMoveTime": 1778523600248.215,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-25-7",
+      "type": "animal",
+      "species": "chicken",
+      "pos": {
+        "q": 26,
+        "r": 7
+      },
+      "nextMoveTime": 1778523594832.1394,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-29-13",
+      "type": "animal",
+      "species": "cat",
+      "pos": {
+        "q": 29,
+        "r": 14
+      },
+      "nextMoveTime": 1778523603063.9993,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-19-29",
+      "type": "animal",
+      "species": "dog",
+      "pos": {
+        "q": 20,
+        "r": 28
+      },
+      "nextMoveTime": 1778523597944.2566,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-23-23",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": 22,
+        "r": 24
+      },
+      "nextMoveTime": 1778523600895.1255,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-28-30",
+      "type": "animal",
+      "species": "sheep",
+      "pos": {
+        "q": 28,
+        "r": 31
+      },
+      "nextMoveTime": 1778523600590.0007,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-31-18",
+      "type": "animal",
+      "species": "dog",
+      "pos": {
+        "q": 30,
+        "r": 19
+      },
+      "nextMoveTime": 1778523595228.7124,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-43--12",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": 43,
+        "r": -13
+      },
+      "nextMoveTime": 1778523603188.4558,
+      "lastProductTime": 0
+    },
+    {
+      "id": "animal-47--4",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": 48,
+        "r": -5
+      },
+      "nextMoveTime": 1778523604239.8433,
+      "lastProductTime": 0
+    },
+    {
+      "id": "plant-37-24-1778523588494",
+      "type": "plant",
+      "species": "mushroom",
+      "pos": {
+        "q": 37,
+        "r": 24
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588494,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "plant-39-29-1778523588494",
+      "type": "plant",
+      "species": "berry-bush",
+      "pos": {
+        "q": 39,
+        "r": 29
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588494,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "plant-39-30-1778523588494",
+      "type": "plant",
+      "species": "berry-bush",
+      "pos": {
+        "q": 39,
+        "r": 30
+      },
+      "growthStage": 5,
+      "plantedAt": 1778523588494,
+      "lastWatered": 0,
+      "lastUpdate": 1778523589493
+    },
+    {
+      "id": "animal-41-21",
+      "type": "animal",
+      "species": "cow",
+      "pos": {
+        "q": 41,
+        "r": 22
+      },
+      "nextMoveTime": 1778523597426.1646,
+      "lastProductTime": 0
+    }
+  ],
+  "removedStaticIds": []
+}

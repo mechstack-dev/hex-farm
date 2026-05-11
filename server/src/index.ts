@@ -7,6 +7,7 @@ import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
 import { distance, GAME_DAY, getNeighbors, BUILDING_COSTS } from 'common';
 import type { Player, Position, Plant, Building } from 'common';
+import { addXP, getStaminaCost } from './logic/SkillLogic.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -65,13 +66,31 @@ io.on('connection', (socket) => {
         },
         coins: 0,
         stamina: 100,
-        maxStamina: 100
+        maxStamina: 100,
+        skills: {
+          'farming': { level: 1, xp: 0 },
+          'foraging': { level: 1, xp: 0 },
+          'mining': { level: 1, xp: 0 },
+          'fishing': { level: 1, xp: 0 },
+          'cooking': { level: 1, xp: 0 }
+        },
+        buffs: []
       };
     }
 
     // Migration for existing players
     if (player.stamina === undefined) player.stamina = 100;
     if (player.maxStamina === undefined) player.maxStamina = 100;
+    if (!player.skills) {
+      player.skills = {
+        'farming': { level: 1, xp: 0 },
+        'foraging': { level: 1, xp: 0 },
+        'mining': { level: 1, xp: 0 },
+        'fishing': { level: 1, xp: 0 },
+        'cooking': { level: 1, xp: 0 }
+      };
+    }
+    if (!player.buffs) player.buffs = [];
 
     players.set(socket.id, player);
     world.addEntity(player);
@@ -152,7 +171,8 @@ io.on('connection', (socket) => {
   socket.on('build_fence', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 5)) return;
+      const cost = getStaminaCost(player, 'farming', 5);
+      if (!checkStamina(player, cost)) return;
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
       if (!isOccupied) {
@@ -185,7 +205,8 @@ io.on('connection', (socket) => {
   socket.on('plow', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 5)) return;
+      const cost = getStaminaCost(player, 'farming', 5);
+      if (!checkStamina(player, cost)) return;
       const hasCopperHoe = player.inventory['copper-hoe'] > 0;
       if (!hasCopperHoe && (!player.inventory['hoe'] || player.inventory['hoe'] <= 0)) {
         notify(socket.id, "You need a hoe to plow land!", 'error');
@@ -244,7 +265,8 @@ io.on('connection', (socket) => {
   socket.on('build_path', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 2)) return;
+      const cost = getStaminaCost(player, 'farming', 2);
+      if (!checkStamina(player, cost)) return;
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const floor = entities.find(e => e.type === 'floor');
       if (!floor) {
@@ -295,6 +317,14 @@ io.on('connection', (socket) => {
 
           // Give crop
           player.inventory[species] = (player.inventory[species] || 0) + 1;
+
+          // XP Gain
+          const xpGained = species === 'mushroom' ? 5 : 10;
+          const skill = species === 'mushroom' ? 'foraging' : 'farming';
+          const { leveledUp, newLevel } = addXP(player, skill, xpGained);
+          if (leveledUp) {
+            notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
+          }
 
           // Chance to give 1-2 seeds
           if (species !== 'mushroom') {
@@ -391,7 +421,8 @@ io.on('connection', (socket) => {
   socket.on('water', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 2)) return;
+      const cost = getStaminaCost(player, 'farming', 2);
+      if (!checkStamina(player, cost)) return;
       const hasCopperWateringCan = player.inventory['copper-watering-can'] > 0;
       const entities = [
         ...world.getEntitiesAt(player.pos.q, player.pos.r),
@@ -477,7 +508,8 @@ io.on('connection', (socket) => {
   socket.on('build_scarecrow', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 10)) return;
+      const sCost = getStaminaCost(player, 'farming', 10);
+      if (!checkStamina(player, sCost)) return;
       const cost = { wood: 2, stone: 0 };
       if ((player.inventory['wood'] || 0) < cost.wood) {
         notify(socket.id, `Need ${cost.wood} wood to build a scarecrow!`, 'error');
@@ -507,7 +539,8 @@ io.on('connection', (socket) => {
   socket.on('build_sprinkler', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 10)) return;
+      const sCost = getStaminaCost(player, 'farming', 10);
+      if (!checkStamina(player, sCost)) return;
       const cost = { wood: 0, stone: 5 };
       if ((player.inventory['stone'] || 0) < cost.stone) {
         notify(socket.id, `Need ${cost.stone} stone to build a sprinkler!`, 'error');
@@ -536,7 +569,8 @@ io.on('connection', (socket) => {
   socket.on('build_building', (species: string) => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 20)) return;
+      const sCost = getStaminaCost(player, 'farming', 20);
+      if (!checkStamina(player, sCost)) return;
       const cost = BUILDING_COSTS[species];
       if (!cost) return;
 
@@ -572,8 +606,7 @@ io.on('connection', (socket) => {
   socket.on('clear_obstacle', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 10)) return;
-      // Prioritize current hex
+      // Find what we're about to clear first to determine the skill and XP
       const targets = [player.pos, ...getNeighbors(player.pos)];
       let obstacle = null;
       for (const pos of targets) {
@@ -586,6 +619,10 @@ io.on('connection', (socket) => {
         if (obstacle) break;
       }
 
+      const skill = (obstacle && (obstacle.species === 'rock' || (obstacle.id && obstacle.id.startsWith('rock')))) ? 'mining' : 'foraging';
+      const sCost = getStaminaCost(player, skill, 10);
+      if (!checkStamina(player, sCost)) return;
+
       if (obstacle) {
         if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
           const hasCopperAxe = player.inventory['copper-axe'] > 0;
@@ -596,9 +633,23 @@ io.on('connection', (socket) => {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           const amount = hasCopperAxe ? 2 : 1;
           player.inventory['wood'] = (player.inventory['wood'] || 0) + amount;
+
+          // XP Gain
+          const { leveledUp, newLevel } = addXP(player, 'foraging', 15);
+          if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           const name = obstacle.species === 'apple-tree' ? 'apple tree' : 'tree';
+
+          // Discovery Reward
+          if (Math.random() < 0.1) {
+            const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed'];
+            const seed = seeds[Math.floor(Math.random() * seeds.length)];
+            player.inventory[seed] = (player.inventory[seed] || 0) + 1;
+            notify(socket.id, `You found a ${seed.replace('-seed', '')} seed in the ${name}!`, 'success');
+          }
+
           notify(socket.id, `Cut down ${name}. Gained ${amount} wood.`, 'success');
         } else if (obstacle.species === 'rock' || (!obstacle.species && obstacle.id.startsWith('rock'))) {
           const hasCopperPickaxe = player.inventory['copper-pickaxe'] > 0;
@@ -609,8 +660,21 @@ io.on('connection', (socket) => {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           const amount = hasCopperPickaxe ? 2 : 1;
           player.inventory['stone'] = (player.inventory['stone'] || 0) + amount;
+
+          // XP Gain
+          const { leveledUp, newLevel } = addXP(player, 'mining', 15);
+          if (leveledUp) notify(socket.id, `Your mining skill leveled up to ${newLevel}!`, 'success');
+
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
+
+          // Discovery Reward
+          if (Math.random() < 0.05) {
+            const coins = 5 + Math.floor(Math.random() * 10);
+            player.coins += coins;
+            notify(socket.id, `You found ${coins} coins hidden under the rock!`, 'success');
+          }
+
           notify(socket.id, `Broke rock. Gained ${amount} stone.`, 'success');
         } else if (obstacle.species === 'scarecrow') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
@@ -811,6 +875,18 @@ io.on('connection', (socket) => {
       if (animal) {
         if (animal.species === 'merchant') {
           let questHandled = false;
+
+          const dialogues = [
+            "Hello there! Hard work pays off, doesn't it?",
+            "Fresh air, good soil... what more could a farmer want?",
+            "If you have extra crops, I'm always buying!",
+            "Seen any rare minerals lately? I'm looking to expand my collection.",
+            "That's some fine looking produce you've got there.",
+            "The seasons are changing... better keep an eye on your crops!",
+            "I heard there are wild berries growing to the east."
+          ];
+          const randomDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
+
           // Quest logic
           if (player.activeQuest) {
             const quest = player.activeQuest;
@@ -843,7 +919,7 @@ io.on('connection', (socket) => {
                   const count = 5 + Math.floor(Math.random() * 10);
                   player.activeQuest = { species, count, collected: 0 };
                   socket.emit('entityUpdate', player);
-                  notify(socket.id, `New Quest: Bring me ${count} ${species}!`, 'info');
+                  notify(socket.id, `Merchant: "I have a special request. Bring me ${count} ${species}!"`, 'info');
                   questHandled = true;
               }
           }
@@ -870,7 +946,7 @@ io.on('connection', (socket) => {
             socket.emit('entityUpdate', player);
             notify(socket.id, `Sold items for ${earned} coins!`, 'success');
           } else if (!questHandled) {
-            notify(socket.id, "You don't have any crops or products to sell. Need a quest?", 'info');
+            notify(socket.id, `Merchant: "${randomDialogue}"`, 'info');
           }
           return;
         }
@@ -935,12 +1011,24 @@ io.on('connection', (socket) => {
 
       const staminaGain = foodValues[item];
       if (staminaGain !== undefined) {
-        if (player.stamina >= player.maxStamina) {
+        if (player.stamina >= player.maxStamina && item !== 'pumpkin-soup' && item !== 'corn-chowder') {
           notify(socket.id, "You're already full of energy!", 'info');
           return;
         }
         player.inventory[item]--;
         player.stamina = Math.min(player.maxStamina, player.stamina + staminaGain);
+
+        // Apply buffs from cooked food
+        if (item === 'pumpkin-soup') {
+          player.buffs = player.buffs.filter(b => b.type !== 'stamina_regen');
+          player.buffs.push({ type: 'stamina_regen', amount: 2, expiresAt: Date.now() + 5 * 60 * 1000 }); // 5 mins
+          notify(socket.id, "You feel energized! Stamina regens faster.", 'success');
+        } else if (item === 'corn-chowder') {
+            player.buffs = player.buffs.filter(b => b.type !== 'stamina_regen');
+            player.buffs.push({ type: 'stamina_regen', amount: 1, expiresAt: Date.now() + 3 * 60 * 1000 }); // 3 mins
+            notify(socket.id, "Warm chowder restores your energy.", 'success');
+        }
+
         socket.emit('entityUpdate', player);
         notify(socket.id, `Ate ${item.replace('-', ' ')}. Restored ${staminaGain} stamina!`, 'success');
       } else {
@@ -952,6 +1040,9 @@ io.on('connection', (socket) => {
   socket.on('cook', (recipe: string) => {
     const player = players.get(socket.id);
     if (player) {
+      const { leveledUp, newLevel } = addXP(player, 'cooking', 10);
+      if (leveledUp) notify(socket.id, `Your cooking skill leveled up to ${newLevel}!`, 'success');
+
       const entities = [
         ...world.getEntitiesAt(player.pos.q, player.pos.r),
         ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
@@ -996,7 +1087,8 @@ io.on('connection', (socket) => {
   socket.on('fish', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (!checkStamina(player, 5)) return;
+      const cost = getStaminaCost(player, 'fishing', 5);
+      if (!checkStamina(player, cost)) return;
       if (!player.inventory['fishing-rod'] || player.inventory['fishing-rod'] <= 0) {
         notify(socket.id, "You need a fishing rod!", 'error');
         return;
@@ -1015,6 +1107,11 @@ io.on('connection', (socket) => {
       const rand = Math.random();
       if (rand < 0.3) {
         player.inventory['fish'] = (player.inventory['fish'] || 0) + 1;
+
+        // XP Gain
+        const { leveledUp, newLevel } = addXP(player, 'fishing', 15);
+        if (leveledUp) notify(socket.id, `Your fishing skill leveled up to ${newLevel}!`, 'success');
+
         notify(socket.id, "You caught a fish!", 'success');
       } else if (rand < 0.6) {
         player.inventory['junk'] = (player.inventory['junk'] || 0) + 1;

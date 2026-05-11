@@ -16,7 +16,10 @@ function App() {
   const [playerCoins, setPlayerCoins] = useState<number>(0);
   const [playerStamina, setPlayerStamina] = useState<number>(100);
   const [playerMaxStamina, setPlayerMaxStamina] = useState<number>(100);
+  const [playerSkills, setPlayerSkills] = useState<Record<string, {level: number, xp: number}>>({});
+  const [playerBuffs, setPlayerBuffs] = useState<{type: string, amount: number, expiresAt: number}[]>([]);
   const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
+  const [showControls, setShowControls] = useState(true);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
   const [notifications, setNotifications] = useState<{id: number, message: string, type: string}[]>([]);
@@ -78,6 +81,8 @@ function App() {
         setPlayerCoins(p.coins || 0);
         setPlayerStamina(p.stamina || 0);
         setPlayerMaxStamina(p.maxStamina || 100);
+        setPlayerSkills(p.skills || {});
+        setPlayerBuffs(p.buffs || []);
         setPlayerActiveQuest(p.activeQuest || null);
         requestChunksAround(p.pos.q, p.pos.r);
       }
@@ -369,21 +374,47 @@ function App() {
             <div className="stamina-bar" style={{ width: `${(playerStamina / playerMaxStamina) * 100}%`, height: '100%', background: playerStamina < 20 ? '#ff4444' : '#44ff44', transition: 'width 0.3s' }} />
             <span style={{ position: 'absolute', width: '200px', textAlign: 'center', fontSize: '12px', lineHeight: '20px', color: 'white', fontWeight: 'bold' }}>Stamina: {Math.floor(playerStamina)}/{playerMaxStamina}</span>
         </div>
+        {playerBuffs.length > 0 && (
+          <div className="buffs" style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
+            {playerBuffs.map(b => (
+              <div key={b.type} style={{ background: 'rgba(0, 255, 255, 0.4)', padding: '2px 5px', borderRadius: '3px', fontSize: '10px', border: '1px solid cyan' }}>
+                {b.type.replace('_', ' ')}
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="skills" style={{ background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px', marginBottom: '10px', fontSize: '12px' }}>
+          {Object.entries(playerSkills).map(([skill, data]) => (
+            <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+              <span style={{ textTransform: 'capitalize' }}>{skill}:</span>
+              <span>Lv. {data.level} ({Math.floor(data.xp)} XP)</span>
+            </div>
+          ))}
+        </div>
         {getMerchantDirection() && (
           <p style={{ color: '#FF00FF', fontWeight: 'bold' }}>
             Merchant: {getMerchantDirection()?.dist} hexes away {getMerchantDirection()?.arrow}
           </p>
         )}
-        <p>Use WASD or Arrow Keys to move</p>
-        <p>Press <b>1-6</b> to Plant, <b>Shift + 1-6</b> to Buy Seeds (Turnip, Carrot, Pumpkin, Corn, Wheat, Apple Tree)</p>
-        <p>Press <b>P</b> to Plow, <b>R</b> to Path (1S), <b>I</b> to Water, <b>G</b> to Fertilize (1 Junk), <b>F</b> to Fence (2W)</p>
-        <p>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot</p>
-        <p>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home</p>
-        <p>Cooking (Alt + 1-7): Salad, Pie, Soup, Chowder, Fish, MushSoup, Tart</p>
-        <p>Plowing, Watering, Clearing, and Fishing require tools. Wells provide infinite water nearby.</p>
-        <p>Press <b>Shift+X</b> to Sell Resources (Wood, Stone, Junk) near Merchant</p>
-        <p>Press <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
-        <p>Press <b>Shift + 7, 8, 9, 0, -</b> to Buy Fishing Rod or Copper Tools (Near Merchant)</p>
+
+        <div className="controls-toggle" style={{ pointerEvents: 'auto', marginBottom: '10px' }}>
+          <button onClick={() => setShowControls(!showControls)} style={{ background: 'rgba(0,0,0,0.6)', color: 'white', border: '1px solid white', borderRadius: '3px', cursor: 'pointer', padding: '2px 8px', fontSize: '12px' }}>
+            {showControls ? 'Hide Controls' : 'Show Controls'}
+          </button>
+        </div>
+
+        {showControls && (
+          <div className="controls-list" style={{ fontSize: '13px' }}>
+            <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
+            <p style={{ margin: '2px 0' }}>Press <b>1-6</b> to Plant, <b>Shift + 1-6</b> to Buy Seeds</p>
+            <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
+            <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot</p>
+            <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home</p>
+            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-7): Various Recipes</p>
+            <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
+            <p style={{ margin: '2px 0' }}>Press <b>8, 9, 0, -</b> to Buy Tools / Copper Tools (+Shift)</p>
+          </div>
+        )}
 
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
