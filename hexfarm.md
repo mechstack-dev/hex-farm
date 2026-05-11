@@ -16,7 +16,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Collision Detection:** Players cannot walk through static obstacles like trees and rocks, or buildings like Sheds and Chests.
 
 ### Entity System
-- **Players:** Persistent entities with unique IDs and names.
+- **Players:** Persistent entities with unique IDs and names. Includes skills and levels.
 - **Plants:** Have `growthStage`, `lastWatered`, and `plantedAt` properties. They grow in real-time.
 - **Animals:** Move randomly to neighboring hexes at set intervals (`nextMoveTime`).
 - **Obstacles:** Static entities like trees and rocks that block movement.
@@ -26,10 +26,11 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Watering Bonus:** Plants grow twice as fast if they have been watered within the last 24 hours (configurable in `PlantLogic.ts`).
 - **Fertilizer:** Players can use "Junk" caught while fishing as fertilizer to give plants an instant growth boost.
 - **Stamina:** Actions like plowing, watering, and clearing obstacles consume stamina. Stamina regenerates slowly over time.
-- **Consumption:** Eating crops or cooked food restores stamina. Cooked dishes provide much higher stamina bonuses.
+- **Consumption:** Eating crops or cooked food restores stamina. Cooked dishes provide much higher stamina bonuses and some provide temporary buffs.
+- **Buffs:** Certain foods like Pumpkin Soup provide temporary buffs, such as increased stamina regeneration.
 - **Pests:** Mature plants that are not protected by a Scarecrow (2-hex radius) have a small chance each game tick to be damaged by pests, regressing their growth stage.
 - **Foraging:** Wild mushrooms and berry bushes spawn in the world. Mushrooms can be harvested, while berries can be gathered periodically from bushes.
-- **Scavenging:** Clearing decorative terrain like grass or flowers has a small chance to yield seeds or coins.
+- **Scavenging & Discovery:** Clearing decorative terrain, trees, or rocks has a chance to yield seeds or coins.
 - **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
 - **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
@@ -47,6 +48,11 @@ HexFarm is designed to be played over long periods.
 - **Crops:** Might take several real-world days to reach maturity. Growth is faster during preferred seasons (e.g., Turnips in Spring, Corn in Summer).
 - **Trees:** Can take months or even a full year to reach their final growth stage.
 - **Low Pressure:** Neglecting plants won't kill them; it simply halts or slows their growth, encouraging a relaxed playstyle.
+
+### Skill System
+- **Skills:** Players gain XP and level up in various skills: Farming, Foraging, Mining, Fishing, and Cooking.
+- **Progression:** Higher levels in skills reduce the stamina cost of related actions (up to 50% reduction).
+- **XP Gain:** Actions like harvesting, plowing, clearing obstacles, fishing, and cooking grant XP in their respective categories.
 
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone.
@@ -88,6 +94,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
+12. **UI Toggle:** Click "Hide Controls" to maximize your view of the world.
 
 ---
 
@@ -98,7 +105,7 @@ The project is organized as a **TypeScript Monorepo**:
 ### Backend (`/server`)
 - **Node.js & Express:** Hosts the server and handles initial connections.
 - **Socket.io:** Manages real-time, bidirectional communication.
-- **Game Engine:** Handles the "tick" logic for plants and animals.
+- **Game Engine:** Handles the "tick" logic for plants, animals, and buffs.
 - **World Manager:** Manages chunk state and entity persistence.
 
 ### Frontend (`/client`)
@@ -111,8 +118,8 @@ The project is organized as a **TypeScript Monorepo**:
 ## 5. Future Vision (What it Should Be)
 
 ### Environmental Depth
-- **Seasons:** A 4-season cycle (Real-time, 7 game days per season).
-- **Weather:** Dynamic weather including Rain (waters plants).
+- **More NPCs:** Add more characters with unique schedules and shops.
+- **Advanced Skills:** Specializations and unique perks for high-level skills.
 
 ### Visual & Technical Polish
 - **Pixel Art Sprites:** Transitioning from shapes to detailed pixel art.
@@ -130,6 +137,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Day/Night Cycle:** Visual time progression.
 - [x] **Stamina & Consumption:** Strategic resource management.
 - [x] **Global Chat:** Real-time communication between players.
+- [x] **Skill System:** XP and levels for various activities.
 
 ### Medium Priority
 - [x] **Automation:** Sprinklers.
@@ -145,15 +153,16 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Animal Breeding:** Population growth for animals.
 - [x] **Beehives:** Production and growth boost.
 - [x] **Quests:** Basic fetch quests from Merchant.
-- [x] **Cooking:** Combine ingredients into meals for high stamina restoration.
+- [x] **Cooking:** Combine ingredients into meals for high stamina restoration and buffs.
 - [x] **Pets:** Added dogs and cats to the world.
 - [x] **Foraging & Scavenging:** Find items in the wild or while clearing grass.
 - [x] **Teleport:** Quick return home with 'Y' key.
+- [x] **Buff System:** Temporary status effects from food.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
-- [ ] **Quests & NPCs:** Dynamic world interactions.
+- [ ] **NPCs & Relationship System:** Build relationships with unique characters.
 - [ ] **Advanced Cooking:** Combine crops and products for more diverse buffs.
 
 ---

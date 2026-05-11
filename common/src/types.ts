@@ -49,6 +49,17 @@ export interface Animal extends Entity {
   lastBredTime?: number;
 }
 
+export interface SkillData {
+  level: number;
+  xp: number;
+}
+
+export interface Buff {
+  type: string;
+  amount: number;
+  expiresAt: number;
+}
+
 export interface Player extends Entity {
   type: 'player';
   name: string;
@@ -56,6 +67,8 @@ export interface Player extends Entity {
   coins: number;
   stamina: number;
   maxStamina: number;
+  skills: Record<string, SkillData>;
+  buffs: Buff[];
   activeQuest?: {
     species: string;
     count: number;

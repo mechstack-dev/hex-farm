@@ -72,8 +72,20 @@ export class GameEngine {
         let updated: any = entity;
         if (entity.type === 'player') {
           const player = entity as any;
+          let staminaRegen = 1;
+
+          // Process buffs
+          if (player.buffs && player.buffs.length > 0) {
+            const initialBuffCount = player.buffs.length;
+            player.buffs = player.buffs.filter((b: any) => b.expiresAt > now);
+            if (player.buffs.length !== initialBuffCount) updated = { ...player };
+
+            const regenBuff = player.buffs.find((b: any) => b.type === 'stamina_regen');
+            if (regenBuff) staminaRegen += regenBuff.amount;
+          }
+
           if (player.stamina < player.maxStamina) {
-            player.stamina = Math.min(player.maxStamina, player.stamina + 1);
+            player.stamina = Math.min(player.maxStamina, player.stamina + staminaRegen);
             updated = { ...player };
           }
         } else if (entity.type === 'plant') {
