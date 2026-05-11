@@ -35,6 +35,7 @@ export interface Animal extends Entity {
   species: string;
   nextMoveTime: number;
   lastProductTime: number;
+  lastBredTime?: number;
 }
 
 export interface Player extends Entity {
