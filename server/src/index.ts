@@ -683,6 +683,11 @@ io.on('connection', (socket) => {
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       const building = entities.find(e => e.type === 'building') as Building | undefined;
 
+      if (building && building.species === 'cooking-pot') {
+          notify(socket.id, "Recipes: Salad (1T,1C), Apple Pie (3A,1W), Pumpkin Soup (1P,1M), Corn Chowder (2C,1M), Grilled Fish (1F,1W). Press numbers in cook menu.", 'info');
+          return;
+      }
+
       if (building && (building.species === 'chest' || building.species === 'beehive')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
@@ -841,9 +846,21 @@ io.on('connection', (socket) => {
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', animal);
             notify(socket.id, `Collected ${product}!`, 'success');
+          } else if (animal.species === 'dog') {
+              notify(socket.id, "Woof! The dog wags its tail.", 'info');
+              animal.lastProductTime = now;
+              world.updateEntity(animal);
+              io.emit('entityUpdate', animal);
+          } else if (animal.species === 'cat') {
+              notify(socket.id, "Meow! The cat purrs.", 'info');
+              animal.lastProductTime = now;
+              world.updateEntity(animal);
+              io.emit('entityUpdate', animal);
           }
         } else {
-            notify(socket.id, "This animal isn't ready to give anything yet.", 'info');
+            if (animal.species === 'dog') notify(socket.id, "The dog is napping.", 'info');
+            else if (animal.species === 'cat') notify(socket.id, "The cat is busy grooming.", 'info');
+            else notify(socket.id, "This animal isn't ready to give anything yet.", 'info');
         }
       }
     }
@@ -857,17 +874,73 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (item === 'apple') {
+      const foodValues: Record<string, number> = {
+        'apple': 20,
+        'turnip': 5,
+        'carrot': 8,
+        'corn': 10,
+        'fish': 15,
+        'salad': 40,
+        'apple-pie': 60,
+        'pumpkin-soup': 70,
+        'corn-chowder': 50,
+        'grilled-fish': 45
+      };
+
+      const staminaGain = foodValues[item];
+      if (staminaGain !== undefined) {
         if (player.stamina >= player.maxStamina) {
           notify(socket.id, "You're already full of energy!", 'info');
           return;
         }
         player.inventory[item]--;
-        player.stamina = Math.min(player.maxStamina, player.stamina + 20);
+        player.stamina = Math.min(player.maxStamina, player.stamina + staminaGain);
         socket.emit('entityUpdate', player);
-        notify(socket.id, "Ate an apple. Restored 20 stamina!", 'success');
+        notify(socket.id, `Ate ${item.replace('-', ' ')}. Restored ${staminaGain} stamina!`, 'success');
       } else {
         notify(socket.id, `You can't eat ${item}!`, 'info');
+      }
+    }
+  });
+
+  socket.on('cook', (recipe: string) => {
+    const player = players.get(socket.id);
+    if (player) {
+      const entities = [
+        ...world.getEntitiesAt(player.pos.q, player.pos.r),
+        ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
+      ];
+      const isNearCookingPot = entities.some(e => e.type === 'building' && e.species === 'cooking-pot');
+      if (!isNearCookingPot) {
+        notify(socket.id, "You need to be near a cooking pot to cook!", 'error');
+        return;
+      }
+
+      const recipes: Record<string, Record<string, number>> = {
+        'salad': { 'turnip': 1, 'carrot': 1 },
+        'apple-pie': { 'apple': 3, 'wheat': 1 },
+        'pumpkin-soup': { 'pumpkin': 1, 'milk': 1 },
+        'corn-chowder': { 'corn': 2, 'milk': 1 },
+        'grilled-fish': { 'fish': 1, 'wood': 1 }
+      };
+
+      const ingredients = recipes[recipe];
+      if (ingredients) {
+        for (const [ing, count] of Object.entries(ingredients)) {
+          if ((player.inventory[ing] || 0) < count) {
+            notify(socket.id, `Missing ingredients for ${recipe}! Need ${count} ${ing}.`, 'error');
+            return;
+          }
+        }
+
+        // Consume ingredients
+        for (const [ing, count] of Object.entries(ingredients)) {
+          player.inventory[ing] -= count;
+        }
+
+        player.inventory[recipe] = (player.inventory[recipe] || 0) + 1;
+        socket.emit('entityUpdate', player);
+        notify(socket.id, `Cooked ${recipe.replace('-', ' ')}!`, 'success');
       }
     }
   });

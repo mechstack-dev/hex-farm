@@ -63,10 +63,17 @@ export class Generator {
             species,
             pos: { q, r }
           });
-        } else if (chunkRng() < 0.01) {
+        } else if (chunkRng() < 0.015) {
           // Spawn animal
           const rand = chunkRng();
-          const species = rand < 0.25 ? 'cow' : (rand < 0.5 ? 'sheep' : (rand < 0.75 ? 'chicken' : 'pig'));
+          let species = 'cow';
+          if (rand < 0.2) species = 'cow';
+          else if (rand < 0.4) species = 'sheep';
+          else if (rand < 0.6) species = 'chicken';
+          else if (rand < 0.8) species = 'pig';
+          else if (rand < 0.9) species = 'dog';
+          else species = 'cat';
+
           entities.push({
             id: `animal-${q}-${r}`,
             type: 'animal',

@@ -26,7 +26,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Watering Bonus:** Plants grow twice as fast if they have been watered within the last 24 hours (configurable in `PlantLogic.ts`).
 - **Fertilizer:** Players can use "Junk" caught while fishing as fertilizer to give plants an instant growth boost.
 - **Stamina:** Actions like plowing, watering, and clearing obstacles consume stamina. Stamina regenerates slowly over time.
-- **Consumption:** Eating crops like Apples restores a significant amount of stamina instantly.
+- **Consumption:** Eating crops or cooked food restores stamina. Cooked dishes provide much higher stamina bonuses.
 - **Pests:** Mature plants that are not protected by a Scarecrow (2-hex radius) have a small chance each game tick to be damaged by pests, regressing their growth stage.
 - **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
 - **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
@@ -48,7 +48,8 @@ HexFarm is designed to be played over long periods.
 
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone.
-- **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells) requires Wood and Stone to build.
+- **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, and Grilled Fish.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and high-end tool kits.
 
 ---
@@ -69,18 +70,20 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 5. **Harvesting:** Press **H** to harvest mature plants.
 6. **Clearing:** Press **X** to clear trees (Axe) or rocks (Pickaxe).
 7. **Building Infrastructure:**
-   - **F**: Fence (Requires 2 Wood)
-   - **R**: Path (Requires 1 Stone)
-   - **K**: Sprinkler (Requires 5 Stone)
-   - **B**: Scarecrow (Requires 2 Wood)
-   - **L**: Shed (Requires 10 Wood, 5 Stone)
-   - **V**: Chest (Requires 5 Wood, 2 Stone)
-   - **U**: Well (Requires 5 Wood, 10 Stone)
-   - **N**: Beehive (Requires 5 Wood, 5 Stone)
+   - **F**: Fence (2 Wood)
+   - **R**: Path (1 Stone)
+   - **K**: Sprinkler (5 Stone)
+   - **B**: Scarecrow (2 Wood)
+   - **L**: Shed (10 Wood, 5 Stone)
+   - **V**: Chest (5 Wood, 2 Stone)
+   - **U**: Well (5 Wood, 10 Stone)
+   - **N**: Beehive (5 Wood, 5 Stone)
+   - **O**: Cooking Pot (5 Wood, 10 Stone)
 8. **Interacting:** Press **E** to interact with animals, harvest fruit, use buildings, or talk to the Merchant.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
-9. **Consuming:** Press **C** to eat an apple from your inventory to restore stamina.
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-5** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish).
+9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
 
 ---
@@ -127,7 +130,7 @@ The project is organized as a **TypeScript Monorepo**:
 
 ### Medium Priority
 - [x] **Automation:** Sprinklers.
-- [x] **Infrastructure:** Sheds, Chests, Fences, and Paths.
+- [x] **Infrastructure:** Sheds, Chests, Fences, Paths, and Cooking Pots.
 - [x] **Economy:** Merchant system at (0,0).
 - [x] **Tool Upgrades:** Copper tools for efficiency.
 - [x] **Resource Crafting:** Require Wood/Stone for construction.
@@ -139,12 +142,14 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Animal Breeding:** Population growth for animals.
 - [x] **Beehives:** Production and growth boost.
 - [x] **Quests:** Basic fetch quests from Merchant.
+- [x] **Cooking:** Combine ingredients into meals for high stamina restoration.
+- [x] **Pets:** Added dogs and cats to the world.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
 - [ ] **Quests & NPCs:** Dynamic world interactions.
-- [ ] **Advanced Cooking:** Combine crops and products for better buffs.
+- [ ] **Advanced Cooking:** Combine crops and products for more diverse buffs.
 
 ---
 
