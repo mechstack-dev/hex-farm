@@ -82,6 +82,21 @@ export class Generator {
             nextMoveTime: 0, // Will move on first engine tick
             lastProductTime: 0
           } as unknown as Entity);
+        } else if (chunkRng() < 0.01) {
+          // Spawn foraging items
+          const rand = chunkRng();
+          const species = rand < 0.6 ? 'mushroom' : 'berry-bush';
+          const now = Date.now();
+          entities.push({
+            id: `plant-${q}-${r}-${now}`,
+            type: 'plant',
+            species,
+            pos: { q, r },
+            growthStage: 5, // Spawned mature
+            plantedAt: now,
+            lastWatered: 0,
+            lastUpdate: now
+          } as unknown as Entity);
         }
       }
     }

@@ -17,6 +17,7 @@ export class HexRenderer {
   private lastPlayerPos: Position = { q: 0, r: 0 };
   private lastEnvironment: EnvironmentState | null = null;
   private rainDrops: { x: number, y: number, speed: number, length: number }[] = [];
+  private snowFlakes: { x: number, y: number, speed: number, size: number, drift: number }[] = [];
   private interpolatedPositions: Map<string, { x: number, y: number }> = new Map();
   private interpolatedCamera: { x: number, y: number } = { x: 0, y: 0 };
   private playerLabels: Map<string, PIXI.Text> = new Map();
@@ -176,6 +177,7 @@ export class HexRenderer {
     else if (plant.species === 'pumpkin') color = 0xFF8C00;
     else if (plant.species === 'turnip') color = 0xFFFFFF;
     else if (plant.species === 'corn') color = 0xFFFF00;
+    else if (plant.species === 'mushroom') color = 0xA52A2A;
 
     if (stage < 5) {
         // Sprout
@@ -186,6 +188,33 @@ export class HexRenderer {
         this.graphics.fill({ color: 0x228B22, alpha: 1 });
         this.graphics.ellipse(swayX + 4, y, 4, 8);
         this.graphics.fill({ color: 0x228B22, alpha: 1 });
+    } else if (plant.species === 'mushroom') {
+        // Mushroom cap
+        this.graphics.ellipse(x, y + 5, 8, 4);
+        this.graphics.fill({ color: 0xA52A2A, alpha: 1 });
+        // Stem
+        this.graphics.rect(x - 2, y + 5, 4, 6);
+        this.graphics.fill({ color: 0xF5F5DC, alpha: 1 });
+        // Spots
+        this.graphics.circle(x - 3, y + 4, 1.5);
+        this.graphics.fill({ color: 0xFFFFFF, alpha: 0.8 });
+        this.graphics.circle(x + 2, y + 6, 1);
+        this.graphics.fill({ color: 0xFFFFFF, alpha: 0.8 });
+    } else if (plant.species === 'berry-bush') {
+        // Bush foliage
+        this.graphics.circle(x, y, HEX_SIZE * 0.6);
+        this.graphics.fill({ color: 0x006400, alpha: 1 });
+
+        // Berries
+        const hasBerries = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
+        if (hasBerries) {
+            for (let i = 0; i < 6; i++) {
+                const bx = x + Math.cos(i) * 10;
+                const by = y + Math.sin(i) * 10;
+                this.graphics.circle(bx, by, 2.5);
+                this.graphics.fill({ color: 0x800080, alpha: 1 }); // Purple berries
+            }
+        }
     } else if (plant.species === 'apple-tree') {
         // Mature Apple Tree
         // Trunk
@@ -647,8 +676,41 @@ export class HexRenderer {
 
     this.drawDayNightOverlay(timeOfDay, this.lastEnvironment.weather);
     if (this.lastEnvironment.weather === 'rainy') {
-        this.drawRain();
+        if (season === 'winter') {
+            this.drawSnow();
+        } else {
+            this.drawRain();
+        }
     }
+  }
+
+  drawSnow() {
+    if (this.snowFlakes.length === 0) {
+        for (let i = 0; i < 150; i++) {
+            this.snowFlakes.push({
+                x: Math.random() * this.app.screen.width,
+                y: Math.random() * this.app.screen.height,
+                speed: 1 + Math.random() * 2,
+                size: 2 + Math.random() * 3,
+                drift: (Math.random() - 0.5) * 2
+            });
+        }
+    }
+
+    this.snowFlakes.forEach(flake => {
+        flake.y += flake.speed;
+        flake.x += flake.drift + Math.sin(Date.now() / 1000 + flake.y / 100) * 0.5;
+
+        if (flake.y > this.app.screen.height) {
+            flake.y = -flake.size;
+            flake.x = Math.random() * this.app.screen.width;
+        }
+        if (flake.x > this.app.screen.width) flake.x = 0;
+        if (flake.x < 0) flake.x = this.app.screen.width;
+
+        this.overlay.circle(flake.x, flake.y, flake.size);
+    });
+    this.overlay.fill({ color: 0xFFFFFF, alpha: 0.8 });
   }
 
   drawRain() {
