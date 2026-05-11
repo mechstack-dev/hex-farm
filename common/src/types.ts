@@ -42,6 +42,8 @@ export interface Player extends Entity {
   name: string;
   inventory: Record<string, number>;
   coins: number;
+  stamina: number;
+  maxStamina: number;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';

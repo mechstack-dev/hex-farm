@@ -14,6 +14,8 @@ function App() {
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
   const [playerInventory, setPlayerInventory] = useState<Record<string, number>>({});
   const [playerCoins, setPlayerCoins] = useState<number>(0);
+  const [playerStamina, setPlayerStamina] = useState<number>(100);
+  const [playerMaxStamina, setPlayerMaxStamina] = useState<number>(100);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
   const [notifications, setNotifications] = useState<{id: number, message: string, type: string}[]>([]);
@@ -66,10 +68,13 @@ function App() {
         return next;
       });
       if (myIdRef.current && entity.id === myIdRef.current) {
-        setPlayerPos(entity.pos);
-        setPlayerInventory((entity as any).inventory || {});
-        setPlayerCoins((entity as any).coins || 0);
-        requestChunksAround(entity.pos.q, entity.pos.r);
+        const p = entity as any;
+        setPlayerPos(p.pos);
+        setPlayerInventory(p.inventory || {});
+        setPlayerCoins(p.coins || 0);
+        setPlayerStamina(p.stamina || 0);
+        setPlayerMaxStamina(p.maxStamina || 100);
+        requestChunksAround(p.pos.q, p.pos.r);
       }
     });
 
@@ -172,6 +177,8 @@ function App() {
         socket.emit('build_building', 'well');
       } else if (e.key.toLowerCase() === 'g') {
         socket.emit('fertilize');
+      } else if (e.key.toLowerCase() === 'c') {
+        socket.emit('consume', 'apple');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -295,6 +302,10 @@ function App() {
           <p>Time: {Math.floor(environment.timeOfDay * 24).toString().padStart(2, '0')}:{Math.floor((environment.timeOfDay * 24 * 60) % 60).toString().padStart(2, '0')}</p>
         </div>
         <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
+        <div className="stamina-container" style={{ width: '200px', height: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '10px', overflow: 'hidden', border: '1px solid white', margin: '10px 0', position: 'relative' }}>
+            <div className="stamina-bar" style={{ width: `${(playerStamina / playerMaxStamina) * 100}%`, height: '100%', background: playerStamina < 20 ? '#ff4444' : '#44ff44', transition: 'width 0.3s' }} />
+            <span style={{ position: 'absolute', width: '200px', textAlign: 'center', fontSize: '12px', lineHeight: '20px', color: 'white', fontWeight: 'bold' }}>Stamina: {Math.floor(playerStamina)}/{playerMaxStamina}</span>
+        </div>
         {getMerchantDirection() && (
           <p style={{ color: '#FF00FF', fontWeight: 'bold' }}>
             Merchant: {getMerchantDirection()?.dist} hexes away {getMerchantDirection()?.arrow}
@@ -304,7 +315,7 @@ function App() {
         <p>Press <b>1-6</b> to Plant, <b>Shift + 1-6</b> to Buy Seeds (Turnip, Carrot, Pumpkin, Corn, Wheat, Apple Tree)</p>
         <p>Press <b>P</b> to Plow, <b>R</b> to Path (1S), <b>I</b> to Water, <b>G</b> to Fertilize (1 Junk), <b>F</b> to Fence (2W)</p>
         <p>Press <b>K</b> to Sprinkler (5S), <b>B</b> to Scarecrow (2W), <b>L</b> to Shed (10W, 5S), <b>V</b> to Chest (5W, 2S), <b>U</b> to Well (5W, 10S)</p>
-        <p>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear</p>
+        <p>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Apple</p>
         <p>Plowing, Watering, Clearing, and Fishing require tools. Wells provide infinite water nearby.</p>
         <p>Press <b>Shift+X</b> to Sell Resources (Wood, Stone, Junk) near Merchant</p>
         <p>Press <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>

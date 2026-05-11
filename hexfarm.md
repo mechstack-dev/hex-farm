@@ -25,6 +25,9 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Real-time Growth:** Plants progress through stages based on elapsed time. Different species (Turnips, Carrots, Pumpkins) have different growth rates.
 - **Watering Bonus:** Plants grow twice as fast if they have been watered within the last 24 hours (configurable in `PlantLogic.ts`).
 - **Fertilizer:** Players can use "Junk" caught while fishing as fertilizer to give plants an instant growth boost.
+- **Stamina:** Actions like plowing, watering, and clearing obstacles consume stamina. Stamina regenerates slowly over time.
+- **Consumption:** Eating crops like Apples restores a significant amount of stamina instantly.
+- **Pests:** Mature plants that are not protected by a Scarecrow (2-hex radius) have a small chance each game tick to be damaged by pests, regressing their growth stage.
 
 ---
 
@@ -35,7 +38,7 @@ The world is theoretically infinite. The server generates entities for chunks on
 
 ### Slow-Paced Growth
 HexFarm is designed to be played over long periods.
-- **Crops:** Might take several real-world days to reach maturity.
+- **Crops:** Might take several real-world days to reach maturity. Growth is faster during preferred seasons (e.g., Turnips in Spring, Corn in Summer).
 - **Trees:** Can take months or even a full year to reach their final growth stage.
 - **Low Pressure:** Neglecting plants won't kill them; it simply halts or slows their growth, encouraging a relaxed playstyle.
 
@@ -72,6 +75,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 8. **Interacting:** Press **E** to interact with animals, harvest fruit, or use chests.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
+9. **Consuming:** Press **C** to eat an apple from your inventory to restore stamina.
 
 ---
 
@@ -112,6 +116,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Animal Products:** Resources from cows, sheep, chickens, and pigs.
 - [x] **Seasons & Weather:** Dynamic environment.
 - [x] **Day/Night Cycle:** Visual time progression.
+- [x] **Stamina & Consumption:** Strategic resource management.
 
 ### Medium Priority
 - [x] **Automation:** Sprinklers.
@@ -121,6 +126,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Resource Crafting:** Require Wood/Stone for construction.
 - [x] **Fertilizer:** Implement growth boost using Junk.
 - [x] **Well:** Add crafting and rendering for the Well building.
+- [x] **Pests & Protection:** Scarecrow mechanics.
+- [x] **Seasonal Growth:** Preferred seasons for crops.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
