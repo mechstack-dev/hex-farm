@@ -152,10 +152,7 @@ io.on('connection', (socket) => {
   socket.on('build_fence', () => {
     const player = players.get(socket.id);
     if (player) {
-      if (player.stamina < 5) {
-          notify(socket.id, "You're too tired to build!", 'error');
-          return;
-      }
+      if (!checkStamina(player, 5)) return;
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
       if (!isOccupied) {
@@ -207,6 +204,18 @@ io.on('connection', (socket) => {
           if (!isOccupied) {
             if (isDecorative) {
               world.removeEntity(floor!.id, floor!.pos.q, floor!.pos.r);
+              // Scavenging logic
+              const rand = Math.random();
+              if (rand < 0.05) {
+                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed'];
+                  const seed = seeds[Math.floor(Math.random() * seeds.length)];
+                  player.inventory[seed] = (player.inventory[seed] || 0) + 1;
+                  notify(socket.id, `Scavenged a ${seed.replace('-seed', '')} seed!`, 'success');
+              } else if (rand < 0.1) {
+                  const coins = 1 + Math.floor(Math.random() * 5);
+                  player.coins += coins;
+                  notify(socket.id, `Found ${coins} coins in the grass!`, 'success');
+              }
             }
             const tilled = {
               id: `floor-${pos.q}-${pos.r}`,
@@ -275,6 +284,10 @@ io.on('connection', (socket) => {
             notify(socket.id, "Use 'E' to gather apples from mature trees. Use an axe to cut them down.", 'info');
             return;
         }
+        if (plant.species === 'berry-bush') {
+          notify(socket.id, "Use 'E' to gather berries from mature bushes. Use an axe to clear it.", 'info');
+          return;
+        }
 
         if (plant.growthStage >= 5) {
           world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
@@ -284,11 +297,14 @@ io.on('connection', (socket) => {
           player.inventory[species] = (player.inventory[species] || 0) + 1;
 
           // Chance to give 1-2 seeds
-          const seedType = `${species}-seed`;
-          const seedsGained = Math.floor(Math.random() * 2) + 1;
-          player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
-
-          notify(socket.id, `Harvested ${species}! Gained ${seedsGained} seeds.`, 'success');
+          if (species !== 'mushroom') {
+            const seedType = `${species}-seed`;
+            const seedsGained = Math.floor(Math.random() * 2) + 1;
+            player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
+            notify(socket.id, `Harvested ${species}! Gained ${seedsGained} seeds.`, 'success');
+          } else {
+            notify(socket.id, `Harvested ${species}!`, 'success');
+          }
 
           io.emit('entityRemove', { id: plant.id, pos: plant.pos });
           socket.emit('entityUpdate', player); // Update player inventory on client
@@ -610,6 +626,19 @@ io.on('connection', (socket) => {
           notify(socket.id, "Removed fence.", 'success');
         }
       } else {
+        // Check for berry bush or mushroom explicitly if needed via clear
+        let plant = null;
+        for (const pos of targets) {
+            const entities = world.getEntitiesAt(pos.q, pos.r);
+            plant = entities.find(e => e.type === 'plant' && (e.species === 'berry-bush' || e.species === 'mushroom'));
+            if (plant) break;
+        }
+        if (plant) {
+            world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
+            io.emit('entityRemove', { id: plant.id, pos: plant.pos });
+            notify(socket.id, `Cleared ${plant.species}.`, 'info');
+            return;
+        }
         // Also check for buildings
         let building = null;
         for (const pos of targets) {
@@ -764,6 +793,21 @@ io.on('connection', (socket) => {
         return;
       }
 
+      if (plant && plant.species === 'berry-bush' && plant.growthStage >= 5) {
+        const now = Date.now();
+        if (now - (plant.lastProductTime || 0) >= GAME_DAY) {
+            player.inventory['berry'] = (player.inventory['berry'] || 0) + 1;
+            plant.lastProductTime = now;
+            world.updateEntity(plant);
+            socket.emit('entityUpdate', player);
+            io.emit('entityUpdate', plant);
+            notify(socket.id, "Gathered some berries!", 'success');
+        } else {
+            notify(socket.id, "The berries are still ripening.", 'info');
+        }
+        return;
+      }
+
       if (animal) {
         if (animal.species === 'merchant') {
           let questHandled = false;
@@ -807,7 +851,7 @@ io.on('connection', (socket) => {
           // Sell crops and products
           const prices: Record<string, number> = {
             'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
-            'apple': 15,
+        'apple': 15, 'berry': 12, 'mushroom': 18,
             'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60,
             'fish': 40, 'honey': 30
           };
@@ -884,7 +928,9 @@ io.on('connection', (socket) => {
         'apple-pie': 60,
         'pumpkin-soup': 70,
         'corn-chowder': 50,
-        'grilled-fish': 45
+        'grilled-fish': 45,
+        'mushroom-soup': 55,
+        'berry-tart': 65
       };
 
       const staminaGain = foodValues[item];
@@ -921,7 +967,9 @@ io.on('connection', (socket) => {
         'apple-pie': { 'apple': 3, 'wheat': 1 },
         'pumpkin-soup': { 'pumpkin': 1, 'milk': 1 },
         'corn-chowder': { 'corn': 2, 'milk': 1 },
-        'grilled-fish': { 'fish': 1, 'wood': 1 }
+        'grilled-fish': { 'fish': 1, 'wood': 1 },
+        'mushroom-soup': { 'mushroom': 2, 'milk': 1 },
+        'berry-tart': { 'berry': 3, 'wheat': 1 }
       };
 
       const ingredients = recipes[recipe];
@@ -981,6 +1029,20 @@ io.on('connection', (socket) => {
   socket.on('requestChunks', (coords: {cq: number, cr: number}[]) => {
     const chunks = coords.map(c => world.getChunk(c.cq, c.cr));
     socket.emit('chunks', chunks);
+  });
+
+  socket.on('teleport_home', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      if (!checkStamina(player, 20)) return;
+
+      world.removeEntity(player.id, player.pos.q, player.pos.r);
+      player.pos = { q: 0, r: 0 };
+      world.addEntity(player);
+
+      io.emit('entityUpdate', player);
+      notify(socket.id, "Teleported home!", 'success');
+    }
   });
 
   socket.on('chat', (message: string) => {

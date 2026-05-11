@@ -28,6 +28,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Stamina:** Actions like plowing, watering, and clearing obstacles consume stamina. Stamina regenerates slowly over time.
 - **Consumption:** Eating crops or cooked food restores stamina. Cooked dishes provide much higher stamina bonuses.
 - **Pests:** Mature plants that are not protected by a Scarecrow (2-hex radius) have a small chance each game tick to be damaged by pests, regressing their growth stage.
+- **Foraging:** Wild mushrooms and berry bushes spawn in the world. Mushrooms can be harvested, while berries can be gathered periodically from bushes.
+- **Scavenging:** Clearing decorative terrain like grass or flowers has a small chance to yield seeds or coins.
 - **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
 - **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
@@ -79,12 +81,13 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **U**: Well (5 Wood, 10 Stone)
    - **N**: Beehive (5 Wood, 5 Stone)
    - **O**: Cooking Pot (5 Wood, 10 Stone)
-8. **Interacting:** Press **E** to interact with animals, harvest fruit, use buildings, or talk to the Merchant.
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, or talk to the Merchant.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
-   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-5** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish).
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-7** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart).
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
-10. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
+10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
+11. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
 
 ---
 
@@ -144,6 +147,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Quests:** Basic fetch quests from Merchant.
 - [x] **Cooking:** Combine ingredients into meals for high stamina restoration.
 - [x] **Pets:** Added dogs and cats to the world.
+- [x] **Foraging & Scavenging:** Find items in the wild or while clearing grass.
+- [x] **Teleport:** Quick return home with 'Y' key.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
