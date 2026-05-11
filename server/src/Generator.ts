@@ -31,6 +31,19 @@ export class Generator {
             continue;
         }
 
+        // Spawn blacksmith near merchant
+        if (q === 5 && r === 5) {
+            entities.push({
+                id: 'animal-blacksmith',
+                type: 'animal',
+                species: 'blacksmith',
+                pos: { q: 5, r: 5 },
+                nextMoveTime: Infinity,
+                lastProductTime: 0
+            } as unknown as Entity);
+            continue;
+        }
+
         const n = this.noise(q * 0.1, r * 0.1);
         if (n < -0.4) {
           entities.push({

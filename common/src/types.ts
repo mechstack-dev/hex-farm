@@ -74,6 +74,8 @@ export interface Player extends Entity {
     count: number;
     collected: number;
   } | null;
+  achievements: string[];
+  stats: Record<string, number>;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';

@@ -34,6 +34,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
 - **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
+- **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 
 ---
@@ -58,7 +59,8 @@ HexFarm is designed to be played over long periods.
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
 - **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, and Grilled Fish.
-- **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and high-end tool kits.
+- **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
+- **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins to upgrade their basic tools to Copper versions, which are more efficient.
 
 ---
 
@@ -89,6 +91,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **O**: Cooking Pot (5 Wood, 10 Stone)
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, or talk to the Merchant.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
+   - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools to Copper.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
    - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-7** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart).
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
@@ -138,6 +141,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Stamina & Consumption:** Strategic resource management.
 - [x] **Global Chat:** Real-time communication between players.
 - [x] **Skill System:** XP and levels for various activities.
+- [x] **Achievement System:** Milestones and global announcements.
 
 ### Medium Priority
 - [x] **Automation:** Sprinklers.
@@ -158,6 +162,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Foraging & Scavenging:** Find items in the wild or while clearing grass.
 - [x] **Teleport:** Quick return home with 'Y' key.
 - [x] **Buff System:** Temporary status effects from food.
+- [x] **Blacksmith NPC:** Tool upgrades hub at (5, 5).
+- [x] **New Crops:** Added Winter Radish for seasonal variety.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

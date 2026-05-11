@@ -3,6 +3,11 @@ import type { Entity, Position, Plant, Animal, EnvironmentState } from 'common';
 import { axialToPixel, GAME_DAY } from 'common';
 import { socket } from '../network';
 
+let myId: string | null = null;
+socket.on('init', ({ playerId }: { playerId: string }) => {
+    myId = playerId;
+});
+
 const HEX_SIZE = 30;
 const TYPE_ORDER: Record<string, number> = { 'floor': 0, 'fence': 1, 'plant': 2, 'building': 3, 'obstacle': 4, 'animal': 5, 'player': 6 };
 
@@ -177,6 +182,7 @@ export class HexRenderer {
     else if (plant.species === 'pumpkin') color = 0xFF8C00;
     else if (plant.species === 'turnip') color = 0xFFFFFF;
     else if (plant.species === 'corn') color = 0xFFFF00;
+    else if (plant.species === 'winter-radish') color = 0xE6E6FA; // Lavender/White
     else if (plant.species === 'mushroom') color = 0xA52A2A;
 
     if (stage < 5) {
@@ -256,6 +262,12 @@ export class HexRenderer {
                 this.graphics.lineTo(x + i * 4, y - size);
                 this.graphics.stroke({ color: 0xDAA520, width: 2 });
             }
+        } else if (plant.species === 'winter-radish') {
+            this.graphics.ellipse(x, y + 2, size, size * 1.5);
+            this.graphics.fill({ color: 0xE6E6FA, alpha: 1 });
+            // Purple top
+            this.graphics.ellipse(x, y - size * 0.5, size, size * 0.5);
+            this.graphics.fill({ color: 0x800080, alpha: 0.8 });
         }
     }
 
@@ -294,6 +306,9 @@ export class HexRenderer {
         sizeScale = 0.4;
     } else if (animal.species === 'merchant') {
         color = 0x800080; // Purple
+        sizeScale = 1.2;
+    } else if (animal.species === 'blacksmith') {
+        color = 0xFF4500; // OrangeRed
         sizeScale = 1.2;
     }
 
@@ -643,7 +658,8 @@ export class HexRenderer {
       }
 
       if (entity.type === 'player') {
-        this.drawPlayer(x, y, entity.id === socket.id ? 0xFF0000 : 0x0000FF);
+        const isMe = entity.id === myId;
+        this.drawPlayer(x, y, isMe ? 0xFF0000 : 0x0000FF);
         this.updatePlayerLabel(entity as any, x, y);
       } else if (entity.type === 'obstacle') {
         if (entity.species === 'water') {
@@ -661,7 +677,9 @@ export class HexRenderer {
       } else if (entity.type === 'animal') {
         this.drawAnimal(entity as any, x, y);
         if ((entity as any).species === 'merchant') {
-          this.updateMerchantLabel(entity as any, x, y);
+          this.updateNPCLabel(entity as any, x, y, 'Merchant');
+        } else if ((entity as any).species === 'blacksmith') {
+          this.updateNPCLabel(entity as any, x, y, 'Blacksmith');
         }
       } else if (entity.type === 'fence') {
         this.drawFence(x, y);
@@ -760,11 +778,11 @@ export class HexRenderer {
     label.y = y - HEX_SIZE * 0.6;
   }
 
-  updateMerchantLabel(animal: Animal, x: number, y: number) {
+  updateNPCLabel(animal: Animal, x: number, y: number, text: string) {
     let label = this.playerLabels.get(animal.id);
     if (!label) {
         label = new PIXI.Text({
-            text: 'Merchant',
+            text,
             style: {
                 fontFamily: 'Arial',
                 fontSize: 14,

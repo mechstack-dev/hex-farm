@@ -18,6 +18,7 @@ function App() {
   const [playerMaxStamina, setPlayerMaxStamina] = useState<number>(100);
   const [playerSkills, setPlayerSkills] = useState<Record<string, {level: number, xp: number}>>({});
   const [playerBuffs, setPlayerBuffs] = useState<{type: string, amount: number, expiresAt: number}[]>([]);
+  const [playerAchievements, setPlayerAchievements] = useState<string[]>([]);
   const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
   const [showControls, setShowControls] = useState(true);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
@@ -83,6 +84,7 @@ function App() {
         setPlayerMaxStamina(p.maxStamina || 100);
         setPlayerSkills(p.skills || {});
         setPlayerBuffs(p.buffs || []);
+        setPlayerAchievements(p.achievements || []);
         setPlayerActiveQuest(p.activeQuest || null);
         requestChunksAround(p.pos.q, p.pos.r);
       }
@@ -161,6 +163,9 @@ function App() {
       } else if (e.code === 'Digit6') {
         if (e.shiftKey) socket.emit('buy_seed', 'apple-tree');
         else socket.emit('plant', 'apple-tree');
+      } else if (e.code === 'Digit7') {
+        if (e.shiftKey) socket.emit('buy_seed', 'winter-radish');
+        else socket.emit('plant', 'winter-radish');
       } else if (e.key.toLowerCase() === 'i') {
         socket.emit('water');
       } else if (e.key.toLowerCase() === 'h') {
@@ -180,18 +185,18 @@ function App() {
       } else if (e.key.toLowerCase() === 'x') {
         if (e.shiftKey) socket.emit('sell_junk');
         else socket.emit('clear_obstacle');
-      } else if (e.code === 'Digit7') {
-        if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
-      } else if (e.code === 'Digit8') {
+      } else if (e.code === 'Digit8' && e.shiftKey) {
+        socket.emit('buy_tool', 'fishing-rod');
+      } else if (e.code === 'Digit9') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
         else socket.emit('buy_tool', 'hoe');
-      } else if (e.code === 'Digit9') {
+      } else if (e.code === 'Digit0') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-watering-can');
         else socket.emit('buy_tool', 'watering-can');
-      } else if (e.code === 'Digit0') {
+      } else if (e.code === 'Minus') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-axe');
         else socket.emit('buy_tool', 'axe');
-      } else if (e.code === 'Minus') {
+      } else if (e.code === 'Equal') {
         if (e.shiftKey) socket.emit('buy_tool', 'copper-pickaxe');
         else socket.emit('buy_tool', 'pickaxe');
       } else if (e.key.toLowerCase() === 'j') {
@@ -212,7 +217,7 @@ function App() {
         socket.emit('teleport_home');
       } else if (e.key.toLowerCase() === 'c') {
         // Simple logic to consume best food in inventory
-        const foods = ['mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
+        const foods = ['mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
         const toEat = foods.find(f => playerInventory[f] > 0);
         if (toEat) socket.emit('consume', toEat);
         else socket.emit('consume', 'apple'); // Fallback for error message
@@ -391,6 +396,18 @@ function App() {
             </div>
           ))}
         </div>
+        {playerAchievements.length > 0 && (
+          <div className="achievements" style={{ background: 'rgba(255,215,0,0.2)', padding: '5px', borderRadius: '5px', marginBottom: '10px', fontSize: '11px', border: '1px solid gold' }}>
+            <h4 style={{ margin: '0 0 5px 0' }}>Achievements</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {playerAchievements.map(ach => (
+                <div key={ach} style={{ background: 'gold', color: 'black', padding: '1px 4px', borderRadius: '2px', fontWeight: 'bold' }}>
+                  {ach.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {getMerchantDirection() && (
           <p style={{ color: '#FF00FF', fontWeight: 'bold' }}>
             Merchant: {getMerchantDirection()?.dist} hexes away {getMerchantDirection()?.arrow}
@@ -406,13 +423,13 @@ function App() {
         {showControls && (
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
-            <p style={{ margin: '2px 0' }}>Press <b>1-6</b> to Plant, <b>Shift + 1-6</b> to Buy Seeds</p>
+            <p style={{ margin: '2px 0' }}>Press <b>1-7</b> to Plant, <b>Shift + 1-7</b> to Buy Seeds</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot</p>
             <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home</p>
             <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-7): Various Recipes</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
-            <p style={{ margin: '2px 0' }}>Press <b>8, 9, 0, -</b> to Buy Tools / Copper Tools (+Shift)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>8, 9, 0, -, =</b> to Buy Tools / Copper Tools (+Shift)</p>
           </div>
         )}
 
