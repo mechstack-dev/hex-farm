@@ -399,6 +399,21 @@ export class HexRenderer {
         ]);
         this.graphics.fill({ color: 0xA52A2A, alpha: 1 });
         this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
+    } else if (entity.species === 'beehive') {
+        // Box
+        this.graphics.rect(x - 12, y - 10, 24, 20);
+        this.graphics.fill({ color: 0xDAA520, alpha: 1 });
+        this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
+
+        // Stripes
+        this.graphics.rect(x - 12, y - 4, 24, 2);
+        this.graphics.fill({ color: 0x000000, alpha: 0.8 });
+        this.graphics.rect(x - 12, y + 4, 24, 2);
+        this.graphics.fill({ color: 0x000000, alpha: 0.8 });
+
+        // Top
+        this.graphics.rect(x - 14, y - 12, 28, 4);
+        this.graphics.fill({ color: 0x8B4513, alpha: 1 });
     }
   }
 

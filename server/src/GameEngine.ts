@@ -22,9 +22,10 @@ export class GameEngine {
 
     const updates: { oldEntity: any, newEntity: any, cq: number, cr: number }[] = [];
 
-    // Find all sprinklers and scarecrows and their ranges
+    // Find all sprinklers, scarecrows and beehives and their ranges
     const sprinklerPositions = new Set<string>();
     const scarecrowPositions = new Set<string>();
+    const beehivePositions = new Set<string>();
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
         if (entity.type === 'sprinkler') {
@@ -38,6 +39,14 @@ export class GameEngine {
                 scarecrowPositions.add(`${n1.q},${n1.r}`);
                 getNeighbors(n1).forEach(n2 => {
                     scarecrowPositions.add(`${n2.q},${n2.r}`);
+                });
+            });
+        } else if (entity.type === 'building' && entity.species === 'beehive') {
+            beehivePositions.add(`${entity.pos.q},${entity.pos.r}`);
+            getNeighbors(entity.pos).forEach(n1 => {
+                beehivePositions.add(`${n1.q},${n1.r}`);
+                getNeighbors(n1).forEach(n2 => {
+                    beehivePositions.add(`${n2.q},${n2.r}`);
                 });
             });
         }
@@ -73,7 +82,19 @@ export class GameEngine {
           if (sprinklerPositions.has(posKey)) {
             plant.lastWatered = now;
           }
+
+          // Beehive boost
+          const originalLastUpdate = plant.lastUpdate;
+          if (beehivePositions.has(posKey)) {
+              // Simulate 1.5x time passing for the plant
+              const elapsed = now - plant.lastUpdate;
+              const boostedElapsed = elapsed * 1.5;
+              plant.lastUpdate = now - boostedElapsed;
+          }
+
           updated = updatePlant(plant, now, environment.weather, environment.season);
+          // Restore original lastUpdate to prevent double-dipping or jumping
+          updated.lastUpdate = now;
 
           // Pest logic
           if (updated.growthStage >= 5 && !scarecrowPositions.has(posKey)) {
@@ -83,6 +104,16 @@ export class GameEngine {
                   // but we'll return it as an updated entity which clients will see.
               }
           }
+        } else if (entity.type === 'building') {
+            const building = entity as any;
+            if (building.species === 'beehive') {
+                if (now - (building.lastProductTime || 0) >= GAME_DAY) {
+                    building.inventory = building.inventory || {};
+                    building.inventory['honey'] = (building.inventory['honey'] || 0) + 1;
+                    building.lastProductTime = now;
+                    updated = { ...building };
+                }
+            }
         } else if (entity.type === 'animal') {
           const animal = entity as Animal;
           if (animal.species !== 'merchant') {

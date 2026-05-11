@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import { distance, GAME_DAY, getNeighbors } from 'common';
+import { distance, GAME_DAY, getNeighbors, BUILDING_COSTS } from 'common';
 import type { Player, Position, Plant, Building } from 'common';
 
 const app = express();
@@ -177,7 +177,7 @@ io.on('connection', (socket) => {
         const fence = entities.find(e => e.type === 'fence');
         if (fence) {
           world.removeEntity(fence.id, fence.pos.q, fence.pos.r);
-          player.inventory['wood'] = (player.inventory['wood'] || 0) + 1;
+          player.inventory['wood'] = (player.inventory['wood'] || 0) + 2;
           io.emit('entityRemove', { id: fence.id, pos: fence.pos });
           socket.emit('entityUpdate', player);
         }
@@ -521,15 +521,7 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       if (!checkStamina(player, 20)) return;
-      const costs: Record<string, { wood: number, stone: number }> = {
-        'shed': { wood: 10, stone: 5 },
-        'chest': { wood: 5, stone: 2 },
-        'well': { wood: 5, stone: 10 },
-        'scarecrow': { wood: 2, stone: 0 },
-        'sprinkler': { wood: 0, stone: 5 }
-      };
-
-      const cost = costs[species];
+      const cost = BUILDING_COSTS[species];
       if (!cost) return;
 
       if ((player.inventory['wood'] || 0) < cost.wood || (player.inventory['stone'] || 0) < cost.stone) {
@@ -548,7 +540,8 @@ io.on('connection', (socket) => {
           type: 'building' as const,
           species,
           pos: { ...player.pos },
-          inventory: species === 'chest' ? {} : undefined
+          inventory: (species === 'chest' || species === 'beehive') ? {} : undefined,
+          lastProductTime: species === 'beehive' ? Date.now() : undefined
         };
         world.addEntity(building);
         io.emit('entityUpdate', building);
@@ -564,13 +557,15 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       if (!checkStamina(player, 10)) return;
+      // Prioritize current hex
       const targets = [player.pos, ...getNeighbors(player.pos)];
       let obstacle = null;
       for (const pos of targets) {
         const entities = world.getEntitiesAt(pos.q, pos.r);
         obstacle = entities.find(e =>
             (e.type === 'obstacle' && e.species !== 'water') ||
-            (e.type === 'plant' && e.species === 'apple-tree')
+            (e.type === 'plant' && e.species === 'apple-tree') ||
+            e.type === 'fence'
         );
         if (obstacle) break;
       }
@@ -603,10 +598,16 @@ io.on('connection', (socket) => {
           notify(socket.id, `Broke rock. Gained ${amount} stone.`, 'success');
         } else if (obstacle.species === 'scarecrow') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.inventory['wood'] = (player.inventory['wood'] || 0) + 1;
+          player.inventory['wood'] = (player.inventory['wood'] || 0) + 2;
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, "Removed scarecrow.", 'success');
+        } else if (obstacle.type === 'fence') {
+          world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          player.inventory['wood'] = (player.inventory['wood'] || 0) + 2;
+          io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
+          socket.emit('entityUpdate', player);
+          notify(socket.id, "Removed fence.", 'success');
         }
       } else {
         // Also check for buildings
@@ -617,15 +618,8 @@ io.on('connection', (socket) => {
           if (building) break;
         }
         if (building) {
-          const costs: Record<string, { wood: number, stone: number }> = {
-            'shed': { wood: 5, stone: 2 },
-            'chest': { wood: 2, stone: 1 },
-            'well': { wood: 2, stone: 5 },
-            'scarecrow': { wood: 1, stone: 0 },
-            'sprinkler': { wood: 0, stone: 2 }
-          };
           const species = building.type === 'sprinkler' ? 'sprinkler' : (building.species || '');
-          const refund = costs[species];
+          const refund = BUILDING_COSTS[species];
           world.removeEntity(building.id, building.pos.q, building.pos.r);
           if (refund) {
             player.inventory['wood'] = (player.inventory['wood'] || 0) + refund.wood;
@@ -689,10 +683,27 @@ io.on('connection', (socket) => {
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       const building = entities.find(e => e.type === 'building') as Building | undefined;
 
-      if (building && building.species === 'chest') {
+      if (building && (building.species === 'chest' || building.species === 'beehive')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
-        const categoriesToStore = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'milk', 'wool', 'egg', 'truffle', 'wood', 'stone', 'fish', 'junk'];
+
+        if (building.species === 'beehive') {
+          const honeyCount = buildingInv['honey'] || 0;
+          if (honeyCount > 0) {
+            playerInv['honey'] = (playerInv['honey'] || 0) + honeyCount;
+            buildingInv['honey'] = 0;
+            building.inventory = buildingInv;
+            world.updateEntity(building);
+            socket.emit('entityUpdate', player);
+            io.emit('entityUpdate', building);
+            notify(socket.id, `Collected ${honeyCount} honey!`, 'success');
+          } else {
+            notify(socket.id, "No honey yet.", 'info');
+          }
+          return;
+        }
+
+        const categoriesToStore = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'milk', 'wool', 'egg', 'truffle', 'wood', 'stone', 'fish', 'junk', 'honey'];
 
         let hasAnythingToStore = false;
         categoriesToStore.forEach(item => {
@@ -750,15 +761,56 @@ io.on('connection', (socket) => {
 
       if (animal) {
         if (animal.species === 'merchant') {
+          let questHandled = false;
+          // Quest logic
+          if (player.activeQuest) {
+            const quest = player.activeQuest;
+            const inInventory = player.inventory[quest.species] || 0;
+            const needed = quest.count - quest.collected;
+
+            if (inInventory > 0) {
+                const toGive = Math.min(inInventory, needed);
+                player.inventory[quest.species] -= toGive;
+                quest.collected += toGive;
+
+                if (quest.collected >= quest.count) {
+                    const reward = quest.count * 50; // Bonus coins
+                    player.coins += reward;
+                    player.activeQuest = null;
+                    notify(socket.id, `Quest complete! Gained ${reward} bonus coins.`, 'success');
+                } else {
+                    notify(socket.id, `Gave ${toGive} ${quest.species} to the Merchant. ${quest.count - quest.collected} more needed.`, 'success');
+                }
+                socket.emit('entityUpdate', player);
+                questHandled = true;
+            } else if (needed > 0) {
+                notify(socket.id, `I'm still waiting for those ${quest.count} ${quest.species}!`, 'info');
+                // Fall through to selling other items
+            }
+          } else {
+              // Assign new quest with 20% chance
+              if (Math.random() < 0.2) {
+                  const species = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat'][Math.floor(Math.random() * 5)];
+                  const count = 5 + Math.floor(Math.random() * 10);
+                  player.activeQuest = { species, count, collected: 0 };
+                  socket.emit('entityUpdate', player);
+                  notify(socket.id, `New Quest: Bring me ${count} ${species}!`, 'info');
+                  questHandled = true;
+              }
+          }
+
           // Sell crops and products
           const prices: Record<string, number> = {
             'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
             'apple': 15,
             'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60,
-            'fish': 40
+            'fish': 40, 'honey': 30
           };
           let earned = 0;
           Object.keys(prices).forEach(item => {
+            // Don't sell the item we have an active quest for
+            if (player.activeQuest && player.activeQuest.species === item) return;
+
             if (player.inventory[item] > 0) {
               earned += player.inventory[item] * prices[item];
               player.inventory[item] = 0;
@@ -768,8 +820,8 @@ io.on('connection', (socket) => {
             player.coins += earned;
             socket.emit('entityUpdate', player);
             notify(socket.id, `Sold items for ${earned} coins!`, 'success');
-          } else {
-            notify(socket.id, "You don't have any crops or products to sell.", 'info');
+          } else if (!questHandled) {
+            notify(socket.id, "You don't have any crops or products to sell. Need a quest?", 'info');
           }
           return;
         }

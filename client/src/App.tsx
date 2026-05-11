@@ -16,6 +16,7 @@ function App() {
   const [playerCoins, setPlayerCoins] = useState<number>(0);
   const [playerStamina, setPlayerStamina] = useState<number>(100);
   const [playerMaxStamina, setPlayerMaxStamina] = useState<number>(100);
+  const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
   const [notifications, setNotifications] = useState<{id: number, message: string, type: string}[]>([]);
@@ -77,6 +78,7 @@ function App() {
         setPlayerCoins(p.coins || 0);
         setPlayerStamina(p.stamina || 0);
         setPlayerMaxStamina(p.maxStamina || 100);
+        setPlayerActiveQuest(p.activeQuest || null);
         requestChunksAround(p.pos.q, p.pos.r);
       }
     });
@@ -195,6 +197,8 @@ function App() {
         socket.emit('build_building', 'chest');
       } else if (e.key.toLowerCase() === 'u') {
         socket.emit('build_building', 'well');
+      } else if (e.key.toLowerCase() === 'n') {
+        socket.emit('build_building', 'beehive');
       } else if (e.key.toLowerCase() === 'g') {
         socket.emit('fertilize');
       } else if (e.key.toLowerCase() === 'c') {
@@ -257,7 +261,7 @@ function App() {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
         else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple'].includes(item)) categories.crops.items.push([item, count]);
         else if (['wood', 'stone'].includes(item)) categories.resources.items.push([item, count]);
-        else if (['milk', 'wool', 'egg', 'truffle'].includes(item)) categories.products.items.push([item, count]);
+        else if (['milk', 'wool', 'egg', 'truffle', 'honey'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
 
@@ -331,6 +335,13 @@ function App() {
           <p>Day: {environment.dayCount + 1}</p>
           <p>Time: {Math.floor(environment.timeOfDay * 24).toString().padStart(2, '0')}:{Math.floor((environment.timeOfDay * 24 * 60) % 60).toString().padStart(2, '0')}</p>
         </div>
+        {playerActiveQuest && (
+          <div className="quest-info" style={{ background: 'rgba(0,128,0,0.6)', padding: '10px', borderRadius: '5px', marginBottom: '10px', border: '1px solid #00ff00', width: '200px' }}>
+            <h3 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Active Quest</h3>
+            <p style={{ margin: 0, fontSize: '12px' }}>{playerActiveQuest.count} <span style={{ textTransform: 'capitalize' }}>{playerActiveQuest.species}</span></p>
+            <p style={{ margin: '2px 0 0 0', fontSize: '12px', fontWeight: 'bold' }}>Progress: {playerActiveQuest.collected}/{playerActiveQuest.count}</p>
+          </div>
+        )}
         <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
         <div className="stamina-container" style={{ width: '200px', height: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '10px', overflow: 'hidden', border: '1px solid white', margin: '10px 0', position: 'relative' }}>
             <div className="stamina-bar" style={{ width: `${(playerStamina / playerMaxStamina) * 100}%`, height: '100%', background: playerStamina < 20 ? '#ff4444' : '#44ff44', transition: 'width 0.3s' }} />
@@ -344,12 +355,13 @@ function App() {
         <p>Use WASD or Arrow Keys to move</p>
         <p>Press <b>1-6</b> to Plant, <b>Shift + 1-6</b> to Buy Seeds (Turnip, Carrot, Pumpkin, Corn, Wheat, Apple Tree)</p>
         <p>Press <b>P</b> to Plow, <b>R</b> to Path (1S), <b>I</b> to Water, <b>G</b> to Fertilize (1 Junk), <b>F</b> to Fence (2W)</p>
-        <p>Press <b>K</b> to Sprinkler (5S), <b>B</b> to Scarecrow (2W), <b>L</b> to Shed (10W, 5S), <b>V</b> to Chest (5W, 2S), <b>U</b> to Well (5W, 10S)</p>
+        <p>Press <b>K</b> to Sprinkler (5S), <b>B</b> to Scarecrow (2W), <b>L</b> to Shed (10W, 5S), <b>V</b> to Chest (5W, 2S), <b>U</b> to Well (5W, 10S), <b>N</b> to Beehive (5W, 5S)</p>
         <p>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Apple</p>
         <p>Plowing, Watering, Clearing, and Fishing require tools. Wells provide infinite water nearby.</p>
         <p>Press <b>Shift+X</b> to Sell Resources (Wood, Stone, Junk) near Merchant</p>
         <p>Press <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>
         <p>Press <b>Shift + 7, 8, 9, 0, -</b> to Buy Fishing Rod or Copper Tools (Near Merchant)</p>
+
 
         <div className="inventory" style={{ marginTop: '20px', background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', maxWidth: '300px' }}>
           <h3>Inventory</h3>
