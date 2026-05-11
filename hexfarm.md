@@ -29,6 +29,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Consumption:** Eating crops like Apples restores a significant amount of stamina instantly.
 - **Pests:** Mature plants that are not protected by a Scarecrow (2-hex radius) have a small chance each game tick to be damaged by pests, regressing their growth stage.
 - **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
+- **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
+- **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 
 ---
@@ -74,7 +76,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **L**: Shed (Requires 10 Wood, 5 Stone)
    - **V**: Chest (Requires 5 Wood, 2 Stone)
    - **U**: Well (Requires 5 Wood, 10 Stone)
-8. **Interacting:** Press **E** to interact with animals, harvest fruit, or use chests.
+   - **N**: Beehive (Requires 5 Wood, 5 Stone)
+8. **Interacting:** Press **E** to interact with animals, harvest fruit, use buildings, or talk to the Merchant.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
 9. **Consuming:** Press **C** to eat an apple from your inventory to restore stamina.
@@ -134,6 +137,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Seasonal Growth:** Preferred seasons for crops.
 - [x] **Trading:** Player-to-player exchange via `/give`.
 - [x] **Animal Breeding:** Population growth for animals.
+- [x] **Beehives:** Production and growth boost.
+- [x] **Quests:** Basic fetch quests from Merchant.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

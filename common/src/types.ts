@@ -1,6 +1,15 @@
 export const CHUNK_SIZE = 16;
 export const GAME_DAY = 24 * 60 * 1000; // 24 minutes
 
+export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
+  'shed': { wood: 10, stone: 5 },
+  'chest': { wood: 5, stone: 2 },
+  'well': { wood: 5, stone: 10 },
+  'scarecrow': { wood: 2, stone: 0 },
+  'sprinkler': { wood: 0, stone: 5 },
+  'beehive': { wood: 5, stone: 5 },
+};
+
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';
 
 export interface Position {
@@ -18,6 +27,7 @@ export interface Entity {
 export interface Building extends Entity {
   type: 'building';
   inventory?: Record<string, number>;
+  lastProductTime?: number;
 }
 
 export interface Plant extends Entity {
@@ -45,6 +55,11 @@ export interface Player extends Entity {
   coins: number;
   stamina: number;
   maxStamina: number;
+  activeQuest?: {
+    species: string;
+    count: number;
+    collected: number;
+  } | null;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
