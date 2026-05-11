@@ -199,10 +199,26 @@ function App() {
         socket.emit('build_building', 'well');
       } else if (e.key.toLowerCase() === 'n') {
         socket.emit('build_building', 'beehive');
+      } else if (e.key.toLowerCase() === 'o') {
+        socket.emit('build_building', 'cooking-pot');
       } else if (e.key.toLowerCase() === 'g') {
         socket.emit('fertilize');
       } else if (e.key.toLowerCase() === 'c') {
-        socket.emit('consume', 'apple');
+        // Simple logic to consume best food in inventory
+        const foods = ['pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
+        const toEat = foods.find(f => playerInventory[f] > 0);
+        if (toEat) socket.emit('consume', toEat);
+        else socket.emit('consume', 'apple'); // Fallback for error message
+      } else if (e.code === 'Digit1' && e.altKey) {
+        socket.emit('cook', 'salad');
+      } else if (e.code === 'Digit2' && e.altKey) {
+        socket.emit('cook', 'apple-pie');
+      } else if (e.code === 'Digit3' && e.altKey) {
+        socket.emit('cook', 'pumpkin-soup');
+      } else if (e.code === 'Digit4' && e.altKey) {
+        socket.emit('cook', 'corn-chowder');
+      } else if (e.code === 'Digit5' && e.altKey) {
+        socket.emit('cook', 'grilled-fish');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -259,8 +275,8 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple'].includes(item)) categories.crops.items.push([item, count]);
-        else if (['wood', 'stone'].includes(item)) categories.resources.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'fish', 'salad', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['wood', 'stone', 'junk'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
@@ -355,8 +371,9 @@ function App() {
         <p>Use WASD or Arrow Keys to move</p>
         <p>Press <b>1-6</b> to Plant, <b>Shift + 1-6</b> to Buy Seeds (Turnip, Carrot, Pumpkin, Corn, Wheat, Apple Tree)</p>
         <p>Press <b>P</b> to Plow, <b>R</b> to Path (1S), <b>I</b> to Water, <b>G</b> to Fertilize (1 Junk), <b>F</b> to Fence (2W)</p>
-        <p>Press <b>K</b> to Sprinkler (5S), <b>B</b> to Scarecrow (2W), <b>L</b> to Shed (10W, 5S), <b>V</b> to Chest (5W, 2S), <b>U</b> to Well (5W, 10S), <b>N</b> to Beehive (5W, 5S)</p>
-        <p>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Apple</p>
+        <p>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot</p>
+        <p>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food</p>
+        <p>Cooking (Alt + 1-5): Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish</p>
         <p>Plowing, Watering, Clearing, and Fishing require tools. Wells provide infinite water nearby.</p>
         <p>Press <b>Shift+X</b> to Sell Resources (Wood, Stone, Junk) near Merchant</p>
         <p>Press <b>8, 9, 0, -</b> to Buy Tools (Near Merchant)</p>

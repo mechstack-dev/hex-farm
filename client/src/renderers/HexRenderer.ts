@@ -257,6 +257,12 @@ export class HexRenderer {
     } else if (animal.species === 'pig') {
         color = 0xFFC0CB; // Pink
         sizeScale = 0.7;
+    } else if (animal.species === 'dog') {
+        color = 0x8B4513; // Brown
+        sizeScale = 0.6;
+    } else if (animal.species === 'cat') {
+        color = 0xFFA500; // Orange
+        sizeScale = 0.4;
     } else if (animal.species === 'merchant') {
         color = 0x800080; // Purple
         sizeScale = 1.2;
@@ -414,6 +420,25 @@ export class HexRenderer {
         // Top
         this.graphics.rect(x - 14, y - 12, 28, 4);
         this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+    } else if (entity.species === 'cooking-pot') {
+        // Pot base
+        this.graphics.ellipse(x, y + 5, 12, 8);
+        this.graphics.fill({ color: 0x333333, alpha: 1 });
+        this.graphics.stroke({ color: 0x000000, width: 1 });
+
+        // Pot rim
+        this.graphics.ellipse(x, y - 3, 12, 4);
+        this.graphics.fill({ color: 0x444444, alpha: 1 });
+        this.graphics.stroke({ color: 0x000000, width: 1 });
+
+        // Fire
+        const time = Date.now() / 100;
+        for (let i = 0; i < 3; i++) {
+            const fx = x - 8 + i * 8 + Math.sin(time + i) * 2;
+            const fy = y + 8 + Math.cos(time + i) * 2;
+            this.graphics.circle(fx, fy, 3);
+            this.graphics.fill({ color: 0xFF4500, alpha: 0.8 });
+        }
     }
   }
 
