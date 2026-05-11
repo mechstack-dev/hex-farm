@@ -19,6 +19,9 @@ function App() {
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
   const [notifications, setNotifications] = useState<{id: number, message: string, type: string}[]>([]);
+  const [chatMessages, setChatMessages] = useState<{id: number, sender: string, message: string}[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatFocused, setIsChatFocused] = useState(false);
   const loadedChunks = useRef<Set<string>>(new Set());
   const myIdRef = useRef<string | null>(null);
 
@@ -98,6 +101,10 @@ function App() {
       }, 5000);
     });
 
+    socket.on('chat', (msg: {sender: string, message: string, timestamp: number}) => {
+      setChatMessages(prev => [...prev, { id: msg.timestamp, sender: msg.sender, message: msg.message }].slice(-50));
+    });
+
     return () => {
       renderer.current?.destroy();
       renderer.current = null;
@@ -110,12 +117,25 @@ function App() {
   }, []);
 
   useInput((dq, dr) => {
+    if (isChatFocused) return;
     const nextPos = { q: playerPos.q + dq, r: playerPos.r + dr };
     movePlayer(nextPos.q, nextPos.r);
   });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isChatFocused) {
+          if (e.key === 'Escape') {
+              setIsChatFocused(false);
+              (document.activeElement as HTMLElement)?.blur();
+          }
+          return;
+      }
+      if (e.key === 'Enter') {
+          setIsChatFocused(true);
+          return;
+      }
+
       if (e.code === 'Digit1') {
         if (e.shiftKey) socket.emit('buy_seed', 'turnip');
         else socket.emit('plant', 'turnip');
@@ -252,6 +272,16 @@ function App() {
     }
   };
 
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (chatInput.trim()) {
+      socket.emit('chat', chatInput.trim());
+      setChatInput('');
+    }
+    setIsChatFocused(false);
+    (document.activeElement as HTMLElement)?.blur();
+  };
+
   return (
     <div className="App">
       {!isJoined && (
@@ -293,7 +323,7 @@ function App() {
         ))}
       </div>
 
-      <div className="ui-overlay" style={{ position: 'absolute', top: 10, left: 10, pointerEvents: 'none', color: 'white', textShadow: '1px 1px 2px black' }}>
+      <div className="ui-overlay" style={{ position: 'absolute', top: 10, left: 10, pointerEvents: 'none', color: 'white', textShadow: '1px 1px 2px black', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 20px)' }}>
         <h1>Harvest Hex MMO</h1>
         <div className="environment-info" style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', marginBottom: '10px' }}>
           <p>Season: <span style={{ textTransform: 'capitalize' }}>{environment.season}</span></p>
@@ -333,6 +363,28 @@ function App() {
               </ul>
             </div>
           ))}
+        </div>
+
+        <div className="chat-container" style={{ marginTop: 'auto', pointerEvents: 'auto', width: '300px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <p style={{ fontSize: '10px', margin: 0, color: '#aaa' }}>Type <b>/give [name] [item] [amount]</b> to trade</p>
+            <div className="chat-log" style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', height: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column-reverse' }}>
+                {chatMessages.slice().reverse().map(m => (
+                    <div key={m.id} style={{ fontSize: '14px', marginBottom: '2px' }}>
+                        <b style={{ color: '#00ff00' }}>{m.sender}:</b> {m.message}
+                    </div>
+                ))}
+            </div>
+            <form onSubmit={handleSendChat} style={{ display: 'flex', gap: '5px' }}>
+                <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onFocus={() => setIsChatFocused(true)}
+                    onBlur={() => setTimeout(() => setIsChatFocused(false), 100)}
+                    placeholder="Press Enter to chat..."
+                    style={{ flex: 1, padding: '5px', borderRadius: '3px', border: '1px solid white', background: 'rgba(0,0,0,0.7)', color: 'white' }}
+                />
+            </form>
         </div>
       </div>
     </div>

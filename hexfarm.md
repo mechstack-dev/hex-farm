@@ -28,6 +28,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Stamina:** Actions like plowing, watering, and clearing obstacles consume stamina. Stamina regenerates slowly over time.
 - **Consumption:** Eating crops like Apples restores a significant amount of stamina instantly.
 - **Pests:** Mature plants that are not protected by a Scarecrow (2-hex radius) have a small chance each game tick to be damaged by pests, regressing their growth stage.
+- **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
+- **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 
 ---
 
@@ -76,6 +78,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
 9. **Consuming:** Press **C** to eat an apple from your inventory to restore stamina.
+10. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
 
 ---
 
@@ -117,6 +120,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Seasons & Weather:** Dynamic environment.
 - [x] **Day/Night Cycle:** Visual time progression.
 - [x] **Stamina & Consumption:** Strategic resource management.
+- [x] **Global Chat:** Real-time communication between players.
 
 ### Medium Priority
 - [x] **Automation:** Sprinklers.
@@ -128,12 +132,14 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Well:** Add crafting and rendering for the Well building.
 - [x] **Pests & Protection:** Scarecrow mechanics.
 - [x] **Seasonal Growth:** Preferred seasons for crops.
+- [x] **Trading:** Player-to-player exchange via `/give`.
+- [x] **Animal Breeding:** Population growth for animals.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
-- [ ] **Trading:** Player-to-player exchange.
-- [ ] **Animal Breeding:** Population growth for animals.
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
+- [ ] **Quests & NPCs:** Dynamic world interactions.
+- [ ] **Advanced Cooking:** Combine crops and products for better buffs.
 
 ---
 

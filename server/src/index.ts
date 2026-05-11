@@ -270,24 +270,34 @@ io.on('connection', (socket) => {
     if (player) {
       const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
-      if (plant && plant.growthStage >= 5) {
-        world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
-        const species = plant.species || 'unknown';
+      if (plant) {
+        if (plant.species === 'apple-tree') {
+            notify(socket.id, "Use 'E' to gather apples from mature trees. Use an axe to cut them down.", 'info');
+            return;
+        }
 
-        // Give crop
-        player.inventory[species] = (player.inventory[species] || 0) + 1;
+        if (plant.growthStage >= 5) {
+          world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
+          const species = plant.species || 'unknown';
 
-        // Chance to give 1-2 seeds
-        const seedType = `${species}-seed`;
-        const seedsGained = Math.floor(Math.random() * 2) + 1;
-        player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
+          // Give crop
+          player.inventory[species] = (player.inventory[species] || 0) + 1;
 
-        notify(socket.id, `Harvested ${species}! Gained ${seedsGained} seeds.`, 'success');
+          // Chance to give 1-2 seeds
+          const seedType = `${species}-seed`;
+          const seedsGained = Math.floor(Math.random() * 2) + 1;
+          player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
 
-        io.emit('entityRemove', { id: plant.id, pos: plant.pos });
-        socket.emit('entityUpdate', player); // Update player inventory on client
-      } else if (plant) {
-        notify(socket.id, "This plant isn't ready yet.", 'info');
+          notify(socket.id, `Harvested ${species}! Gained ${seedsGained} seeds.`, 'success');
+
+          io.emit('entityRemove', { id: plant.id, pos: plant.pos });
+          socket.emit('entityUpdate', player); // Update player inventory on client
+        } else {
+          // Allow removing immature plants
+          world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
+          io.emit('entityRemove', { id: plant.id, pos: plant.pos });
+          notify(socket.id, "Removed immature plant.", 'info');
+        }
       }
     }
   });
@@ -558,12 +568,15 @@ io.on('connection', (socket) => {
       let obstacle = null;
       for (const pos of targets) {
         const entities = world.getEntitiesAt(pos.q, pos.r);
-        obstacle = entities.find(e => e.type === 'obstacle' && e.species !== 'water');
+        obstacle = entities.find(e =>
+            (e.type === 'obstacle' && e.species !== 'water') ||
+            (e.type === 'plant' && e.species === 'apple-tree')
+        );
         if (obstacle) break;
       }
 
       if (obstacle) {
-        if (obstacle.species === 'tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
+        if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
           const hasCopperAxe = player.inventory['copper-axe'] > 0;
           if (!hasCopperAxe && (!player.inventory['axe'] || player.inventory['axe'] <= 0)) {
             notify(socket.id, "You need an axe to cut down trees!", 'error');
@@ -574,7 +587,8 @@ io.on('connection', (socket) => {
           player.inventory['wood'] = (player.inventory['wood'] || 0) + amount;
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
-          notify(socket.id, `Cut down tree. Gained ${amount} wood.`, 'success');
+          const name = obstacle.species === 'apple-tree' ? 'apple tree' : 'tree';
+          notify(socket.id, `Cut down ${name}. Gained ${amount} wood.`, 'success');
         } else if (obstacle.species === 'rock' || (!obstacle.species && obstacle.id.startsWith('rock'))) {
           const hasCopperPickaxe = player.inventory['copper-pickaxe'] > 0;
           if (!hasCopperPickaxe && (!player.inventory['pickaxe'] || player.inventory['pickaxe'] <= 0)) {
@@ -842,6 +856,66 @@ io.on('connection', (socket) => {
   socket.on('requestChunks', (coords: {cq: number, cr: number}[]) => {
     const chunks = coords.map(c => world.getChunk(c.cq, c.cr));
     socket.emit('chunks', chunks);
+  });
+
+  socket.on('chat', (message: string) => {
+    const player = players.get(socket.id);
+    if (player) {
+      const sanitized = message.substring(0, 200).trim();
+      if (!sanitized) return;
+
+      // Handle simple commands
+      if (sanitized.startsWith('/give ')) {
+          const parts = sanitized.split(' ');
+          if (parts.length >= 3) {
+              const targetName = parts[1];
+              const itemName = parts[2];
+              const count = parseInt(parts[3] || '1');
+
+              if (isNaN(count) || count <= 0) {
+                  notify(socket.id, "Invalid amount!", 'error');
+                  return;
+              }
+
+              // Find target player nearby
+              const target = Array.from(players.values()).find(p =>
+                  p.name.toLowerCase() === targetName.toLowerCase() &&
+                  distance(player.pos, p.pos) <= 1
+              );
+
+              if (!target) {
+                  notify(socket.id, `Player ${targetName} not found nearby!`, 'error');
+                  return;
+              }
+
+              if ((player.inventory[itemName] || 0) < count) {
+                  notify(socket.id, `You don't have ${count} ${itemName}!`, 'error');
+                  return;
+              }
+
+              // Transfer
+              player.inventory[itemName] -= count;
+              target.inventory[itemName] = (target.inventory[itemName] || 0) + count;
+
+              socket.emit('entityUpdate', player);
+              // We need to find the socket of the target player to notify them and update their UI
+              const targetSocketId = Array.from(players.entries()).find(([sid, p]) => p.id === target.id)?.[0];
+              if (targetSocketId) {
+                  io.to(targetSocketId).emit('entityUpdate', target);
+                  notify(targetSocketId, `${player.name} gave you ${count} ${itemName}!`, 'success');
+              }
+              notify(socket.id, `Gave ${count} ${itemName} to ${target.name}.`, 'success');
+              return;
+          }
+      }
+
+      io.emit('chat', {
+        sender: player.name,
+        senderId: player.id,
+        message: sanitized,
+        timestamp: Date.now()
+      });
+    }
   });
 
   socket.on('disconnect', () => {

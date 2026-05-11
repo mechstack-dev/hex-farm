@@ -3,7 +3,7 @@ import { updatePlant } from './logic/PlantLogic.js';
 import { moveAnimal } from './logic/AnimalLogic.js';
 import { SeasonManager } from './logic/SeasonManager.js';
 import type { Animal, Plant, EnvironmentState } from 'common';
-import { getChunkCoords, getNeighbors } from 'common';
+import { getChunkCoords, getNeighbors, GAME_DAY } from 'common';
 
 export class GameEngine {
   private seasonManager: SeasonManager;
@@ -44,6 +44,20 @@ export class GameEngine {
       });
     });
 
+    // Breeding logic pre-calculation
+    const animalPositionsBySpecies = new Map<string, Animal[]>();
+    chunks.forEach(chunk => {
+        chunk.entities.forEach(entity => {
+            if (entity.type === 'animal' && entity.species !== 'merchant') {
+                const animal = entity as Animal;
+                if (!animalPositionsBySpecies.has(animal.species)) {
+                    animalPositionsBySpecies.set(animal.species, []);
+                }
+                animalPositionsBySpecies.get(animal.species)!.push(animal);
+            }
+        });
+    });
+
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
         let updated: any = entity;
@@ -63,14 +77,55 @@ export class GameEngine {
 
           // Pest logic
           if (updated.growthStage >= 5 && !scarecrowPositions.has(posKey)) {
-              if (Math.random() < 0.01) { // 1% chance per tick
+              if (Math.random() < 0.0005) { // 0.05% chance per tick
                   updated.growthStage = 4;
                   // We can't easily notify here without access to IO or socket ID,
                   // but we'll return it as an updated entity which clients will see.
               }
           }
-        } else if (entity.type === 'animal' && (entity as Animal).nextMoveTime < now) {
-          updated = moveAnimal(entity as Animal, this.world);
+        } else if (entity.type === 'animal') {
+          const animal = entity as Animal;
+          if (animal.species !== 'merchant') {
+              // Breeding chance
+              const speciesAnimals = animalPositionsBySpecies.get(animal.species) || [];
+              if (speciesAnimals.length >= 2 && speciesAnimals.length < 20) { // Population control
+                  const lastBred = animal.lastBredTime || 0;
+                  if (now - lastBred > GAME_DAY) {
+                      const neighbors = getNeighbors(animal.pos);
+                      const mate = speciesAnimals.find(other =>
+                          other.id !== animal.id &&
+                          neighbors.some(n => n.q === other.pos.q && n.r === other.pos.r) &&
+                          (now - (other.lastBredTime || 0) > GAME_DAY)
+                      );
+
+                      if (mate && Math.random() < 0.001) { // 0.1% chance per tick if mate nearby
+                          const babyPos = neighbors.find(n => this.world.getEntitiesAt(n.q, n.r).length === 0);
+                          if (babyPos) {
+                              const baby: Animal = {
+                                  id: `animal-${babyPos.q}-${babyPos.r}-${now}`,
+                                  type: 'animal',
+                                  species: animal.species,
+                                  pos: babyPos,
+                                  nextMoveTime: now + 5000,
+                                  lastProductTime: now,
+                                  lastBredTime: now
+                              };
+                              this.world.addEntity(baby);
+                              updatedEntities.push(baby);
+                              animal.lastBredTime = now;
+                              mate.lastBredTime = now;
+                              updated = { ...animal };
+                              // Note: mate will also be updated when the loop reaches it,
+                              // or if it was already reached, it might miss one tick but it's fine.
+                          }
+                      }
+                  }
+              }
+
+              if (animal.nextMoveTime < now) {
+                  updated = moveAnimal(animal, this.world);
+              }
+          }
         }
 
         if (updated !== entity) {
