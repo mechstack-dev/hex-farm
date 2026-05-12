@@ -77,8 +77,19 @@ export class GameEngine {
           // Process buffs
           if (player.buffs && player.buffs.length > 0) {
             const initialBuffCount = player.buffs.length;
+            const expiredBuffs = player.buffs.filter((b: any) => b.expiresAt <= now);
             player.buffs = player.buffs.filter((b: any) => b.expiresAt > now);
-            if (player.buffs.length !== initialBuffCount) updated = { ...player };
+
+            if (player.buffs.length !== initialBuffCount) {
+              updated = { ...player };
+              // Revert max_stamina if expired
+              expiredBuffs.forEach((b: any) => {
+                if (b.type === 'max_stamina') {
+                    player.maxStamina -= b.amount;
+                    player.stamina = Math.min(player.stamina, player.maxStamina);
+                }
+              });
+            }
 
             const regenBuff = player.buffs.find((b: any) => b.type === 'stamina_regen');
             if (regenBuff) staminaRegen += regenBuff.amount;

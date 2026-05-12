@@ -56,11 +56,12 @@ HexFarm is designed to be played over long periods.
 - **XP Gain:** Actions like harvesting, plowing, clearing obstacles, fishing, and cooking grant XP in their respective categories.
 
 ### Crafting & Economy
-- **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone.
+- **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone. Mining rocks also has a chance to yield **Iron Ore**.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
-- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, and Grilled Fish.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, and Veggie Platter.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
-- **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins to upgrade their basic tools to Copper versions, which are more efficient.
+- **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore to upgrade tools to Copper and Iron versions.
+- **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
 
 ---
 
@@ -89,11 +90,12 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **U**: Well (5 Wood, 10 Stone)
    - **N**: Beehive (5 Wood, 5 Stone)
    - **O**: Cooking Pot (5 Wood, 10 Stone)
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, or talk to the Merchant.
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, or talk to NPCs.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
-   - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools to Copper.
+   - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.
+   - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
-   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-7** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart).
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter).
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
@@ -164,9 +166,14 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Buff System:** Temporary status effects from food.
 - [x] **Blacksmith NPC:** Tool upgrades hub at (5, 5).
 - [x] **New Crops:** Added Winter Radish for seasonal variety.
+- [x] **Tiered Tools:** Added Copper and Iron tiers with improved efficiency.
+- [x] **More NPCs:** Added Fisherman and Blacksmith with unique roles.
+- [x] **Advanced Buffs:** Implemented luck and temporary stat boosts via food.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
+- [ ] **Mining Depths:** Rare chance to find "cave entrance" hexes while mining, leading to underground layers.
+- [ ] **Livestock Barns:** Buildings that automatically gather products from nearby animals.
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
 - [ ] **NPCs & Relationship System:** Build relationships with unique characters.
 - [ ] **Advanced Cooking:** Combine crops and products for more diverse buffs.
