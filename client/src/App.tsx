@@ -187,18 +187,14 @@ function App() {
         else socket.emit('clear_obstacle');
       } else if (e.code === 'Digit8' && e.shiftKey) {
         socket.emit('buy_tool', 'fishing-rod');
-      } else if (e.code === 'Digit9') {
-        if (e.shiftKey) socket.emit('buy_tool', 'copper-hoe');
-        else socket.emit('buy_tool', 'hoe');
-      } else if (e.code === 'Digit0') {
-        if (e.shiftKey) socket.emit('buy_tool', 'copper-watering-can');
-        else socket.emit('buy_tool', 'watering-can');
-      } else if (e.code === 'Minus') {
-        if (e.shiftKey) socket.emit('buy_tool', 'copper-axe');
-        else socket.emit('buy_tool', 'axe');
-      } else if (e.code === 'Equal') {
-        if (e.shiftKey) socket.emit('buy_tool', 'copper-pickaxe');
-        else socket.emit('buy_tool', 'pickaxe');
+      } else if (e.code === 'Digit9' && !e.shiftKey) {
+        socket.emit('buy_tool', 'hoe');
+      } else if (e.code === 'Digit0' && !e.shiftKey) {
+        socket.emit('buy_tool', 'watering-can');
+      } else if (e.code === 'Minus' && !e.shiftKey) {
+        socket.emit('buy_tool', 'axe');
+      } else if (e.code === 'Equal' && !e.shiftKey) {
+        socket.emit('buy_tool', 'pickaxe');
       } else if (e.key.toLowerCase() === 'j') {
         socket.emit('fish');
       } else if (e.key.toLowerCase() === 'l') {
@@ -217,7 +213,7 @@ function App() {
         socket.emit('teleport_home');
       } else if (e.key.toLowerCase() === 'c') {
         // Simple logic to consume best food in inventory
-        const foods = ['mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
+        const foods = ['veggie-platter', 'miners-stew', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
         const toEat = foods.find(f => playerInventory[f] > 0);
         if (toEat) socket.emit('consume', toEat);
         else socket.emit('consume', 'apple'); // Fallback for error message
@@ -235,6 +231,10 @@ function App() {
         socket.emit('cook', 'mushroom-soup');
       } else if (e.code === 'Digit7' && e.altKey) {
         socket.emit('cook', 'berry-tart');
+      } else if (e.code === 'Digit8' && e.altKey) {
+        socket.emit('cook', 'miners-stew');
+      } else if (e.code === 'Digit9' && e.altKey) {
+        socket.emit('cook', 'veggie-platter');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -291,8 +291,8 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish'].includes(item)) categories.crops.items.push([item, count]);
-        else if (['wood', 'stone', 'junk'].includes(item)) categories.resources.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['wood', 'stone', 'junk', 'iron-ore'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
@@ -427,9 +427,9 @@ function App() {
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot</p>
             <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home</p>
-            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-7): Various Recipes</p>
+            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-9): Various Recipes</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
-            <p style={{ margin: '2px 0' }}>Press <b>8, 9, 0, -, =</b> to Buy Tools / Copper Tools (+Shift)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>9, 0, -, =</b>: Basic Tools</p>
           </div>
         )}
 

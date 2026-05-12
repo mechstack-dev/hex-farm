@@ -45,6 +45,32 @@ export class Generator {
         }
 
         const n = this.noise(q * 0.1, r * 0.1);
+
+        // Spawn Fisherman near water
+        if (n < -0.4 && chunkRng() < 0.05) {
+            // Find a neighbor that is NOT water
+            const neighbors = [
+                { q: q + 1, r: r }, { q: q + 1, r: r - 1 }, { q: q, r: r - 1 },
+                { q: q - 1, r: r }, { q: q - 1, r: r + 1 }, { q: q, r: r + 1 }
+            ];
+            const shore = neighbors.find(pos => this.noise(pos.q * 0.1, pos.r * 0.1) >= -0.4);
+            if (shore) {
+                // We'll add the fisherman to this chunk's entities if it's within chunk bounds
+                // Actually, for simplicity and to avoid duplicates across chunk boundaries,
+                // we'll just check if the shore is in THIS chunk.
+                if (shore.q >= cq * chunkSize && shore.q < (cq + 1) * chunkSize &&
+                    shore.r >= cr * chunkSize && shore.r < (cr + 1) * chunkSize) {
+                    entities.push({
+                        id: `animal-fisherman-${shore.q}-${shore.r}`,
+                        type: 'animal',
+                        species: 'fisherman',
+                        pos: shore,
+                        nextMoveTime: Infinity,
+                        lastProductTime: 0
+                    } as unknown as Entity);
+                }
+            }
+        }
         if (n < -0.4) {
           entities.push({
             id: `water-${q}-${r}`,

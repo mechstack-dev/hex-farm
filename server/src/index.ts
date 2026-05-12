@@ -238,13 +238,26 @@ io.on('connection', (socket) => {
     if (player) {
       const sCost = getStaminaCost(player, 'farming', 5);
       if (!hasStamina(player, sCost)) return;
-      const hasCopperHoe = player.inventory['copper-hoe'] > 0;
-      if (!hasCopperHoe && (!player.inventory['hoe'] || player.inventory['hoe'] <= 0)) {
+      const hasIronHoe = (player.inventory['iron-hoe'] || 0) > 0;
+      const hasCopperHoe = (player.inventory['copper-hoe'] || 0) > 0;
+      if (!hasIronHoe && !hasCopperHoe && (player.inventory['hoe'] || 0) <= 0) {
         notify(socket.id, "You need a hoe to plow land!", 'error');
         return;
       }
 
-      const targets = hasCopperHoe ? [player.pos, ...getNeighbors(player.pos)] : [player.pos];
+      let targets = [player.pos];
+      if (hasIronHoe) {
+        targets = [player.pos, ...getNeighbors(player.pos)];
+        getNeighbors(player.pos).forEach(n => {
+          targets.push(...getNeighbors(n));
+        });
+        // Deduplicate targets
+        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
+          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+      } else if (hasCopperHoe) {
+        targets = [player.pos, ...getNeighbors(player.pos)];
+      }
+
       let success = false;
 
       targets.forEach(pos => {
@@ -467,19 +480,31 @@ io.on('connection', (socket) => {
     if (player) {
       const sCost = getStaminaCost(player, 'farming', 2);
       if (!hasStamina(player, sCost)) return;
-      const hasCopperWateringCan = player.inventory['copper-watering-can'] > 0;
+      const hasIronWateringCan = (player.inventory['iron-watering-can'] || 0) > 0;
+      const hasCopperWateringCan = (player.inventory['copper-watering-can'] || 0) > 0;
       const entities = [
         ...world.getEntitiesAt(player.pos.q, player.pos.r),
         ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
       ];
       const isNearWell = entities.some(e => e.type === 'building' && e.species === 'well');
 
-      if (!isNearWell && !hasCopperWateringCan && (!player.inventory['watering-can'] || player.inventory['watering-can'] <= 0)) {
+      if (!isNearWell && !hasIronWateringCan && !hasCopperWateringCan && (player.inventory['watering-can'] || 0) <= 0) {
         notify(socket.id, "You need a watering can or to be near a well!", 'error');
         return;
       }
 
-      const targets = (hasCopperWateringCan || isNearWell) ? [player.pos, ...getNeighbors(player.pos)] : [player.pos];
+      let targets = [player.pos];
+      if (hasIronWateringCan) {
+        targets = [player.pos, ...getNeighbors(player.pos)];
+        getNeighbors(player.pos).forEach(n => {
+          targets.push(...getNeighbors(n));
+        });
+        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
+          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+      } else if (hasCopperWateringCan || isNearWell) {
+        targets = [player.pos, ...getNeighbors(player.pos)];
+      }
+
       let success = false;
 
       targets.forEach(pos => {
@@ -679,14 +704,15 @@ io.on('connection', (socket) => {
 
       if (obstacle) {
         if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
-          const hasCopperAxe = player.inventory['copper-axe'] > 0;
-          if (!hasCopperAxe && (!player.inventory['axe'] || player.inventory['axe'] <= 0)) {
+          const hasIronAxe = (player.inventory['iron-axe'] || 0) > 0;
+          const hasCopperAxe = (player.inventory['copper-axe'] || 0) > 0;
+          if (!hasIronAxe && !hasCopperAxe && (player.inventory['axe'] || 0) <= 0) {
             notify(socket.id, "You need an axe to cut down trees!", 'error');
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
-          const amount = hasCopperAxe ? 2 : 1;
+          const amount = hasIronAxe ? 3 : (hasCopperAxe ? 2 : 1);
           player.inventory['wood'] = (player.inventory['wood'] || 0) + amount;
 
           // XP Gain
@@ -707,15 +733,24 @@ io.on('connection', (socket) => {
 
           notify(socket.id, `Cut down ${name}. Gained ${amount} wood.`, 'success');
         } else if (obstacle.species === 'rock' || (!obstacle.species && obstacle.id.startsWith('rock'))) {
-          const hasCopperPickaxe = player.inventory['copper-pickaxe'] > 0;
-          if (!hasCopperPickaxe && (!player.inventory['pickaxe'] || player.inventory['pickaxe'] <= 0)) {
+          const hasIronPickaxe = (player.inventory['iron-pickaxe'] || 0) > 0;
+          const hasCopperPickaxe = (player.inventory['copper-pickaxe'] || 0) > 0;
+          if (!hasIronPickaxe && !hasCopperPickaxe && (player.inventory['pickaxe'] || 0) <= 0) {
             notify(socket.id, "You need a pickaxe to break rocks!", 'error');
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
-          const amount = hasCopperPickaxe ? 2 : 1;
+          const amount = hasIronPickaxe ? 3 : (hasCopperPickaxe ? 2 : 1);
           player.inventory['stone'] = (player.inventory['stone'] || 0) + amount;
+
+          // Iron ore chance
+          const luckBuff = player.buffs.find(b => b.type === 'mining_luck');
+          const ironChance = luckBuff ? 0.15 : 0.05;
+          if (Math.random() < ironChance) {
+              player.inventory['iron-ore'] = (player.inventory['iron-ore'] || 0) + 1;
+              notify(socket.id, "Found some iron ore!", 'success');
+          }
 
           // XP Gain
           const { leveledUp, newLevel } = addXP(player, 'mining', 15);
@@ -834,7 +869,8 @@ io.on('connection', (socket) => {
       // Prioritize merchant if nearby
       const merchant = entities.find(e => e.type === 'animal' && e.species === 'merchant') as any;
       const blacksmith = entities.find(e => e.type === 'animal' && e.species === 'blacksmith') as any;
-      const animal = merchant || blacksmith || entities.find(e => e.type === 'animal') as any;
+      const fisherman = entities.find(e => e.type === 'animal' && e.species === 'fisherman') as any;
+      const animal = merchant || blacksmith || fisherman || entities.find(e => e.type === 'animal') as any;
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       const building = entities.find(e => e.type === 'building') as Building | undefined;
 
@@ -940,33 +976,66 @@ io.on('connection', (socket) => {
       }
 
       if (animal) {
-        if (animal.species === 'blacksmith') {
-          const upgrades: Record<string, number> = {
-            'copper-hoe': 200, 'copper-watering-can': 200, 'copper-axe': 200, 'copper-pickaxe': 200
-          };
-
-          let canUpgrade = false;
-          Object.entries(upgrades).forEach(([tool, price]) => {
-              if (!player.inventory[tool] && player.coins >= price) {
-                  player.coins -= price;
-                  player.inventory[tool] = 1;
-                  notify(socket.id, `Upgraded to ${tool.replace('-', ' ')} for ${price} coins!`, 'success');
-                  canUpgrade = true;
-              }
-          });
-
-          if (canUpgrade) {
-              socket.emit('entityUpdate', player);
-              checkAchievements(player);
+        if (animal.species === 'fisherman') {
+          const fishCount = player.inventory['fish'] || 0;
+          if (fishCount > 0) {
+            const earned = fishCount * 50;
+            player.coins += earned;
+            player.inventory['fish'] = 0;
+            notify(socket.id, `Fisherman: "That's some fine catch! Here's ${earned} coins."`, 'success');
+            socket.emit('entityUpdate', player);
+            checkAchievements(player);
           } else {
-              const dialogues = [
-                "Aye, what can I do for ye?",
-                "Looking to sharpen your tools? You've come to the right place.",
-                "Copper tools are a farmer's best friend.",
-                "Hot enough for ye? The forge is always roaring.",
-                "Bring me some coins and I'll show you what real craftsmanship looks like."
-              ];
-              notify(socket.id, `Blacksmith: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
+            const dialogues = [
+              "Nice day for fishing, ain't it?",
+              "The big ones are always near the center of the ponds.",
+              "I'll buy any fish you catch for 50 coins a piece.",
+              "Heard of the legendary Golden Hexfish? Me neither.",
+              "Quiet... you'll scare 'em away!"
+            ];
+            notify(socket.id, `Fisherman: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
+          }
+          return;
+        }
+
+        if (animal.species === 'blacksmith') {
+          const upgrades = [
+            { base: 'hoe', upgrade: 'copper-hoe', price: 200, ore: null, oreCount: 0 },
+            { base: 'watering-can', upgrade: 'copper-watering-can', price: 200, ore: null, oreCount: 0 },
+            { base: 'axe', upgrade: 'copper-axe', price: 200, ore: null, oreCount: 0 },
+            { base: 'pickaxe', upgrade: 'copper-pickaxe', price: 200, ore: null, oreCount: 0 },
+            { base: 'copper-hoe', upgrade: 'iron-hoe', price: 500, ore: 'iron-ore', oreCount: 5 },
+            { base: 'copper-watering-can', upgrade: 'iron-watering-can', price: 500, ore: 'iron-ore', oreCount: 5 },
+            { base: 'copper-axe', upgrade: 'iron-axe', price: 500, ore: 'iron-ore', oreCount: 5 },
+            { base: 'copper-pickaxe', upgrade: 'iron-pickaxe', price: 500, ore: 'iron-ore', oreCount: 5 },
+          ];
+
+          const availableUpgrade = upgrades.find(u =>
+            (player.inventory[u.base] || 0) > 0 &&
+            (player.inventory[u.upgrade] || 0) === 0 &&
+            player.coins >= u.price &&
+            (!u.ore || (player.inventory[u.ore] || 0) >= u.oreCount)
+          );
+
+          if (availableUpgrade) {
+            player.coins -= availableUpgrade.price;
+            if (availableUpgrade.ore) {
+                player.inventory[availableUpgrade.ore] -= availableUpgrade.oreCount;
+            }
+            player.inventory[availableUpgrade.upgrade] = 1;
+            notify(socket.id, `Upgraded to ${availableUpgrade.upgrade.replace('-', ' ')}!`, 'success');
+            socket.emit('entityUpdate', player);
+            checkAchievements(player);
+          } else {
+            const dialogues = [
+              "Aye, what can I do for ye?",
+              "Looking to sharpen your tools? You've come to the right place.",
+              "Copper tools are a farmer's best friend, but Iron is for masters.",
+              "Hot enough for ye? The forge is always roaring.",
+              "Bring me some coins and ore, and I'll show you what real craftsmanship looks like.",
+              "For Iron upgrades, I need 500 coins and 5 Iron Ore."
+            ];
+            notify(socket.id, `Blacksmith: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
           }
           return;
         }
@@ -1106,7 +1175,9 @@ io.on('connection', (socket) => {
         'corn-chowder': 50,
         'grilled-fish': 45,
         'mushroom-soup': 55,
-        'berry-tart': 65
+        'berry-tart': 65,
+        'miners-stew': 60,
+        'veggie-platter': 80
       };
 
       const staminaGain = foodValues[item];
@@ -1127,6 +1198,20 @@ io.on('connection', (socket) => {
             player.buffs = player.buffs.filter(b => b.type !== 'stamina_regen');
             player.buffs.push({ type: 'stamina_regen', amount: 1, expiresAt: Date.now() + 3 * 60 * 1000 }); // 3 mins
             notify(socket.id, "Warm chowder restores your energy.", 'success');
+        } else if (item === 'miners-stew') {
+            player.buffs = player.buffs.filter(b => b.type !== 'mining_luck');
+            player.buffs.push({ type: 'mining_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 }); // 5 mins
+            notify(socket.id, "You feel lucky! Iron ore is easier to find.", 'success');
+        } else if (item === 'veggie-platter') {
+            const existingBuffs = player.buffs.filter(b => b.type === 'max_stamina');
+            existingBuffs.forEach(b => {
+                player.maxStamina -= b.amount;
+            });
+            player.buffs = player.buffs.filter(b => b.type !== 'max_stamina');
+
+            player.buffs.push({ type: 'max_stamina', amount: 50, expiresAt: Date.now() + 10 * 60 * 1000 }); // 10 mins
+            player.maxStamina += 50;
+            notify(socket.id, "A healthy meal! Max stamina increased temporarily.", 'success');
         }
 
         socket.emit('entityUpdate', player);
@@ -1160,7 +1245,9 @@ io.on('connection', (socket) => {
         'corn-chowder': { 'corn': 2, 'milk': 1 },
         'grilled-fish': { 'fish': 1, 'wood': 1 },
         'mushroom-soup': { 'mushroom': 2, 'milk': 1 },
-        'berry-tart': { 'berry': 3, 'wheat': 1 }
+        'berry-tart': { 'berry': 3, 'wheat': 1 },
+        'miners-stew': { 'carrot': 2, 'fish': 1, 'stone': 3 },
+        'veggie-platter': { 'turnip': 1, 'carrot': 1, 'pumpkin': 1, 'corn': 1 }
       };
 
       const ingredients = recipes[recipe];
