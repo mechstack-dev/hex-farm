@@ -207,6 +207,8 @@ function App() {
         socket.emit('build_building', 'beehive');
       } else if (e.key.toLowerCase() === 'o') {
         socket.emit('build_building', 'cooking-pot');
+      } else if (e.key.toLowerCase() === 'm') {
+        socket.emit('build_building', 'barn');
       } else if (e.key.toLowerCase() === 'g') {
         socket.emit('fertilize');
       } else if (e.key.toLowerCase() === 'y') {
@@ -425,7 +427,7 @@ function App() {
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
             <p style={{ margin: '2px 0' }}>Press <b>1-7</b> to Plant, <b>Shift + 1-7</b> to Buy Seeds</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
-            <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot</p>
+            <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot, <b>M</b> to Barn</p>
             <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home</p>
             <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-9): Various Recipes</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>

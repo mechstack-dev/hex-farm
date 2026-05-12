@@ -486,12 +486,54 @@ export class HexRenderer {
             this.graphics.circle(fx, fy, 3);
             this.graphics.fill({ color: 0xFF4500, alpha: 0.8 });
         }
+    } else if (entity.species === 'barn') {
+        this.drawBarn(x, y);
     }
+  }
+
+  drawBarn(x: number, y: number) {
+    // Main Structure
+    this.graphics.rect(x - 20, y - 10, 40, 25);
+    this.graphics.fill({ color: 0x8B0000, alpha: 1 }); // Dark Red
+    this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+    // Roof
+    this.graphics.poly([
+        x - 25, y - 10,
+        x + 25, y - 10,
+        x + 15, y - 25,
+        x - 15, y - 25
+    ]);
+    this.graphics.fill({ color: 0x4A4A4A, alpha: 1 });
+    this.graphics.stroke({ color: 0x000000, width: 2 });
+
+    // Barn Door (Large)
+    this.graphics.rect(x - 10, y + 2, 20, 13);
+    this.graphics.fill({ color: 0x5D3A1A, alpha: 1 });
+    this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
+
+    // Cross-bars on door
+    this.graphics.moveTo(x - 10, y + 2);
+    this.graphics.lineTo(x + 10, y + 15);
+    this.graphics.moveTo(x + 10, y + 2);
+    this.graphics.lineTo(x - 10, y + 15);
+    this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
   }
 
   drawFloor(entity: Entity, x: number, y: number) {
     const season = this.lastEnvironment?.season || 'spring';
-    if (entity.species === 'tilled') {
+    if (entity.species === 'cave-entrance') {
+        const size = HEX_SIZE * 0.8;
+        this.graphics.circle(x, y, size);
+        this.graphics.fill({ color: 0x000000, alpha: 1 });
+        this.graphics.stroke({ color: 0x444444, width: 2 });
+
+        // Swirl effect
+        const angle = Date.now() / 500;
+        this.graphics.moveTo(x, y);
+        this.graphics.lineTo(x + Math.cos(angle) * size, y + Math.sin(angle) * size);
+        this.graphics.stroke({ color: 0x333333, width: 1 });
+    } else if (entity.species === 'tilled') {
         const size = HEX_SIZE * 0.9;
         this.graphics.poly([
             x + size * Math.cos(0), y + size * Math.sin(0),
@@ -622,8 +664,11 @@ export class HexRenderer {
     this.container.x = this.app.screen.width / 2 - this.interpolatedCamera.x;
     this.container.y = this.app.screen.height / 2 - this.interpolatedCamera.y;
     
+    const isCave = this.lastPlayerPos.q >= 10000;
+
     let bgColor = 0x228B22; // Forest Green (Spring)
-    if (season === 'summer') bgColor = 0x7CFC00; // Lawngreen
+    if (isCave) bgColor = 0x1A1A1A; // Dark Stone
+    else if (season === 'summer') bgColor = 0x7CFC00; // Lawngreen
     else if (season === 'autumn') bgColor = 0xD2691E; // Chocolate/Orange
     else if (season === 'winter') bgColor = 0xFFFAFA; // Snow
 
@@ -697,8 +742,8 @@ export class HexRenderer {
       }
     });
 
-    this.drawDayNightOverlay(timeOfDay, this.lastEnvironment.weather);
-    if (this.lastEnvironment.weather === 'rainy') {
+    this.drawDayNightOverlay(isCave ? 1.0 : timeOfDay, isCave ? 'sunny' : this.lastEnvironment.weather);
+    if (!isCave && this.lastEnvironment.weather === 'rainy') {
         if (season === 'winter') {
             this.drawSnow();
         } else {
