@@ -19,6 +19,7 @@ function App() {
   const [playerSkills, setPlayerSkills] = useState<Record<string, {level: number, xp: number}>>({});
   const [playerBuffs, setPlayerBuffs] = useState<{type: string, amount: number, expiresAt: number}[]>([]);
   const [playerAchievements, setPlayerAchievements] = useState<string[]>([]);
+  const [playerRelationships, setPlayerRelationships] = useState<Record<string, number>>({});
   const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
   const [showControls, setShowControls] = useState(true);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
@@ -85,6 +86,7 @@ function App() {
         setPlayerSkills(p.skills || {});
         setPlayerBuffs(p.buffs || []);
         setPlayerAchievements(p.achievements || []);
+        setPlayerRelationships(p.relationships || {});
         setPlayerActiveQuest(p.activeQuest || null);
         requestChunksAround(p.pos.q, p.pos.r);
       }
@@ -221,7 +223,7 @@ function App() {
         socket.emit('use_dynamite');
       } else if (e.key.toLowerCase() === 'c') {
         // Simple logic to consume best food in inventory
-        const foods = ['veggie-platter', 'miners-stew', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
+        const foods = ['veggie-platter', 'miners-stew', 'coal-grilled-fish', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
         const toEat = foods.find(f => playerInventory[f] > 0);
         if (toEat) socket.emit('consume', toEat);
         else socket.emit('consume', 'apple'); // Fallback for error message
@@ -243,6 +245,8 @@ function App() {
         socket.emit('cook', 'miners-stew');
       } else if (e.code === 'Digit9' && e.altKey) {
         socket.emit('cook', 'veggie-platter');
+      } else if (e.code === 'Digit0' && e.altKey) {
+        socket.emit('cook', 'coal-grilled-fish');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -299,8 +303,8 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter'].includes(item)) categories.crops.items.push([item, count]);
-        else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore'].includes(item)) categories.resources.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
@@ -384,7 +388,7 @@ function App() {
         )}
         <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
         <div className="stamina-container" style={{ width: '200px', height: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '10px', overflow: 'hidden', border: '1px solid white', margin: '10px 0', position: 'relative' }}>
-            <div className="stamina-bar" style={{ width: `${(playerStamina / playerMaxStamina) * 100}%`, height: '100%', background: playerStamina < 20 ? '#ff4444' : '#44ff44', transition: 'width 0.3s' }} />
+            <div className={`stamina-bar ${playerStamina < playerMaxStamina * 0.2 ? 'stamina-low' : ''}`} style={{ width: `${(playerStamina / playerMaxStamina) * 100}%`, height: '100%', background: playerStamina < playerMaxStamina * 0.2 ? '#ff4444' : '#44ff44', transition: 'width 0.3s' }} />
             <span style={{ position: 'absolute', width: '200px', textAlign: 'center', fontSize: '12px', lineHeight: '20px', color: 'white', fontWeight: 'bold' }}>Stamina: {Math.floor(playerStamina)}/{playerMaxStamina}</span>
         </div>
         {playerBuffs.length > 0 && (
@@ -416,6 +420,20 @@ function App() {
             </div>
           </div>
         )}
+        {Object.keys(playerRelationships).length > 0 && (
+          <div className="relationships" style={{ background: 'rgba(255,105,180,0.2)', padding: '5px', borderRadius: '5px', marginBottom: '10px', fontSize: '11px', border: '1px solid hotpink' }}>
+            <h4 style={{ margin: '0 0 5px 0' }}>Relationships</h4>
+            {Object.entries(playerRelationships).map(([npc, points]) => {
+              const hearts = Math.floor(points / 100);
+              return (
+                <div key={npc} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <span style={{ textTransform: 'capitalize' }}>{npc}:</span>
+                  <span>{'❤️'.repeat(hearts)}{'🖤'.repeat(10-hearts)}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
         {getMerchantDirection() && (
           <p style={{ color: '#FF00FF', fontWeight: 'bold' }}>
             Merchant: {getMerchantDirection()?.dist} hexes away {getMerchantDirection()?.arrow}
@@ -435,6 +453,7 @@ function App() {
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin, <b>T</b> to Seed Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
+            <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift</p>
             <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-9): Various Recipes</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>9, 0, -, =</b>: Basic Tools</p>

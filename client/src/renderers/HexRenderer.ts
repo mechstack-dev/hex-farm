@@ -221,23 +221,43 @@ export class HexRenderer {
                 this.graphics.fill({ color: 0x800080, alpha: 1 }); // Purple berries
             }
         }
-    } else if (plant.species === 'apple-tree') {
-        // Mature Apple Tree
-        // Trunk
-        this.graphics.rect(x - 3, y, 6, 15);
-        this.graphics.fill({ color: 0x8B4513, alpha: 1 });
-        // Foliage
-        this.graphics.circle(x, y - 5, HEX_SIZE * 0.7);
-        this.graphics.fill({ color: 0x228B22, alpha: 1 });
+    } else if (plant.species === 'apple-tree' || plant.species === 'tree') {
+        // Growing Tree
+        const trunkWidth = 2 + (stage * 0.8);
+        const trunkHeight = 4 + (stage * 2.2);
+        const foliageRadius = stage * (HEX_SIZE * 0.14);
 
-        // Apples
-        const hasApples = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
-        if (hasApples) {
-            for (let i = 0; i < 5; i++) {
-                const ax = x + Math.cos(i * 1.2) * 12;
-                const ay = y - 5 + Math.sin(i * 1.2) * 12;
-                this.graphics.circle(ax, ay, 3);
-                this.graphics.fill({ color: 0xFF0000, alpha: 1 });
+        // Trunk
+        this.graphics.rect(x - trunkWidth/2, y + 5 - trunkHeight, trunkWidth, trunkHeight);
+        this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+
+        // Foliage
+        if (stage > 0) {
+            let foliageColor = 0x228B22;
+            if (this.lastEnvironment?.season === 'autumn') foliageColor = 0xD2691E;
+            else if (this.lastEnvironment?.season === 'winter') foliageColor = 0x2F4F4F;
+            else if (this.lastEnvironment?.season === 'summer') foliageColor = 0x006400;
+
+            this.graphics.circle(x, y + 5 - trunkHeight, foliageRadius);
+            this.graphics.fill({ color: foliageColor, alpha: 1 });
+
+            // Apples for apple-tree
+            if (plant.species === 'apple-tree' && stage >= 5) {
+                const hasApples = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
+                if (hasApples) {
+                    for (let i = 0; i < 5; i++) {
+                        const ax = x + Math.cos(i * 1.2) * 10;
+                        const ay = y + 5 - trunkHeight + Math.sin(i * 1.2) * 10;
+                        this.graphics.circle(ax, ay, 2.5);
+                        this.graphics.fill({ color: 0xFF0000, alpha: 1 });
+                    }
+                }
+            }
+
+            // Snow for winter
+            if (this.lastEnvironment?.season === 'winter') {
+                this.graphics.circle(x - foliageRadius * 0.4, y + 5 - trunkHeight - foliageRadius * 0.5, foliageRadius * 0.4);
+                this.graphics.fill({ color: 0xFFFFFF, alpha: 0.7 });
             }
         }
     } else {

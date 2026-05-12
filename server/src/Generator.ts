@@ -126,12 +126,17 @@ export class Generator {
             pos: { q, r }
           });
         } else if (n > 0.5) {
+          const now = Date.now();
           entities.push({
-            id: `tree-${q}-${r}`,
-            type: 'obstacle',
+            id: `plant-${q}-${r}-${now}`,
+            type: 'plant',
             species: 'tree',
-            pos: { q, r }
-          });
+            pos: { q, r },
+            growthStage: 5,
+            plantedAt: now,
+            lastWatered: 0,
+            lastUpdate: now
+          } as unknown as Entity);
         } else if (chunkRng() < 0.05) {
           entities.push({
             id: `rock-${q}-${r}`,
