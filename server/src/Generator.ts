@@ -44,7 +44,41 @@ export class Generator {
             continue;
         }
 
+        const isCave = q >= 10000;
         const n = this.noise(q * 0.1, r * 0.1);
+
+        if (isCave) {
+            // Cave generation
+            if (n > 0.4) {
+                entities.push({
+                    id: `rock-${q}-${r}`,
+                    type: 'obstacle',
+                    species: 'rock',
+                    pos: { q, r }
+                });
+            } else if (chunkRng() < 0.03) {
+                // Mushrooms in caves
+                const now = Date.now();
+                entities.push({
+                    id: `plant-${q}-${r}-${now}`,
+                    type: 'plant',
+                    species: 'mushroom',
+                    pos: { q, r },
+                    growthStage: 5,
+                    plantedAt: now,
+                    lastWatered: 0,
+                    lastUpdate: now
+                } as unknown as Entity);
+            } else if (chunkRng() < 0.05) {
+                entities.push({
+                    id: `floor-${q}-${r}`,
+                    type: 'floor',
+                    species: 'grass', // Visual placeholder, maybe "moss" later
+                    pos: { q, r }
+                });
+            }
+            continue;
+        }
 
         // Spawn Fisherman near water
         if (n < -0.4 && chunkRng() < 0.05) {

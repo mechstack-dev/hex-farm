@@ -32,7 +32,9 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Foraging:** Wild mushrooms and berry bushes spawn in the world. Mushrooms can be harvested, while berries can be gathered periodically from bushes.
 - **Scavenging & Discovery:** Clearing decorative terrain, trees, or rocks has a chance to yield seeds or coins.
 - **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
+- **Barns:** Automatically collect products from animals within a 2-hex radius.
 - **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
+- **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks and mushrooms.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
@@ -58,7 +60,7 @@ HexFarm is designed to be played over long periods.
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone. Mining rocks also has a chance to yield **Iron Ore**.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
-- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, and Veggie Platter.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), and Veggie Platter.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
 - **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore to upgrade tools to Copper and Iron versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
@@ -90,7 +92,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **U**: Well (5 Wood, 10 Stone)
    - **N**: Beehive (5 Wood, 5 Stone)
    - **O**: Cooking Pot (5 Wood, 10 Stone)
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, or talk to NPCs.
+   - **M**: Barn (20 Wood, 10 Stone)
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
@@ -146,8 +149,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Achievement System:** Milestones and global announcements.
 
 ### Medium Priority
-- [x] **Automation:** Sprinklers.
-- [x] **Infrastructure:** Sheds, Chests, Fences, Paths, and Cooking Pots.
+- [x] **Automation:** Sprinklers and Barns.
+- [x] **Infrastructure:** Sheds, Chests, Fences, Paths, Barns, and Cooking Pots.
 - [x] **Economy:** Merchant system at (0,0).
 - [x] **Tool Upgrades:** Copper tools for efficiency.
 - [x] **Resource Crafting:** Require Wood/Stone for construction.
@@ -169,11 +172,11 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Tiered Tools:** Added Copper and Iron tiers with improved efficiency.
 - [x] **More NPCs:** Added Fisherman and Blacksmith with unique roles.
 - [x] **Advanced Buffs:** Implemented luck and temporary stat boosts via food.
+- [x] **Mining Depths:** Rare chance to find "cave entrance" hexes while mining, leading to underground layers.
+- [x] **Livestock Barns:** Buildings that automatically gather products from nearby animals.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
-- [ ] **Mining Depths:** Rare chance to find "cave entrance" hexes while mining, leading to underground layers.
-- [ ] **Livestock Barns:** Buildings that automatically gather products from nearby animals.
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
 - [ ] **NPCs & Relationship System:** Build relationships with unique characters.
 - [ ] **Advanced Cooking:** Combine crops and products for more diverse buffs.

@@ -669,7 +669,7 @@ io.on('connection', (socket) => {
           type: 'building' as const,
           species,
           pos: { ...player.pos },
-          inventory: (species === 'chest' || species === 'beehive') ? {} : undefined,
+          inventory: (species === 'chest' || species === 'beehive' || species === 'barn') ? {} : undefined,
           lastProductTime: species === 'beehive' ? Date.now() : undefined
         };
         world.addEntity(building);
@@ -732,6 +732,19 @@ io.on('connection', (socket) => {
           }
 
           notify(socket.id, `Cut down ${name}. Gained ${amount} wood.`, 'success');
+
+          // Cave entrance chance
+          if (Math.random() < 0.02) {
+              const caveEntrance = {
+                  id: `floor-${obstacle.pos.q}-${obstacle.pos.r}`,
+                  type: 'floor' as const,
+                  species: 'cave-entrance',
+                  pos: { ...obstacle.pos }
+              };
+              world.addEntity(caveEntrance);
+              io.emit('entityUpdate', caveEntrance);
+              notify(socket.id, "You discovered a cave entrance!", 'success');
+          }
         } else if (obstacle.species === 'rock' || (!obstacle.species && obstacle.id.startsWith('rock'))) {
           const hasIronPickaxe = (player.inventory['iron-pickaxe'] || 0) > 0;
           const hasCopperPickaxe = (player.inventory['copper-pickaxe'] || 0) > 0;
@@ -767,6 +780,19 @@ io.on('connection', (socket) => {
           }
 
           notify(socket.id, `Broke rock. Gained ${amount} stone.`, 'success');
+
+          // Cave entrance chance
+          if (Math.random() < 0.02) {
+              const caveEntrance = {
+                  id: `floor-${obstacle.pos.q}-${obstacle.pos.r}`,
+                  type: 'floor' as const,
+                  species: 'cave-entrance',
+                  pos: { ...obstacle.pos }
+              };
+              world.addEntity(caveEntrance);
+              io.emit('entityUpdate', caveEntrance);
+              notify(socket.id, "You discovered a cave entrance!", 'success');
+          }
         } else if (obstacle.species === 'scarecrow') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
@@ -873,13 +899,41 @@ io.on('connection', (socket) => {
       const animal = merchant || blacksmith || fisherman || entities.find(e => e.type === 'animal') as any;
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       const building = entities.find(e => e.type === 'building') as Building | undefined;
+      const floor = entities.find(e => e.type === 'floor');
+
+      if (floor && floor.species === 'cave-entrance') {
+          const isCave = player.pos.q >= 10000;
+          const targetQ = isCave ? player.pos.q - 10000 : player.pos.q + 10000;
+          const targetR = player.pos.r;
+
+          world.removeEntity(player.id, player.pos.q, player.pos.r);
+          player.pos = { q: targetQ, r: targetR };
+          world.addEntity(player);
+
+          // Ensure a return entrance exists
+          const targetEntities = world.getEntitiesAt(targetQ, targetR);
+          if (!targetEntities.some(e => e.type === 'floor' && e.species === 'cave-entrance')) {
+              const returnEntrance = {
+                  id: `floor-${targetQ}-${targetR}`,
+                  type: 'floor' as const,
+                  species: 'cave-entrance',
+                  pos: { q: targetQ, r: targetR }
+              };
+              world.addEntity(returnEntrance);
+              io.emit('entityUpdate', returnEntrance);
+          }
+
+          socket.emit('entityUpdate', player);
+          notify(socket.id, isCave ? "Returning to the surface..." : "Entering the depths...", 'info');
+          return;
+      }
 
       if (building && building.species === 'cooking-pot') {
           notify(socket.id, "Recipes: Salad (1T,1C), Apple Pie (3A,1W), Pumpkin Soup (1P,1M), Corn Chowder (2C,1M), Grilled Fish (1F,1W). Press numbers in cook menu.", 'info');
           return;
       }
 
-      if (building && (building.species === 'chest' || building.species === 'beehive')) {
+      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
 
@@ -897,6 +951,28 @@ io.on('connection', (socket) => {
             notify(socket.id, "No honey yet.", 'info');
           }
           return;
+        }
+
+        if (building.species === 'barn') {
+            let hasAnythingToTake = false;
+            Object.entries(buildingInv).forEach(([item, count]) => {
+                if (count > 0) {
+                    playerInv[item] = (playerInv[item] || 0) + count;
+                    buildingInv[item] = 0;
+                    hasAnythingToTake = true;
+                }
+            });
+
+            if (hasAnythingToTake) {
+                building.inventory = buildingInv;
+                world.updateEntity(building);
+                socket.emit('entityUpdate', player);
+                io.emit('entityUpdate', building);
+                notify(socket.id, "Collected products from the barn.", 'success');
+            } else {
+                notify(socket.id, "The barn is currently empty.", 'info');
+            }
+            return;
         }
 
         const categoriesToStore = [
@@ -1246,8 +1322,8 @@ io.on('connection', (socket) => {
         'grilled-fish': { 'fish': 1, 'wood': 1 },
         'mushroom-soup': { 'mushroom': 2, 'milk': 1 },
         'berry-tart': { 'berry': 3, 'wheat': 1 },
-        'miners-stew': { 'carrot': 2, 'fish': 1, 'stone': 3 },
-        'veggie-platter': { 'turnip': 1, 'carrot': 1, 'pumpkin': 1, 'corn': 1 }
+        'miners-stew': { 'carrot': 2, 'fish': 1, 'iron-ore': 1 },
+        'veggie-platter': { 'turnip': 2, 'pumpkin': 1, 'corn': 1 }
       };
 
       const ingredients = recipes[recipe];

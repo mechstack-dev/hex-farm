@@ -26,6 +26,7 @@ export class GameEngine {
     const sprinklerPositions = new Set<string>();
     const scarecrowPositions = new Set<string>();
     const beehivePositions = new Set<string>();
+    const barnPositions = new Map<string, any>();
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
         if (entity.type === 'sprinkler') {
@@ -47,6 +48,15 @@ export class GameEngine {
                 beehivePositions.add(`${n1.q},${n1.r}`);
                 getNeighbors(n1).forEach(n2 => {
                     beehivePositions.add(`${n2.q},${n2.r}`);
+                });
+            });
+        } else if (entity.type === 'building' && entity.species === 'barn') {
+            const barn = entity as any;
+            barnPositions.set(`${entity.pos.q},${entity.pos.r}`, barn);
+            getNeighbors(entity.pos).forEach(n1 => {
+                barnPositions.set(`${n1.q},${n1.r}`, barn);
+                getNeighbors(n1).forEach(n2 => {
+                    barnPositions.set(`${n2.q},${n2.r}`, barn);
                 });
             });
         }
@@ -151,6 +161,27 @@ export class GameEngine {
                           neighbors.some(n => n.q === other.pos.q && n.r === other.pos.r) &&
                           (now - (other.lastBredTime || 0) > GAME_DAY)
                       );
+
+                      // Barn automation
+                      const barn = barnPositions.get(`${animal.pos.q},${animal.pos.r}`);
+                      if (barn && now - animal.lastProductTime >= GAME_DAY) {
+                          let product = '';
+                          if (animal.species === 'cow') product = 'milk';
+                          else if (animal.species === 'sheep') product = 'wool';
+                          else if (animal.species === 'chicken') product = 'egg';
+                          else if (animal.species === 'pig') product = 'truffle';
+
+                          if (product) {
+                              barn.inventory = barn.inventory || {};
+                              barn.inventory[product] = (barn.inventory[product] || 0) + 1;
+                              animal.lastProductTime = now;
+                              if (!updatedEntities.find(e => e.id === barn.id)) {
+                                  updatedEntities.push(barn);
+                                  this.world.updateEntity(barn);
+                              }
+                              updated = { ...animal };
+                          }
+                      }
 
                       if (mate && Math.random() < 0.001) { // 0.1% chance per tick if mate nearby
                           const babyPos = neighbors.find(n => this.world.getEntitiesAt(n.q, n.r).length === 0);

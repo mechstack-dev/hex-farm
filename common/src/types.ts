@@ -9,6 +9,7 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'sprinkler': { wood: 0, stone: 5 },
   'beehive': { wood: 5, stone: 5 },
   'cooking-pot': { wood: 5, stone: 10 },
+  'barn': { wood: 20, stone: 10 },
 };
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';
