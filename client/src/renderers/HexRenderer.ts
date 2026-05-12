@@ -491,7 +491,58 @@ export class HexRenderer {
         }
     } else if (entity.species === 'barn') {
         this.drawBarn(x, y);
+    } else if (entity.species === 'shipping-bin') {
+        this.drawShippingBin(x, y);
+    } else if (entity.species === 'seed-maker') {
+        this.drawSeedMaker(x, y);
     }
+  }
+
+  drawShippingBin(x: number, y: number) {
+    // Base
+    this.graphics.rect(x - 15, y - 5, 30, 15);
+    this.graphics.fill({ color: 0x5D2E0C, alpha: 1 });
+    this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+    // Lid (slightly open)
+    this.graphics.poly([
+        x - 15, y - 5,
+        x + 15, y - 5,
+        x + 10, y - 12,
+        x - 10, y - 12
+    ]);
+    this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+    this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
+
+    // "Ship" label placeholder (just a white rectangle)
+    this.graphics.rect(x - 8, y + 2, 16, 6);
+    this.graphics.fill({ color: 0xFFFFFF, alpha: 0.3 });
+  }
+
+  drawSeedMaker(x: number, y: number) {
+    // Machine body
+    this.graphics.rect(x - 12, y - 15, 24, 25);
+    this.graphics.fill({ color: 0x708090, alpha: 1 }); // SlateGray
+    this.graphics.stroke({ color: 0x2F4F4F, width: 2 });
+
+    // Funnel on top
+    this.graphics.poly([
+        x - 15, y - 20,
+        x + 15, y - 20,
+        x + 5, y - 15,
+        x - 5, y - 15
+    ]);
+    this.graphics.fill({ color: 0xA9A9A9, alpha: 1 });
+    this.graphics.stroke({ color: 0x2F4F4F, width: 1 });
+
+    // Output tray
+    this.graphics.rect(x - 8, y + 5, 16, 8);
+    this.graphics.fill({ color: 0x696969, alpha: 1 });
+
+    // Glowing indicator
+    const glow = (Math.sin(Date.now() / 200) + 1) / 2;
+    this.graphics.circle(x, y - 5, 3);
+    this.graphics.fill({ color: 0x00FF00, alpha: 0.5 + glow * 0.5 });
   }
 
   drawBarn(x: number, y: number) {
