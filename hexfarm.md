@@ -36,7 +36,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Shipping Bin:** Sell all crops and products in your inventory at 80% value instantly.
 - **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
 - **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
-- **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks and mushrooms.
+- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`). High friendship levels unlock new dialogue.
+- **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
@@ -51,7 +52,7 @@ The world is theoretically infinite. The server generates entities for chunks on
 ### Slow-Paced Growth
 HexFarm is designed to be played over long periods.
 - **Crops:** Might take several real-world days to reach maturity. Growth is faster during preferred seasons (e.g., Turnips in Spring, Corn in Summer).
-- **Trees:** Can take months or even a full year to reach their final growth stage.
+- **Trees:** Now grow through stages like crops (7 game days per stage). Mature trees provide more wood (5 units) and sometimes fruit.
 - **Low Pressure:** Neglecting plants won't kill them; it simply halts or slows their growth, encouraging a relaxed playstyle.
 
 ### Skill System
@@ -62,7 +63,7 @@ HexFarm is designed to be played over long periods.
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone. Mining rocks also has a chance to yield **Iron Ore**.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
-- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), and Veggie Platter.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, and **Coal-Grilled Fish**.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
 - **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore/Gold Ore to upgrade tools to Copper, Iron, and Gold versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
@@ -108,7 +109,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Dynamite:** Press **Z** to use Dynamite. It clears everything in a 1-hex radius (excluding water) but does not refund resources.
-12. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
+12. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press `/gift [npc] [item]` to give a gift to an NPC. Press **Esc** to cancel.
 13. **UI Toggle:** Click "Hide Controls" to maximize your view of the world.
 
 ---
@@ -184,11 +185,14 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Dynamite:** A powerful tool for clearing large areas quickly.
 - [x] **Livestock Barns:** Buildings that automatically gather products from nearby animals.
 - [x] **Shipping & Seed Making:** Added Shipping Bin and Seed Maker buildings.
+- [x] **NPC Relationship System:** Friendship hearts and gifting.
+- [x] **Growing Trees:** Trees now have growth stages and dynamic wood yield.
+- [x] **Coal Resource:** Added coal as a rare drop and cooking ingredient.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
-- [ ] **NPCs & Relationship System:** Build relationships with unique characters.
+- [ ] **Advanced NPC interactions:** Unique events and rewards at high friendship.
 - [ ] **Advanced Cooking:** Combine crops and products for more diverse buffs.
 
 ---

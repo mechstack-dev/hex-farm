@@ -76,7 +76,9 @@ io.on('connection', (socket) => {
         },
         buffs: [],
         achievements: [],
-        stats: {}
+        stats: {},
+        relationships: {},
+        lastGiftTime: {}
       };
     }
 
@@ -95,6 +97,8 @@ io.on('connection', (socket) => {
     if (!player.buffs) player.buffs = [];
     if (!player.achievements) player.achievements = [];
     if (!player.stats) player.stats = {};
+    if (!player.relationships) player.relationships = {};
+    if (!player.lastGiftTime) player.lastGiftTime = {};
 
     players.set(socket.id, player);
     world.addEntity(player);
@@ -717,15 +721,21 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       // Find what we're about to clear first to determine the skill and XP
+      // Prioritize current hex, then neighbors
       const targets = [player.pos, ...getNeighbors(player.pos)];
-      let obstacle = null;
+      let obstacle: any = null;
       for (const pos of targets) {
         const entities = world.getEntitiesAt(pos.q, pos.r);
+        // Prioritize actual obstacles/plants/fences over background floor
         obstacle = entities.find(e =>
             (e.type === 'obstacle' && e.species !== 'water') ||
-            (e.type === 'plant' && e.species === 'apple-tree') ||
+            (e.type === 'plant' && (e.species === 'apple-tree' || e.species === 'tree')) ||
             e.type === 'fence'
         );
+        if (obstacle) break;
+
+        // Second pass for other clearable things like buildings/sprinklers if no high-priority obstacle found yet
+        obstacle = entities.find(e => e.type === 'building' || e.type === 'sprinkler' || (e.type === 'plant' && (e.species === 'berry-bush' || e.species === 'mushroom')));
         if (obstacle) break;
       }
 
@@ -742,10 +752,19 @@ io.on('connection', (socket) => {
             notify(socket.id, "You need an axe to cut down trees!", 'error');
             return;
           }
+
+          const growthStage = (obstacle as any).growthStage !== undefined ? (obstacle as any).growthStage : 5;
+          let woodYield = 1;
+          if (growthStage >= 5) woodYield = 5;
+          else if (growthStage >= 3) woodYield = 3;
+          else woodYield = 1;
+
+          const toolMultiplier = hasGoldAxe ? 5 : (hasIronAxe ? 3 : (hasCopperAxe ? 2 : 1));
+          const totalWood = woodYield * toolMultiplier;
+
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
-          const amount = hasGoldAxe ? 5 : (hasIronAxe ? 3 : (hasCopperAxe ? 2 : 1));
-          player.inventory['wood'] = (player.inventory['wood'] || 0) + amount;
+          player.inventory['wood'] = (player.inventory['wood'] || 0) + totalWood;
 
           // XP Gain
           const { leveledUp, newLevel } = addXP(player, 'foraging', 15);
@@ -763,7 +782,7 @@ io.on('connection', (socket) => {
             notify(socket.id, `You found a ${seed.replace('-seed', '')} seed in the ${name}!`, 'success');
           }
 
-          notify(socket.id, `Cut down ${name}. Gained ${amount} wood.`, 'success');
+          notify(socket.id, `Cut down ${name}. Gained ${totalWood} wood.`, 'success');
 
           // Cave entrance chance
           if (Math.random() < 0.02) {
@@ -796,6 +815,11 @@ io.on('connection', (socket) => {
           if (Math.random() < ironChance) {
               player.inventory['iron-ore'] = (player.inventory['iron-ore'] || 0) + 1;
               notify(socket.id, "Found some iron ore!", 'success');
+          }
+
+          if (Math.random() < 0.10) {
+            player.inventory['coal'] = (player.inventory['coal'] || 0) + 1;
+            notify(socket.id, "Found some coal!", 'success');
           }
 
           if (obstacle.pos.q >= 10000) {
@@ -834,7 +858,7 @@ io.on('connection', (socket) => {
               io.emit('entityUpdate', caveEntrance);
               notify(socket.id, "You discovered a cave entrance!", 'success');
           }
-        } else if (obstacle.species === 'scarecrow') {
+        } else if (obstacle && obstacle.species === 'scarecrow') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
           player.inventory['wood'] = (player.inventory['wood'] || 0) + 2;
@@ -848,45 +872,26 @@ io.on('connection', (socket) => {
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, "Removed fence.", 'success');
-        }
-      } else {
-        // Check for berry bush or mushroom explicitly if needed via clear
-        let plant = null;
-        for (const pos of targets) {
-            const entities = world.getEntitiesAt(pos.q, pos.r);
-            plant = entities.find(e => e.type === 'plant' && (e.species === 'berry-bush' || e.species === 'mushroom'));
-            if (plant) break;
-        }
-        if (plant) {
-            world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
-            player.stamina -= sCost;
-            io.emit('entityRemove', { id: plant.id, pos: plant.pos });
-            socket.emit('entityUpdate', player);
-            notify(socket.id, `Cleared ${plant.species}.`, 'info');
-            return;
-        }
-        // Also check for buildings
-        let building = null;
-        for (const pos of targets) {
-          const entities = world.getEntitiesAt(pos.q, pos.r);
-          building = entities.find(e => e.type === 'building' || e.type === 'sprinkler');
-          if (building) break;
-        }
-        if (building) {
-          const species = building.type === 'sprinkler' ? 'sprinkler' : (building.species || '');
+        } else if (obstacle.species === 'berry-bush' || obstacle.species === 'mushroom') {
+          world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          player.stamina -= sCost;
+          io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
+          socket.emit('entityUpdate', player);
+          notify(socket.id, `Cleared ${obstacle.species}.`, 'info');
+        } else if (obstacle.type === 'building' || obstacle.type === 'sprinkler') {
+          const species = obstacle.type === 'sprinkler' ? 'sprinkler' : (obstacle.species || '');
           const refund = BUILDING_COSTS[species];
-          world.removeEntity(building.id, building.pos.q, building.pos.r);
+          world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
           if (refund) {
             player.inventory['wood'] = (player.inventory['wood'] || 0) + refund.wood;
             player.inventory['stone'] = (player.inventory['stone'] || 0) + refund.stone;
           }
-          io.emit('entityRemove', { id: building.id, pos: building.pos });
+          io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, `Removed ${species}.`, 'success');
-          return;
         }
-
+      } else {
         // If no breakable obstacle found, check if there's water in the current hex to give the specific message
         const currentEntities = world.getEntitiesAt(player.pos.q, player.pos.r);
         if (currentEntities.some(e => e.type === 'obstacle' && e.species === 'water')) {
@@ -1155,13 +1160,23 @@ io.on('connection', (socket) => {
               notify(socket.id, `Miner: "Careful with this! Dynamite's a powerful tool."`, 'success');
               socket.emit('entityUpdate', player);
             } else {
-              const dialogues = [
+              const heartLevel = Math.floor((player.relationships['miner'] || 0) / 100);
+              let dialogues = [
                 "The depths hold many secrets... and much gold.",
                 "Digging deep is dangerous, but the rewards are worth it.",
                 "You looking for something that goes 'boom'?",
                 "I'll buy any ores you find for a fair price.",
                 "Dynamite costs 50 coins. Use it wisely."
               ];
+              if (heartLevel >= 5) {
+                dialogues = [
+                  "You've got the spirit of a true delver, friend.",
+                  "I trust you more than my own pickaxe these days.",
+                  "Found anything particularly shiny lately?",
+                  "The deeper you go, the more you learn about yourself.",
+                  "Be safe out there. The caves don't forgive mistakes."
+                ];
+              }
               notify(socket.id, `Miner: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
             }
           }
@@ -1178,13 +1193,23 @@ io.on('connection', (socket) => {
             socket.emit('entityUpdate', player);
             checkAchievements(player);
           } else {
-            const dialogues = [
+            const heartLevel = Math.floor((player.relationships['fisherman'] || 0) / 100);
+            let dialogues = [
               "Nice day for fishing, ain't it?",
               "The big ones are always near the center of the ponds.",
               "I'll buy any fish you catch for 50 coins a piece.",
               "Heard of the legendary Golden Hexfish? Me neither.",
               "Quiet... you'll scare 'em away!"
             ];
+            if (heartLevel >= 5) {
+                dialogues = [
+                    "You've got a good cast, I can tell.",
+                    "The water tells many stories, if you're patient enough to listen.",
+                    "Always happy to see a fellow angler.",
+                    "I'll let you in on a secret: the best bait is patience.",
+                    "It's peaceful here, isn't it?"
+                ];
+            }
             notify(socket.id, `Fisherman: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
           }
           return;
@@ -1223,7 +1248,8 @@ io.on('connection', (socket) => {
             socket.emit('entityUpdate', player);
             checkAchievements(player);
           } else {
-            const dialogues = [
+            const heartLevel = Math.floor((player.relationships['blacksmith'] || 0) / 100);
+            let dialogues = [
               "Aye, what can I do for ye?",
               "Looking to sharpen your tools? You've come to the right place.",
               "Copper tools are a farmer's best friend, but Iron is for masters.",
@@ -1232,6 +1258,15 @@ io.on('connection', (socket) => {
               "For Iron upgrades, I need 500 coins and 5 Iron Ore.",
               "For Gold upgrades, I need 1000 coins and 5 Gold Ore."
             ];
+            if (heartLevel >= 5) {
+                dialogues = [
+                    "Ah, my favorite customer! Need some work done?",
+                    "Your tools have seen some hard work, I like that.",
+                    "Steady hand and a heavy hammer, that's the secret.",
+                    "I've been working on something special, maybe I'll show you one day.",
+                    "Good to see you again. The forge is always ready for you."
+                ];
+            }
             notify(socket.id, `Blacksmith: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
           }
           return;
@@ -1240,7 +1275,8 @@ io.on('connection', (socket) => {
         if (animal.species === 'merchant') {
           let questHandled = false;
 
-          const dialogues = [
+          const heartLevel = Math.floor((player.relationships['merchant'] || 0) / 100);
+          let dialogues = [
             "Hello there! Hard work pays off, doesn't it?",
             "Fresh air, good soil... what more could a farmer want?",
             "If you have extra crops, I'm always buying!",
@@ -1249,6 +1285,15 @@ io.on('connection', (socket) => {
             "The seasons are changing... better keep an eye on your crops!",
             "I heard there are wild berries growing to the east."
           ];
+          if (heartLevel >= 5) {
+              dialogues = [
+                  "Always a pleasure to do business with you, friend.",
+                  "You're making quite a name for yourself around here.",
+                  "I've got some interesting news from the neighboring lands...",
+                  "Your farm is looking better every day!",
+                  "It's good to have someone I can rely on."
+              ];
+          }
           const randomDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
 
           // Quest logic
@@ -1368,7 +1413,8 @@ io.on('connection', (socket) => {
         'mushroom-soup': 55,
         'berry-tart': 65,
         'miners-stew': 60,
-        'veggie-platter': 80
+        'veggie-platter': 80,
+        'coal-grilled-fish': 80
       };
 
       const staminaGain = foodValues[item];
@@ -1438,7 +1484,8 @@ io.on('connection', (socket) => {
         'mushroom-soup': { 'mushroom': 2, 'milk': 1 },
         'berry-tart': { 'berry': 3, 'wheat': 1 },
         'miners-stew': { 'carrot': 2, 'fish': 1, 'iron-ore': 1 },
-        'veggie-platter': { 'turnip': 2, 'pumpkin': 1, 'corn': 1 }
+        'veggie-platter': { 'turnip': 2, 'pumpkin': 1, 'corn': 1 },
+        'coal-grilled-fish': { 'fish': 1, 'coal': 1 }
       };
 
       const ingredients = recipes[recipe];
@@ -1570,6 +1617,69 @@ io.on('connection', (socket) => {
       if (!sanitized) return;
 
       // Handle simple commands
+      if (sanitized.startsWith('/gift ')) {
+        const parts = sanitized.split(' ');
+        if (parts.length >= 3) {
+          const npcName = parts[1].toLowerCase();
+          const itemName = parts[2].toLowerCase();
+
+          const entities = [
+            ...world.getEntitiesAt(player.pos.q, player.pos.r),
+            ...getNeighbors(player.pos).flatMap(n => world.getEntitiesAt(n.q, n.r))
+          ];
+
+          const npc = entities.find(e => e.type === 'animal' && e.species === npcName) as any;
+          if (!npc) {
+            notify(socket.id, `No ${npcName} nearby to gift!`, 'error');
+            return;
+          }
+
+          if ((player.inventory[itemName] || 0) <= 0) {
+            notify(socket.id, `You don't have any ${itemName}!`, 'error');
+            return;
+          }
+
+          const now = Date.now();
+          if (now - (player.lastGiftTime[npcName] || 0) < GAME_DAY) {
+            notify(socket.id, `You've already given ${npcName} a gift today!`, 'error');
+            return;
+          }
+
+          // Gifting Logic
+          player.inventory[itemName]--;
+          player.lastGiftTime[npcName] = now;
+
+          const likes: Record<string, string[]> = {
+            'merchant': ['pumpkin', 'apple-pie', 'honey'],
+            'blacksmith': ['iron-ore', 'gold-ore', 'stone'],
+            'fisherman': ['fish', 'grilled-fish', 'corn-chowder'],
+            'miner': ['mushroom', 'miners-stew', 'pumpkin-soup']
+          };
+
+          const dislikes: Record<string, string[]> = {
+            'merchant': ['junk'],
+            'blacksmith': ['wood', 'wool'],
+            'fisherman': ['junk', 'apple'],
+            'miner': ['junk', 'milk']
+          };
+
+          let points = 20; // Base points
+          if (likes[npcName]?.includes(itemName)) {
+            points = 50;
+            notify(socket.id, `${npcName.charAt(0).toUpperCase() + npcName.slice(1)}: "I love this! Thank you!"`, 'success');
+          } else if (dislikes[npcName]?.includes(itemName)) {
+            points = -10;
+            notify(socket.id, `${npcName.charAt(0).toUpperCase() + npcName.slice(1)}: "Ugh, what is this? I don't want it."`, 'info');
+          } else {
+            notify(socket.id, `${npcName.charAt(0).toUpperCase() + npcName.slice(1)}: "Oh, thank you. That's very kind."`, 'success');
+          }
+
+          player.relationships[npcName] = Math.min(1000, Math.max(0, (player.relationships[npcName] || 0) + points));
+          socket.emit('entityUpdate', player);
+          return;
+        }
+      }
+
       if (sanitized.startsWith('/give ')) {
           const parts = sanitized.split(' ');
           if (parts.length >= 3) {

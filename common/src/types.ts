@@ -18,9 +18,9 @@ export const ITEM_PRICES: Record<string, number> = {
   'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
   'winter-radish': 40, 'apple': 15, 'berry': 12, 'mushroom': 18,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60,
-  'fish': 40, 'honey': 30,
+  'fish': 40, 'honey': 30, 'coal': 15,
   'salad': 60, 'apple-pie': 80, 'pumpkin-soup': 100, 'corn-chowder': 80, 'grilled-fish': 60,
-  'mushroom-soup': 85, 'berry-tart': 90, 'miners-stew': 150, 'veggie-platter': 200
+  'mushroom-soup': 85, 'berry-tart': 90, 'miners-stew': 150, 'veggie-platter': 200, 'coal-grilled-fish': 120
 };
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';
@@ -88,6 +88,8 @@ export interface Player extends Entity {
   } | null;
   achievements: string[];
   stats: Record<string, number>;
+  relationships: Record<string, number>;
+  lastGiftTime: Record<string, number>;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';

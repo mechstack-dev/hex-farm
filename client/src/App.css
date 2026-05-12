@@ -189,3 +189,13 @@
   90% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-20px); }
 }
+
+.stamina-low {
+  animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+  0% { background-color: #ff4444; }
+  50% { background-color: #880000; }
+  100% { background-color: #ff4444; }
+}
