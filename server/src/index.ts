@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import { distance, GAME_DAY, getNeighbors, BUILDING_COSTS } from 'common';
+import { distance, GAME_DAY, getNeighbors, BUILDING_COSTS, ITEM_PRICES } from 'common';
 import type { Player, Position, Plant, Building } from 'common';
 import { addXP, getStaminaCost } from './logic/SkillLogic.js';
 
@@ -185,6 +185,13 @@ io.on('connection', (socket) => {
         };
         const price = toolPrices[tool];
         if (price !== undefined) {
+          // Prevent buying duplicate basic tools or if already have upgraded version
+          const tiers = [tool, `copper-${tool}`, `iron-${tool}`, `gold-${tool}`];
+          if (tiers.some(t => (player.inventory[t] || 0) > 0)) {
+              notify(socket.id, `You already have a ${tool}!`, 'error');
+              return;
+          }
+
           if (player.coins >= price) {
             player.coins -= price;
             player.inventory[tool] = (player.inventory[tool] || 0) + 1;
@@ -968,6 +975,44 @@ io.on('connection', (socket) => {
           return;
       }
 
+      if (building && building.species === 'shipping-bin') {
+          let earned = 0;
+          Object.entries(ITEM_PRICES).forEach(([item, price]) => {
+              const count = player.inventory[item] || 0;
+              if (count > 0) {
+                  earned += Math.floor(count * price * 0.8);
+                  player.inventory[item] = 0;
+              }
+          });
+
+          if (earned > 0) {
+              player.coins += earned;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, `Shipped items for ${earned} coins (80% value).`, 'success');
+              checkAchievements(player);
+          } else {
+              notify(socket.id, "No shippable items in inventory.", 'info');
+          }
+          return;
+      }
+
+      if (building && building.species === 'seed-maker') {
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish'];
+          const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
+
+          if (targetCrop) {
+              player.inventory[targetCrop]--;
+              const seedCount = 1 + Math.floor(Math.random() * 3);
+              const seedType = `${targetCrop}-seed`;
+              player.inventory[seedType] = (player.inventory[seedType] || 0) + seedCount;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, `Converted 1 ${targetCrop} into ${seedCount} seeds!`, 'success');
+          } else {
+              notify(socket.id, "No crops to convert into seeds.", 'info');
+          }
+          return;
+      }
+
       if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
@@ -1244,19 +1289,13 @@ io.on('connection', (socket) => {
           }
 
           // Sell crops and products
-          const prices: Record<string, number> = {
-            'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
-            'winter-radish': 40, 'apple': 15, 'berry': 12, 'mushroom': 18,
-            'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60,
-            'fish': 40, 'honey': 30
-          };
           let earned = 0;
-          Object.keys(prices).forEach(item => {
+          Object.keys(ITEM_PRICES).forEach(item => {
             // Don't sell the item we have an active quest for
             if (player.activeQuest && player.activeQuest.species === item) return;
 
             if (player.inventory[item] > 0) {
-              earned += player.inventory[item] * prices[item];
+              earned += player.inventory[item] * ITEM_PRICES[item];
               player.inventory[item] = 0;
             }
           });

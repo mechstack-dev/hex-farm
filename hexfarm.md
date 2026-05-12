@@ -33,6 +33,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Scavenging & Discovery:** Clearing decorative terrain, trees, or rocks has a chance to yield seeds or coins.
 - **Animal Breeding:** Animals of the same species (Cow, Sheep, Chicken, Pig) will breed if they are adjacent and healthy, leading to population growth (capped per area).
 - **Barns:** Automatically collect products from animals within a 2-hex radius.
+- **Shipping Bin:** Sell all crops and products in your inventory at 80% value instantly.
+- **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
 - **Beehives:** Produce Honey over time. Also provide a 1.5x growth boost to plants within a 2-hex radius.
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks and mushrooms.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
@@ -94,6 +96,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **N**: Beehive (5 Wood, 5 Stone)
    - **O**: Cooking Pot (5 Wood, 10 Stone)
    - **M**: Barn (20 Wood, 10 Stone)
+   - **Q**: Shipping Bin (10 Wood, 10 Stone)
+   - **T**: Seed Maker (15 Wood, 5 Stone)
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.
@@ -179,6 +183,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Miner NPC:** Added a Miner NPC in the cave layer who sells Dynamite and buys ores.
 - [x] **Dynamite:** A powerful tool for clearing large areas quickly.
 - [x] **Livestock Barns:** Buildings that automatically gather products from nearby animals.
+- [x] **Shipping & Seed Making:** Added Shipping Bin and Seed Maker buildings.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
