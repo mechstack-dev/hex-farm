@@ -213,6 +213,8 @@ function App() {
         socket.emit('fertilize');
       } else if (e.key.toLowerCase() === 'y') {
         socket.emit('teleport_home');
+      } else if (e.key.toLowerCase() === 'z') {
+        socket.emit('use_dynamite');
       } else if (e.key.toLowerCase() === 'c') {
         // Simple logic to consume best food in inventory
         const foods = ['veggie-platter', 'miners-stew', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
@@ -294,7 +296,7 @@ function App() {
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
         else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter'].includes(item)) categories.crops.items.push([item, count]);
-        else if (['wood', 'stone', 'junk', 'iron-ore'].includes(item)) categories.resources.items.push([item, count]);
+        else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
@@ -428,7 +430,7 @@ function App() {
             <p style={{ margin: '2px 0' }}>Press <b>1-7</b> to Plant, <b>Shift + 1-7</b> to Buy Seeds</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot, <b>M</b> to Barn</p>
-            <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home</p>
+            <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
             <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-9): Various Recipes</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>9, 0, -, =</b>: Basic Tools</p>

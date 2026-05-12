@@ -238,15 +238,27 @@ io.on('connection', (socket) => {
     if (player) {
       const sCost = getStaminaCost(player, 'farming', 5);
       if (!hasStamina(player, sCost)) return;
+      const hasGoldHoe = (player.inventory['gold-hoe'] || 0) > 0;
       const hasIronHoe = (player.inventory['iron-hoe'] || 0) > 0;
       const hasCopperHoe = (player.inventory['copper-hoe'] || 0) > 0;
-      if (!hasIronHoe && !hasCopperHoe && (player.inventory['hoe'] || 0) <= 0) {
+      if (!hasGoldHoe && !hasIronHoe && !hasCopperHoe && (player.inventory['hoe'] || 0) <= 0) {
         notify(socket.id, "You need a hoe to plow land!", 'error');
         return;
       }
 
       let targets = [player.pos];
-      if (hasIronHoe) {
+      if (hasGoldHoe) {
+        targets = [player.pos];
+        const radius1 = getNeighbors(player.pos);
+        targets.push(...radius1);
+        const radius2 = radius1.flatMap(n => getNeighbors(n));
+        targets.push(...radius2);
+        const radius3 = radius2.flatMap(n => getNeighbors(n));
+        targets.push(...radius3);
+        // Deduplicate targets
+        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
+          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+      } else if (hasIronHoe) {
         targets = [player.pos, ...getNeighbors(player.pos)];
         getNeighbors(player.pos).forEach(n => {
           targets.push(...getNeighbors(n));
@@ -480,6 +492,7 @@ io.on('connection', (socket) => {
     if (player) {
       const sCost = getStaminaCost(player, 'farming', 2);
       if (!hasStamina(player, sCost)) return;
+      const hasGoldWateringCan = (player.inventory['gold-watering-can'] || 0) > 0;
       const hasIronWateringCan = (player.inventory['iron-watering-can'] || 0) > 0;
       const hasCopperWateringCan = (player.inventory['copper-watering-can'] || 0) > 0;
       const entities = [
@@ -488,13 +501,24 @@ io.on('connection', (socket) => {
       ];
       const isNearWell = entities.some(e => e.type === 'building' && e.species === 'well');
 
-      if (!isNearWell && !hasIronWateringCan && !hasCopperWateringCan && (player.inventory['watering-can'] || 0) <= 0) {
+      if (!isNearWell && !hasGoldWateringCan && !hasIronWateringCan && !hasCopperWateringCan && (player.inventory['watering-can'] || 0) <= 0) {
         notify(socket.id, "You need a watering can or to be near a well!", 'error');
         return;
       }
 
       let targets = [player.pos];
-      if (hasIronWateringCan) {
+      if (hasGoldWateringCan) {
+        targets = [player.pos];
+        const radius1 = getNeighbors(player.pos);
+        targets.push(...radius1);
+        const radius2 = radius1.flatMap(n => getNeighbors(n));
+        targets.push(...radius2);
+        const radius3 = radius2.flatMap(n => getNeighbors(n));
+        targets.push(...radius3);
+        // Deduplicate targets
+        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
+          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+      } else if (hasIronWateringCan) {
         targets = [player.pos, ...getNeighbors(player.pos)];
         getNeighbors(player.pos).forEach(n => {
           targets.push(...getNeighbors(n));
@@ -704,15 +728,16 @@ io.on('connection', (socket) => {
 
       if (obstacle) {
         if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
+          const hasGoldAxe = (player.inventory['gold-axe'] || 0) > 0;
           const hasIronAxe = (player.inventory['iron-axe'] || 0) > 0;
           const hasCopperAxe = (player.inventory['copper-axe'] || 0) > 0;
-          if (!hasIronAxe && !hasCopperAxe && (player.inventory['axe'] || 0) <= 0) {
+          if (!hasGoldAxe && !hasIronAxe && !hasCopperAxe && (player.inventory['axe'] || 0) <= 0) {
             notify(socket.id, "You need an axe to cut down trees!", 'error');
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
-          const amount = hasIronAxe ? 3 : (hasCopperAxe ? 2 : 1);
+          const amount = hasGoldAxe ? 5 : (hasIronAxe ? 3 : (hasCopperAxe ? 2 : 1));
           player.inventory['wood'] = (player.inventory['wood'] || 0) + amount;
 
           // XP Gain
@@ -746,23 +771,32 @@ io.on('connection', (socket) => {
               notify(socket.id, "You discovered a cave entrance!", 'success');
           }
         } else if (obstacle.species === 'rock' || (!obstacle.species && obstacle.id.startsWith('rock'))) {
+          const hasGoldPickaxe = (player.inventory['gold-pickaxe'] || 0) > 0;
           const hasIronPickaxe = (player.inventory['iron-pickaxe'] || 0) > 0;
           const hasCopperPickaxe = (player.inventory['copper-pickaxe'] || 0) > 0;
-          if (!hasIronPickaxe && !hasCopperPickaxe && (player.inventory['pickaxe'] || 0) <= 0) {
+          if (!hasGoldPickaxe && !hasIronPickaxe && !hasCopperPickaxe && (player.inventory['pickaxe'] || 0) <= 0) {
             notify(socket.id, "You need a pickaxe to break rocks!", 'error');
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
-          const amount = hasIronPickaxe ? 3 : (hasCopperPickaxe ? 2 : 1);
+          const amount = hasGoldPickaxe ? 5 : (hasIronPickaxe ? 3 : (hasCopperPickaxe ? 2 : 1));
           player.inventory['stone'] = (player.inventory['stone'] || 0) + amount;
 
-          // Iron ore chance
+          // Ore drop logic
           const luckBuff = player.buffs.find(b => b.type === 'mining_luck');
           const ironChance = luckBuff ? 0.15 : 0.05;
           if (Math.random() < ironChance) {
               player.inventory['iron-ore'] = (player.inventory['iron-ore'] || 0) + 1;
               notify(socket.id, "Found some iron ore!", 'success');
+          }
+
+          if (obstacle.pos.q >= 10000) {
+              const goldChance = luckBuff ? 0.05 : 0.02;
+              if (Math.random() < goldChance) {
+                  player.inventory['gold-ore'] = (player.inventory['gold-ore'] || 0) + 1;
+                  notify(socket.id, "Found some gold ore!", 'success');
+              }
           }
 
           // XP Gain
@@ -896,7 +930,8 @@ io.on('connection', (socket) => {
       const merchant = entities.find(e => e.type === 'animal' && e.species === 'merchant') as any;
       const blacksmith = entities.find(e => e.type === 'animal' && e.species === 'blacksmith') as any;
       const fisherman = entities.find(e => e.type === 'animal' && e.species === 'fisherman') as any;
-      const animal = merchant || blacksmith || fisherman || entities.find(e => e.type === 'animal') as any;
+      const miner = entities.find(e => e.type === 'animal' && e.species === 'miner') as any;
+      const animal = merchant || blacksmith || fisherman || miner || entities.find(e => e.type === 'animal') as any;
       const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
       const building = entities.find(e => e.type === 'building') as Building | undefined;
       const floor = entities.find(e => e.type === 'floor');
@@ -1052,6 +1087,42 @@ io.on('connection', (socket) => {
       }
 
       if (animal) {
+        if (animal.species === 'miner') {
+          const ores = { 'gold-ore': 500, 'iron-ore': 100, 'stone': 10 };
+          let earned = 0;
+          Object.entries(ores).forEach(([ore, price]) => {
+            if (player.inventory[ore] > 0) {
+              earned += player.inventory[ore] * price;
+              player.inventory[ore] = 0;
+            }
+          });
+
+          if (earned > 0) {
+            player.coins += earned;
+            notify(socket.id, `Miner: "Aha! These are top quality. Here's ${earned} coins."`, 'success');
+            socket.emit('entityUpdate', player);
+            checkAchievements(player);
+          } else {
+            // Check if player can buy dynamite
+            if (player.coins >= 50) {
+              player.coins -= 50;
+              player.inventory['dynamite'] = (player.inventory['dynamite'] || 0) + 1;
+              notify(socket.id, `Miner: "Careful with this! Dynamite's a powerful tool."`, 'success');
+              socket.emit('entityUpdate', player);
+            } else {
+              const dialogues = [
+                "The depths hold many secrets... and much gold.",
+                "Digging deep is dangerous, but the rewards are worth it.",
+                "You looking for something that goes 'boom'?",
+                "I'll buy any ores you find for a fair price.",
+                "Dynamite costs 50 coins. Use it wisely."
+              ];
+              notify(socket.id, `Miner: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
+            }
+          }
+          return;
+        }
+
         if (animal.species === 'fisherman') {
           const fishCount = player.inventory['fish'] || 0;
           if (fishCount > 0) {
@@ -1084,6 +1155,10 @@ io.on('connection', (socket) => {
             { base: 'copper-watering-can', upgrade: 'iron-watering-can', price: 500, ore: 'iron-ore', oreCount: 5 },
             { base: 'copper-axe', upgrade: 'iron-axe', price: 500, ore: 'iron-ore', oreCount: 5 },
             { base: 'copper-pickaxe', upgrade: 'iron-pickaxe', price: 500, ore: 'iron-ore', oreCount: 5 },
+            { base: 'iron-hoe', upgrade: 'gold-hoe', price: 1000, ore: 'gold-ore', oreCount: 5 },
+            { base: 'iron-watering-can', upgrade: 'gold-watering-can', price: 1000, ore: 'gold-ore', oreCount: 5 },
+            { base: 'iron-axe', upgrade: 'gold-axe', price: 1000, ore: 'gold-ore', oreCount: 5 },
+            { base: 'iron-pickaxe', upgrade: 'gold-pickaxe', price: 1000, ore: 'gold-ore', oreCount: 5 },
           ];
 
           const availableUpgrade = upgrades.find(u =>
@@ -1109,7 +1184,8 @@ io.on('connection', (socket) => {
               "Copper tools are a farmer's best friend, but Iron is for masters.",
               "Hot enough for ye? The forge is always roaring.",
               "Bring me some coins and ore, and I'll show you what real craftsmanship looks like.",
-              "For Iron upgrades, I need 500 coins and 5 Iron Ore."
+              "For Iron upgrades, I need 500 coins and 5 Iron Ore.",
+              "For Gold upgrades, I need 1000 coins and 5 Gold Ore."
             ];
             notify(socket.id, `Blacksmith: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
           }
@@ -1408,6 +1484,43 @@ io.on('connection', (socket) => {
 
       io.emit('entityUpdate', player);
       notify(socket.id, "Teleported home!", 'success');
+    }
+  });
+
+  socket.on('use_dynamite', () => {
+    const player = players.get(socket.id);
+    if (player) {
+        if ((player.inventory['dynamite'] || 0) <= 0) {
+            notify(socket.id, "You don't have any dynamite!", 'error');
+            return;
+        }
+
+        player.inventory['dynamite']--;
+        const targets = [player.pos, ...getNeighbors(player.pos)];
+        targets.forEach(pos => {
+            const entities = world.getEntitiesAt(pos.q, pos.r);
+            entities.forEach(e => {
+                if (e.type === 'obstacle' && e.species !== 'water') {
+                    world.removeEntity(e.id, e.pos.q, e.pos.r);
+                    io.emit('entityRemove', { id: e.id, pos: e.pos });
+                } else if (e.type === 'fence' || e.type === 'building' || e.type === 'sprinkler') {
+                    world.removeEntity(e.id, e.pos.q, e.pos.r);
+                    io.emit('entityRemove', { id: e.id, pos: e.pos });
+                } else if (e.type === 'plant') {
+                    world.removeEntity(e.id, e.pos.q, e.pos.r);
+                    io.emit('entityRemove', { id: e.id, pos: e.pos });
+                }
+            });
+        });
+
+        socket.emit('entityUpdate', player);
+        notify(socket.id, "BOOM! Dynamite exploded.", 'success');
+        io.emit('chat', {
+          sender: 'System',
+          senderId: 'system',
+          message: `${player.name} used dynamite! BOOM!`,
+          timestamp: Date.now()
+        });
     }
   });
 

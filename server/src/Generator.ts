@@ -45,6 +45,19 @@ export class Generator {
         }
 
         const isCave = q >= 10000;
+
+        // Spawn miner in cave layer
+        if (q === 10005 && r === 10005) {
+            entities.push({
+                id: 'animal-miner',
+                type: 'animal',
+                species: 'miner',
+                pos: { q: 10005, r: 10005 },
+                nextMoveTime: Infinity,
+                lastProductTime: 0
+            } as unknown as Entity);
+            continue;
+        }
         const n = this.noise(q * 0.1, r * 0.1);
 
         if (isCave) {
