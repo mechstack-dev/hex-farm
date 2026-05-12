@@ -158,10 +158,12 @@ export class Generator {
           // Spawn animal
           const rand = chunkRng();
           let species = 'cow';
-          if (rand < 0.2) species = 'cow';
-          else if (rand < 0.4) species = 'sheep';
-          else if (rand < 0.6) species = 'chicken';
-          else if (rand < 0.8) species = 'pig';
+          if (rand < 0.15) species = 'cow';
+          else if (rand < 0.3) species = 'sheep';
+          else if (rand < 0.45) species = 'chicken';
+          else if (rand < 0.6) species = 'pig';
+          else if (rand < 0.7) species = 'goat';
+          else if (rand < 0.8) species = 'duck';
           else if (rand < 0.9) species = 'dog';
           else species = 'cat';
 

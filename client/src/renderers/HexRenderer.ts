@@ -184,6 +184,7 @@ export class HexRenderer {
     else if (plant.species === 'corn') color = 0xFFFF00;
     else if (plant.species === 'winter-radish') color = 0xE6E6FA; // Lavender/White
     else if (plant.species === 'mushroom') color = 0xA52A2A;
+    else if (plant.species === 'sunflower') color = 0xFFFF00;
 
     if (stage < 5) {
         // Sprout
@@ -288,6 +289,16 @@ export class HexRenderer {
             // Purple top
             this.graphics.ellipse(x, y - size * 0.5, size, size * 0.5);
             this.graphics.fill({ color: 0x800080, alpha: 0.8 });
+        } else if (plant.species === 'sunflower') {
+            // Stalk
+            this.graphics.rect(x - 2, y - size, 4, size * 2);
+            this.graphics.fill({ color: 0x228B22, alpha: 1 });
+            // Flower head
+            this.graphics.circle(x, y - size, 8);
+            this.graphics.fill({ color: 0xFFFF00, alpha: 1 });
+            // Center
+            this.graphics.circle(x, y - size, 3);
+            this.graphics.fill({ color: 0x4B2C20, alpha: 1 });
         }
     }
 
@@ -318,6 +329,12 @@ export class HexRenderer {
     } else if (animal.species === 'pig') {
         color = 0xFFC0CB; // Pink
         sizeScale = 0.7;
+    } else if (animal.species === 'goat') {
+        color = 0xD3D3D3; // Light Gray
+        sizeScale = 0.8;
+    } else if (animal.species === 'duck') {
+        color = 0xFFFFFF; // White
+        sizeScale = 0.5;
     } else if (animal.species === 'dog') {
         color = 0x8B4513; // Brown
         sizeScale = 0.6;
@@ -360,6 +377,21 @@ export class HexRenderer {
         this.graphics.circle(x + 10 * sizeScale, bounceY - 1, 1);
         this.graphics.circle(x + 10 * sizeScale, bounceY + 1, 1);
         this.graphics.fill({ color: 0x000000, alpha: 1 });
+    } else if (animal.species === 'goat') {
+        // Horns
+        this.graphics.moveTo(x, bounceY - 5);
+        this.graphics.lineTo(x - 5, bounceY - 12);
+        this.graphics.moveTo(x, bounceY - 5);
+        this.graphics.lineTo(x + 5, bounceY - 12);
+        this.graphics.stroke({ color: 0x555555, width: 2 });
+    } else if (animal.species === 'duck') {
+        // Beak
+        this.graphics.poly([
+            x + 8 * sizeScale, bounceY - 2,
+            x + 15 * sizeScale, bounceY,
+            x + 8 * sizeScale, bounceY + 2
+        ]);
+        this.graphics.fill({ color: 0xFFA500, alpha: 1 });
     }
   }
 

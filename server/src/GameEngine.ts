@@ -26,6 +26,7 @@ export class GameEngine {
     const sprinklerPositions = new Set<string>();
     const scarecrowPositions = new Set<string>();
     const beehivePositions = new Set<string>();
+    const sunflowerPositions = new Set<string>();
     const barnPositions = new Map<string, any>();
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
@@ -50,6 +51,8 @@ export class GameEngine {
                     beehivePositions.add(`${n2.q},${n2.r}`);
                 });
             });
+        } else if ((entity.type === 'floor' || entity.type === 'plant') && entity.species === 'sunflower') {
+            sunflowerPositions.add(`${entity.pos.q},${entity.pos.r}`);
         } else if (entity.type === 'building' && entity.species === 'barn') {
             const barn = entity as any;
             barnPositions.set(`${entity.pos.q},${entity.pos.r}`, barn);
@@ -142,7 +145,29 @@ export class GameEngine {
             if (building.species === 'beehive') {
                 if (now - (building.lastProductTime || 0) >= GAME_DAY) {
                     building.inventory = building.inventory || {};
-                    building.inventory['honey'] = (building.inventory['honey'] || 0) + 1;
+
+                    // Check for sunflowers in 2-hex radius
+                    let hasSunflower = sunflowerPositions.has(`${building.pos.q},${building.pos.r}`);
+                    if (!hasSunflower) {
+                        const neighbors1 = getNeighbors(building.pos);
+                        for (const n1 of neighbors1) {
+                            if (sunflowerPositions.has(`${n1.q},${n1.r}`)) {
+                                hasSunflower = true;
+                                break;
+                            }
+                            const neighbors2 = getNeighbors(n1);
+                            for (const n2 of neighbors2) {
+                                if (sunflowerPositions.has(`${n2.q},${n2.r}`)) {
+                                    hasSunflower = true;
+                                    break;
+                                }
+                            }
+                            if (hasSunflower) break;
+                        }
+                    }
+
+                    const honeyType = hasSunflower ? 'sunflower-honey' : 'wildflower-honey';
+                    building.inventory[honeyType] = (building.inventory[honeyType] || 0) + 1;
                     building.lastProductTime = now;
                     updated = { ...building };
                 }
@@ -170,6 +195,8 @@ export class GameEngine {
                           else if (animal.species === 'sheep') product = 'wool';
                           else if (animal.species === 'chicken') product = 'egg';
                           else if (animal.species === 'pig') product = 'truffle';
+                          else if (animal.species === 'goat') product = 'goat-milk';
+                          else if (animal.species === 'duck') product = 'duck-egg';
 
                           if (product) {
                               barn.inventory = barn.inventory || {};

@@ -152,7 +152,8 @@ io.on('connection', (socket) => {
 
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
-        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building')
+        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building') ||
+        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree'))
       );
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
@@ -296,7 +297,7 @@ io.on('connection', (socket) => {
               // Scavenging logic
               const rand = Math.random();
               if (rand < 0.05) {
-                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed'];
+                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed'];
                   const seed = seeds[Math.floor(Math.random() * seeds.length)];
                   player.inventory[seed] = (player.inventory[seed] || 0) + 1;
                   notify(socket.id, `Scavenged a ${seed.replace('-seed', '')} seed!`, 'success');
@@ -571,7 +572,7 @@ io.on('connection', (socket) => {
       if (isNearMerchant) {
         const seedPrices: Record<string, number> = {
           'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20,
-          'winter-radish': 30, 'apple-tree': 50
+          'winter-radish': 30, 'apple-tree': 50, 'sunflower': 35
         };
         const price = seedPrices[species];
         if (price !== undefined) {
@@ -776,7 +777,7 @@ io.on('connection', (socket) => {
 
           // Discovery Reward
           if (Math.random() < 0.1) {
-            const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed'];
+            const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed', 'winter-radish-seed'];
             const seed = seeds[Math.floor(Math.random() * seeds.length)];
             player.inventory[seed] = (player.inventory[seed] || 0) + 1;
             notify(socket.id, `You found a ${seed.replace('-seed', '')} seed in the ${name}!`, 'success');
@@ -976,7 +977,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'cooking-pot') {
-          notify(socket.id, "Recipes: Salad (1T,1C), Apple Pie (3A,1W), Pumpkin Soup (1P,1M), Corn Chowder (2C,1M), Grilled Fish (1F,1W). Press numbers in cook menu.", 'info');
+          notify(socket.id, "Recipes: Salad (1T,1C), Apple Pie (3A,1W), Pumpkin Soup (1P,1M), Corn Chowder (2C,1M), Grilled Fish (1F,1W), Fruit Salad (1A,1B), Mushroom Risotto (2M,1W), Corn Bread (2C,1W), Fish Stew (1F,1Ca,1Co). Press numbers in cook menu.", 'info');
           return;
       }
 
@@ -1002,7 +1003,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'seed-maker') {
-          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish'];
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
 
           if (targetCrop) {
@@ -1023,15 +1024,22 @@ io.on('connection', (socket) => {
         const playerInv = player.inventory;
 
         if (building.species === 'beehive') {
-          const honeyCount = buildingInv['honey'] || 0;
-          if (honeyCount > 0) {
-            playerInv['honey'] = (playerInv['honey'] || 0) + honeyCount;
-            buildingInv['honey'] = 0;
+          let collectedAny = false;
+          ['honey', 'wildflower-honey', 'sunflower-honey'].forEach(h => {
+              const count = buildingInv[h] || 0;
+              if (count > 0) {
+                  playerInv[h] = (playerInv[h] || 0) + count;
+                  buildingInv[h] = 0;
+                  collectedAny = true;
+              }
+          });
+
+          if (collectedAny) {
             building.inventory = buildingInv;
             world.updateEntity(building);
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', building);
-            notify(socket.id, `Collected ${honeyCount} honey!`, 'success');
+            notify(socket.id, `Collected honey from the beehive!`, 'success');
           } else {
             notify(socket.id, "No honey yet.", 'info');
           }
@@ -1061,10 +1069,10 @@ io.on('connection', (socket) => {
         }
 
         const categoriesToStore = [
-          'turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'apple', 'berry', 'mushroom',
-          'milk', 'wool', 'egg', 'truffle', 'wood', 'stone', 'fish', 'junk', 'honey',
+          'turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'berry', 'mushroom',
+          'milk', 'wool', 'egg', 'truffle', 'wood', 'stone', 'fish', 'junk', 'honey', 'wildflower-honey', 'sunflower-honey',
           'salad', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'mushroom-soup', 'berry-tart',
-          'turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed', 'apple-tree-seed'
+          'turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed', 'apple-tree-seed', 'sunflower-seed'
         ];
 
         let hasAnythingToStore = false;
@@ -1324,7 +1332,7 @@ io.on('connection', (socket) => {
           } else {
               // Assign new quest with 20% chance
               if (Math.random() < 0.2) {
-                  const species = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish'][Math.floor(Math.random() * 6)];
+                  const species = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower'][Math.floor(Math.random() * 7)];
                   const count = 5 + Math.floor(Math.random() * 10);
                   player.activeQuest = { species, count, collected: 0 };
                   socket.emit('entityUpdate', player);
@@ -1362,6 +1370,8 @@ io.on('connection', (socket) => {
           else if (animal.species === 'sheep') product = 'wool';
           else if (animal.species === 'chicken') product = 'egg';
           else if (animal.species === 'pig') product = 'truffle';
+          else if (animal.species === 'goat') product = 'goat-milk';
+          else if (animal.species === 'duck') product = 'duck-egg';
 
           if (product) {
             player.inventory[product] = (player.inventory[product] || 0) + 1;
@@ -1414,7 +1424,11 @@ io.on('connection', (socket) => {
         'berry-tart': 65,
         'miners-stew': 60,
         'veggie-platter': 80,
-        'coal-grilled-fish': 80
+        'coal-grilled-fish': 80,
+        'fruit-salad': 35,
+        'mushroom-risotto': 65,
+        'corn-bread': 45,
+        'fish-stew': 75
       };
 
       const staminaGain = foodValues[item];
@@ -1485,7 +1499,11 @@ io.on('connection', (socket) => {
         'berry-tart': { 'berry': 3, 'wheat': 1 },
         'miners-stew': { 'carrot': 2, 'fish': 1, 'iron-ore': 1 },
         'veggie-platter': { 'turnip': 2, 'pumpkin': 1, 'corn': 1 },
-        'coal-grilled-fish': { 'fish': 1, 'coal': 1 }
+        'coal-grilled-fish': { 'fish': 1, 'coal': 1 },
+        'fruit-salad': { 'apple': 1, 'berry': 1 },
+        'mushroom-risotto': { 'mushroom': 2, 'wheat': 1 },
+        'corn-bread': { 'corn': 2, 'wheat': 1 },
+        'fish-stew': { 'fish': 1, 'carrot': 1, 'corn': 1 }
       };
 
       const ingredients = recipes[recipe];
