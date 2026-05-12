@@ -313,6 +313,9 @@ export class HexRenderer {
     } else if (animal.species === 'fisherman') {
         color = 0x1E90FF; // DodgerBlue
         sizeScale = 1.1;
+    } else if (animal.species === 'miner') {
+        color = 0xFFD700; // Gold
+        sizeScale = 1.2;
     }
 
     this.graphics.ellipse(x, bounceY, HEX_SIZE * 0.5 * sizeScale, HEX_SIZE * 0.3 * sizeScale);
@@ -730,6 +733,8 @@ export class HexRenderer {
           this.updateNPCLabel(entity as any, x, y, 'Blacksmith');
         } else if ((entity as any).species === 'fisherman') {
           this.updateNPCLabel(entity as any, x, y, 'Fisherman');
+        } else if ((entity as any).species === 'miner') {
+          this.updateNPCLabel(entity as any, x, y, 'Miner');
         }
       } else if (entity.type === 'fence') {
         this.drawFence(x, y);

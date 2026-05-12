@@ -62,8 +62,9 @@ HexFarm is designed to be played over long periods.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
 - **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), and Veggie Platter.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
-- **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore to upgrade tools to Copper and Iron versions.
+- **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore/Gold Ore to upgrade tools to Copper, Iron, and Gold versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
+- **Miner:** Located in the cave layer at (10005, 10005). He buys Stone, Iron Ore, and Gold Ore at premium prices and sells **Dynamite**.
 
 ---
 
@@ -97,12 +98,14 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
+   - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
    - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter).
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
-11. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
-12. **UI Toggle:** Click "Hide Controls" to maximize your view of the world.
+11. **Dynamite:** Press **Z** to use Dynamite. It clears everything in a 1-hex radius (excluding water) but does not refund resources.
+12. **Chatting & Trading:** Press **Enter** to focus the chat. Type your message and press **Enter** to send. Type `/give [name] [item] [amount]` to give items to a nearby player. Press **Esc** to cancel.
+13. **UI Toggle:** Click "Hide Controls" to maximize your view of the world.
 
 ---
 
@@ -169,10 +172,12 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Buff System:** Temporary status effects from food.
 - [x] **Blacksmith NPC:** Tool upgrades hub at (5, 5).
 - [x] **New Crops:** Added Winter Radish for seasonal variety.
-- [x] **Tiered Tools:** Added Copper and Iron tiers with improved efficiency.
-- [x] **More NPCs:** Added Fisherman and Blacksmith with unique roles.
+- [x] **Tiered Tools:** Added Copper, Iron, and Gold tiers with improved efficiency.
+- [x] **More NPCs:** Added Fisherman, Blacksmith, and Miner with unique roles.
 - [x] **Advanced Buffs:** Implemented luck and temporary stat boosts via food.
 - [x] **Mining Depths:** Rare chance to find "cave entrance" hexes while mining, leading to underground layers.
+- [x] **Miner NPC:** Added a Miner NPC in the cave layer who sells Dynamite and buys ores.
+- [x] **Dynamite:** A powerful tool for clearing large areas quickly.
 - [x] **Livestock Barns:** Buildings that automatically gather products from nearby animals.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
