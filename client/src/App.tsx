@@ -168,6 +168,9 @@ function App() {
       } else if (e.code === 'Digit7') {
         if (e.shiftKey) socket.emit('buy_seed', 'winter-radish');
         else socket.emit('plant', 'winter-radish');
+      } else if (e.code === 'Digit8') {
+        if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
+        else socket.emit('plant', 'sunflower');
       } else if (e.key.toLowerCase() === 'i') {
         socket.emit('water');
       } else if (e.key.toLowerCase() === 'h') {
@@ -187,10 +190,9 @@ function App() {
       } else if (e.key.toLowerCase() === 'x') {
         if (e.shiftKey) socket.emit('sell_junk');
         else socket.emit('clear_obstacle');
-      } else if (e.code === 'Digit8' && e.shiftKey) {
-        socket.emit('buy_tool', 'fishing-rod');
-      } else if (e.code === 'Digit9' && !e.shiftKey) {
-        socket.emit('buy_tool', 'hoe');
+      } else if (e.code === 'Digit9') {
+        if (e.shiftKey) socket.emit('buy_seed', 'sunflower');
+        else socket.emit('buy_tool', 'hoe');
       } else if (e.code === 'Digit0' && !e.shiftKey) {
         socket.emit('buy_tool', 'watering-can');
       } else if (e.code === 'Minus' && !e.shiftKey) {
@@ -223,7 +225,7 @@ function App() {
         socket.emit('use_dynamite');
       } else if (e.key.toLowerCase() === 'c') {
         // Simple logic to consume best food in inventory
-        const foods = ['veggie-platter', 'miners-stew', 'coal-grilled-fish', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
+        const foods = ['veggie-platter', 'fish-stew', 'miners-stew', 'coal-grilled-fish', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
         const toEat = foods.find(f => playerInventory[f] > 0);
         if (toEat) socket.emit('consume', toEat);
         else socket.emit('consume', 'apple'); // Fallback for error message
@@ -247,6 +249,14 @@ function App() {
         socket.emit('cook', 'veggie-platter');
       } else if (e.code === 'Digit0' && e.altKey) {
         socket.emit('cook', 'coal-grilled-fish');
+      } else if (e.code === 'Minus' && e.altKey) {
+        socket.emit('cook', 'fruit-salad');
+      } else if (e.code === 'Equal' && e.altKey) {
+        socket.emit('cook', 'mushroom-risotto');
+      } else if (e.code === 'BracketLeft' && e.altKey) {
+        socket.emit('cook', 'corn-bread');
+      } else if (e.code === 'BracketRight' && e.altKey) {
+        socket.emit('cook', 'fish-stew');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -303,9 +313,9 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew'].includes(item)) categories.crops.items.push([item, count]);
         else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal'].includes(item)) categories.resources.items.push([item, count]);
-        else if (['milk', 'wool', 'egg', 'truffle', 'honey'].includes(item)) categories.products.items.push([item, count]);
+        else if (['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
 
@@ -449,12 +459,12 @@ function App() {
         {showControls && (
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
-            <p style={{ margin: '2px 0' }}>Press <b>1-7</b> to Plant, <b>Shift + 1-7</b> to Buy Seeds</p>
+            <p style={{ margin: '2px 0' }}>Press <b>1-8</b> to Plant, <b>Shift + 1-7, 9</b> to Buy Seeds (Shift+8: Fishing Rod)</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin, <b>T</b> to Seed Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift</p>
-            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-9): Various Recipes</p>
+            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ]): Various Recipes</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>9, 0, -, =</b>: Basic Tools</p>
           </div>
