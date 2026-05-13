@@ -175,10 +175,15 @@ export class Generator {
             nextMoveTime: 0, // Will move on first engine tick
             lastProductTime: 0
           } as unknown as Entity);
-        } else if (chunkRng() < 0.01) {
+        } else if (chunkRng() < 0.015) {
           // Spawn foraging items
           const rand = chunkRng();
-          const species = rand < 0.6 ? 'mushroom' : 'berry-bush';
+          let species = 'mushroom';
+          if (rand < 0.4) species = 'mushroom';
+          else if (rand < 0.7) species = 'berry-bush';
+          else if (rand < 0.85) species = 'apple-tree';
+          else species = 'orange-tree';
+
           const now = Date.now();
           entities.push({
             id: `plant-${q}-${r}-${now}`,

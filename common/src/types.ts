@@ -19,7 +19,7 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
 
 export const ITEM_PRICES: Record<string, number> = {
   'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
-  'winter-radish': 40, 'sunflower': 45, 'apple': 15, 'berry': 12, 'mushroom': 18,
+  'winter-radish': 40, 'sunflower': 45, 'apple': 15, 'orange': 20, 'berry': 12, 'mushroom': 18,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
   'salad': 60, 'apple-pie': 80, 'pumpkin-soup': 100, 'corn-chowder': 80, 'grilled-fish': 60,
@@ -27,17 +27,17 @@ export const ITEM_PRICES: Record<string, number> = {
   'fruit-salad': 45, 'mushroom-risotto': 95, 'corn-bread': 110, 'fish-stew': 110,
   'fruity-sorbet': 180, 'hearty-stew': 180, 'seafood-platter': 180,
   'honey-glazed-carrots': 120, 'goat-cheese-salad': 140, 'duck-egg-mayo': 80,
-  'berry-smoothie': 90, 'pumpkin-pie': 150, 'apple-cider': 110
+  'berry-smoothie': 90, 'pumpkin-pie': 150, 'apple-cider': 110, 'orange-juice': 70
 };
 
 export const SEED_PRICES: Record<string, number> = {
   'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20,
-  'winter-radish': 30, 'apple-tree': 50, 'sunflower': 35
+  'winter-radish': 30, 'apple-tree': 50, 'orange-tree': 60, 'sunflower': 35
 };
 
 export const TOOL_PRICES: Record<string, number> = {
   'hoe': 50, 'watering-can': 50, 'axe': 50, 'pickaxe': 50,
-  'fishing-rod': 150
+  'fishing-rod': 150, 'scythe': 250
 };
 
 export const KIT_PRICES: Record<string, number> = {
@@ -46,6 +46,7 @@ export const KIT_PRICES: Record<string, number> = {
 
 export const FOOD_VALUES: Record<string, number> = {
   'apple': 20,
+  'orange': 15,
   'turnip': 5,
   'carrot': 8,
   'corn': 10,
@@ -73,10 +74,11 @@ export const FOOD_VALUES: Record<string, number> = {
   'duck-egg-mayo': 40,
   'berry-smoothie': 50,
   'pumpkin-pie': 85,
-  'apple-cider': 60
+  'apple-cider': 60,
+  'orange-juice': 50
 };
 
-export const BEST_FOODS = ['pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';
 
