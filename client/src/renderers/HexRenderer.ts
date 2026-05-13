@@ -182,6 +182,7 @@ export class HexRenderer {
     else if (plant.species === 'pumpkin') color = 0xFF8C00;
     else if (plant.species === 'turnip') color = 0xFFFFFF;
     else if (plant.species === 'corn') color = 0xFFFF00;
+    else if (plant.species === 'orange') color = 0xFFA500;
     else if (plant.species === 'winter-radish') color = 0xE6E6FA; // Lavender/White
     else if (plant.species === 'mushroom') color = 0xA52A2A;
     else if (plant.species === 'sunflower') color = 0xFFFF00;
@@ -222,7 +223,7 @@ export class HexRenderer {
                 this.graphics.fill({ color: 0x800080, alpha: 1 }); // Purple berries
             }
         }
-    } else if (plant.species === 'apple-tree' || plant.species === 'tree') {
+    } else if (plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'tree') {
         // Growing Tree
         const trunkWidth = 2 + (stage * 0.8);
         const trunkHeight = 4 + (stage * 2.2);
@@ -242,15 +243,16 @@ export class HexRenderer {
             this.graphics.circle(x, y + 5 - trunkHeight, foliageRadius);
             this.graphics.fill({ color: foliageColor, alpha: 1 });
 
-            // Apples for apple-tree
-            if (plant.species === 'apple-tree' && stage >= 5) {
-                const hasApples = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
-                if (hasApples) {
+            // Fruit for fruit trees
+            if ((plant.species === 'apple-tree' || plant.species === 'orange-tree') && stage >= 5) {
+                const hasFruit = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
+                if (hasFruit) {
+                    const fruitColor = plant.species === 'apple-tree' ? 0xFF0000 : 0xFFA500;
                     for (let i = 0; i < 5; i++) {
                         const ax = x + Math.cos(i * 1.2) * 10;
                         const ay = y + 5 - trunkHeight + Math.sin(i * 1.2) * 10;
                         this.graphics.circle(ax, ay, 2.5);
-                        this.graphics.fill({ color: 0xFF0000, alpha: 1 });
+                        this.graphics.fill({ color: fruitColor, alpha: 1 });
                     }
                 }
             }

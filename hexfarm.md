@@ -98,6 +98,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **O**: Cooking Pot (5 Wood, 10 Stone)
    - **8**: Plant Sunflower
    - **Goats and Ducks**: New animals that provide **Goat Milk** and **Duck Eggs**.
+   - **Orange Trees**: New fruit trees that prefer Summer and provide **Oranges**.
    - **M**: Barn (20 Wood, 10 Stone)
    - **Q**: Shipping Bin (10 Wood, 10 Stone)
    - **T**: Seed Maker (15 Wood, 5 Stone)
@@ -108,7 +109,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
-   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter). Additional recipes: **Alt+0** for Coal-Grilled Fish. New recipes: Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, **Fruity Sorbet**, **Hearty Stew**, **Seafood Platter**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, and **Apple Cider**.
+   - **Scythe:** A tool that allows harvesting all mature crops in a 1-hex radius.
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter). Additional recipes: **Alt+0** for Coal-Grilled Fish. New recipes: Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, **Fruity Sorbet**, **Hearty Stew**, **Seafood Platter**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, **Apple Cider**, and **Orange Juice** (Alt+U).
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Dynamite:** Press **Z** to use Dynamite. It clears everything in a 1-hex radius (excluding water) but does not refund resources.
@@ -199,6 +201,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **More Recipes:** Added 6 new complex recipes including Honey-Glazed Carrots and Pumpkin Pie.
 - [x] **NPC Daily Gifts:** High friendship NPCs give daily gifts.
 - [x] **Improved Fence Visuals:** Connected rails between adjacent fences.
+- [x] **Oranges:** New fruit tree and juice recipe.
+- [x] **Scythe:** Area-of-effect harvesting tool.
+- [x] **Wild Fruit Trees:** Apple and Orange trees now spawn rarely in the world.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

@@ -195,14 +195,17 @@ function App() {
         if (e.shiftKey) socket.emit('sell_junk');
         else socket.emit('clear_obstacle');
       } else if (e.code === 'Digit9') {
+        if (e.shiftKey) socket.emit('buy_seed', 'orange-tree');
+        else if (e.altKey) socket.emit('buy_tool', 'hoe');
+        else socket.emit('plant', 'orange-tree');
+      } else if (e.code === 'Digit0') {
         if (e.shiftKey) socket.emit('buy_seed', 'sunflower');
-        else socket.emit('buy_tool', 'hoe');
-      } else if (e.code === 'Digit0' && !e.shiftKey) {
-        socket.emit('buy_tool', 'watering-can');
-      } else if (e.code === 'Minus' && !e.shiftKey) {
-        socket.emit('buy_tool', 'axe');
-      } else if (e.code === 'Equal' && !e.shiftKey) {
-        socket.emit('buy_tool', 'pickaxe');
+        else if (e.altKey) socket.emit('buy_tool', 'watering-can');
+        else socket.emit('buy_tool', 'scythe');
+      } else if (e.code === 'Minus') {
+        if (e.altKey) socket.emit('buy_tool', 'axe');
+      } else if (e.code === 'Equal') {
+        if (e.altKey) socket.emit('buy_tool', 'pickaxe');
       } else if (e.key.toLowerCase() === 'j') {
         socket.emit('fish');
       } else if (e.key.toLowerCase() === 'l') {
@@ -279,6 +282,8 @@ function App() {
         socket.emit('cook', 'pumpkin-pie');
       } else if (e.code === 'KeyP' && e.altKey) {
         socket.emit('cook', 'apple-cider');
+      } else if (e.code === 'KeyU' && e.altKey) {
+        socket.emit('cook', 'orange-juice');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -335,7 +340,7 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'apple', 'orange', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice'].includes(item)) categories.crops.items.push([item, count]);
         else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'compost-fertilizer'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
@@ -498,14 +503,14 @@ function App() {
         {showControls && (
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
-            <p style={{ margin: '2px 0' }}>Press <b>1-8</b> to Plant, <b>Shift + 1-7, 9</b> to Buy Seeds (Shift+8: Fishing Rod)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>1-9</b> to Plant (8: Sunflower, 9: Orange Tree), <b>Shift + 1-7, 9, 0</b> to Buy Seeds (Shift+8: Fishing Rod, Shift+9: Orange Tree, Shift+0: Sunflower)</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> for Sprinkler (Shift+K: Iron, Alt+K: Gold), <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin (Shift+Q: Compost Bin), <b>T</b> to Seed Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift</p>
-            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F, G, H, J, K, L, P): Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter, Coal-Grilled Fish, Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, Fruity Sorbet, Hearty Stew, Seafood Platter, <b>Honey-Glazed Carrots, Goat-Cheese Salad, Duck-Egg Mayo, Berry Smoothie, Pumpkin Pie, Apple Cider.</b></p>
+            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F, G, H, J, K, L, P, U): Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter, Coal-Grilled Fish, Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, Fruity Sorbet, Hearty Stew, Seafood Platter, <b>Honey-Glazed Carrots, Goat-Cheese Salad, Duck-Egg Mayo, Berry Smoothie, Pumpkin Pie, Apple Cider, Orange Juice.</b></p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
-            <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>9, 0, -, =</b>: Basic Tools</p>
+            <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>0</b>: Buy Scythe | <b>Alt + 9, 0, -, =</b>: Basic Tools</p>
           </div>
         )}
 

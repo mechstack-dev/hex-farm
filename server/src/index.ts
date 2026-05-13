@@ -377,54 +377,71 @@ io.on('connection', (socket) => {
   socket.on('harvest', () => {
     const player = players.get(socket.id);
     if (player) {
-      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
-      const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
-      if (plant) {
-        if (plant.species === 'apple-tree') {
-            notify(socket.id, "Use 'E' to gather apples from mature trees. Use an axe to cut them down.", 'info');
+      const hasScythe = (player.inventory['scythe'] || 0) > 0;
+      const targets = hasScythe ? [player.pos, ...getNeighbors(player.pos)] : [player.pos];
+      let harvestedCount = 0;
+
+      targets.forEach(pos => {
+        const entities = world.getEntitiesAt(pos.q, pos.r);
+        const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
+        if (plant) {
+          if (plant.species === 'apple-tree' || plant.species === 'orange-tree') {
+              if (!hasScythe) notify(socket.id, `Use 'E' to gather fruit from mature trees. Use an axe to cut them down.`, 'info');
+              return;
+          }
+          if (plant.species === 'berry-bush') {
+            if (!hasScythe) notify(socket.id, "Use 'E' to gather berries from mature bushes. Use an axe to clear it.", 'info');
             return;
-        }
-        if (plant.species === 'berry-bush') {
-          notify(socket.id, "Use 'E' to gather berries from mature bushes. Use an axe to clear it.", 'info');
-          return;
-        }
-
-        if (plant.growthStage >= 5) {
-          world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
-          const species = plant.species || 'unknown';
-
-          // Give crop
-          player.inventory[species] = (player.inventory[species] || 0) + 1;
-          player.stats['harvested_total'] = (player.stats['harvested_total'] || 0) + 1;
-
-          // XP Gain
-          const xpGained = species === 'mushroom' ? 5 : 10;
-          const skill = species === 'mushroom' ? 'foraging' : 'farming';
-          const { leveledUp, newLevel } = addXP(player, skill, xpGained);
-          if (leveledUp) {
-            notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
-            checkAchievements(player);
           }
 
-          // Chance to give 1-2 seeds
-          if (species !== 'mushroom') {
-            const seedType = `${species}-seed`;
-            const farmingLuck = player.buffs.find(b => b.type === 'farming_luck');
-            const seedsGained = (Math.floor(Math.random() * 2) + 1) + (farmingLuck ? 1 : 0);
-            player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
-            notify(socket.id, `Harvested ${species}! Gained ${seedsGained} seeds.`, 'success');
-          } else {
-            notify(socket.id, `Harvested ${species}!`, 'success');
-          }
+          if (plant.growthStage >= 5) {
+            world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
+            const species = plant.species || 'unknown';
 
-          io.emit('entityRemove', { id: plant.id, pos: plant.pos });
-          socket.emit('entityUpdate', player); // Update player inventory on client
-          checkAchievements(player);
-        } else {
-          // Allow removing immature plants
-          world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
-          io.emit('entityRemove', { id: plant.id, pos: plant.pos });
-          notify(socket.id, "Removed immature plant.", 'info');
+            // Give crop
+            player.inventory[species] = (player.inventory[species] || 0) + 1;
+            player.stats['harvested_total'] = (player.stats['harvested_total'] || 0) + 1;
+
+            // XP Gain
+            const xpGained = species === 'mushroom' ? 5 : 10;
+            const skill = species === 'mushroom' ? 'foraging' : 'farming';
+            const { leveledUp, newLevel } = addXP(player, skill, xpGained);
+            if (leveledUp) {
+              notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
+              checkAchievements(player);
+            }
+
+            // Chance to give 1-2 seeds
+            let seedsGained = 0;
+            if (species !== 'mushroom') {
+              const seedType = `${species}-seed`;
+              const farmingLuck = player.buffs.find(b => b.type === 'farming_luck');
+              seedsGained = (Math.floor(Math.random() * 2) + 1) + (farmingLuck ? 1 : 0);
+              player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
+            }
+
+            if (!hasScythe) {
+              const seedMsg = seedsGained > 0 ? ` Gained ${seedsGained} seeds.` : '';
+              notify(socket.id, `Harvested ${species}!${seedMsg}`, 'success');
+            }
+
+            io.emit('entityRemove', { id: plant.id, pos: plant.pos });
+            harvestedCount++;
+          } else if (!hasScythe || (pos.q === player.pos.q && pos.r === player.pos.r)) {
+            // Allow removing immature plants only on current hex or if not using scythe
+            world.removeEntity(plant.id, plant.pos.q, plant.pos.r);
+            io.emit('entityRemove', { id: plant.id, pos: plant.pos });
+            if (!hasScythe) notify(socket.id, "Removed immature plant.", 'info');
+          }
+        }
+      });
+
+      if (harvestedCount > 0) {
+        socket.emit('entityUpdate', player);
+        checkAchievements(player);
+        if (hasScythe) {
+          const cropText = harvestedCount === 1 ? 'crop' : 'crops';
+          notify(socket.id, `Harvested ${harvestedCount} ${cropText} with scythe!`, 'success');
         }
       }
     }
@@ -786,7 +803,7 @@ io.on('connection', (socket) => {
           const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
           const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0);
           if (Math.random() < discoveryChance) {
-            const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed', 'winter-radish-seed'];
+            const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed', 'orange-tree-seed', 'winter-radish-seed'];
             const seed = seeds[Math.floor(Math.random() * seeds.length)];
             player.inventory[seed] = (player.inventory[seed] || 0) + 1;
             notify(socket.id, `You found a ${seed.replace('-seed', '')} seed in the ${name}!`, 'success');
@@ -892,7 +909,7 @@ io.on('connection', (socket) => {
           socket.emit('entityUpdate', player);
           notify(socket.id, `Cleared ${obstacle.species}.`, 'info');
         } else if (obstacle.type === 'building' || obstacle.type === 'sprinkler') {
-          const species = obstacle.type === 'sprinkler' ? 'sprinkler' : (obstacle.species || '');
+          const species = obstacle.species || (obstacle.type === 'sprinkler' ? 'sprinkler' : '');
 
           if (obstacle.type === 'building' && obstacle.inventory) {
             const hasItems = Object.values(obstacle.inventory).some((count: any) => count > 0);
@@ -1153,17 +1170,18 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (plant && plant.species === 'apple-tree' && plant.growthStage >= 5) {
+      if (plant && (plant.species === 'apple-tree' || plant.species === 'orange-tree') && plant.growthStage >= 5) {
         const now = Date.now();
         if (now - (plant.lastProductTime || 0) >= GAME_DAY) {
-            player.inventory['apple'] = (player.inventory['apple'] || 0) + 1;
+            const product = plant.species === 'apple-tree' ? 'apple' : 'orange';
+            player.inventory[product] = (player.inventory[product] || 0) + 1;
             plant.lastProductTime = now;
             world.updateEntity(plant);
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', plant);
-            notify(socket.id, "Harvested an apple from the tree!", 'success');
+            notify(socket.id, `Harvested an ${product} from the tree!`, 'success');
         } else {
-            notify(socket.id, "This tree doesn't have any ripe apples yet.", 'info');
+            notify(socket.id, `This tree doesn't have any ripe ${plant.species === 'apple-tree' ? 'apples' : 'oranges'} yet.`, 'info');
         }
         return;
       }
@@ -1580,7 +1598,8 @@ io.on('connection', (socket) => {
         'duck-egg-mayo': { 'duck-egg': 1, 'sunflower': 1 },
         'berry-smoothie': { 'berry': 2, 'milk': 1 },
         'pumpkin-pie': { 'pumpkin': 1, 'wheat': 1, 'egg': 1 },
-        'apple-cider': { 'apple': 3, 'honey': 1 }
+        'apple-cider': { 'apple': 3, 'honey': 1 },
+        'orange-juice': { 'orange': 3 }
       };
 
       const ingredients = recipes[recipe];
