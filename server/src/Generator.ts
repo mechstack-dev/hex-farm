@@ -144,6 +144,13 @@ export class Generator {
             species: 'rock',
             pos: { q, r }
           });
+        } else if (chunkRng() < 0.001) {
+            entities.push({
+                id: `shrine-${q}-${r}`,
+                type: 'building',
+                species: 'ancient-shrine',
+                pos: { q, r }
+            });
         } else if (chunkRng() < 0.1) {
           // Decorative floor
           const rand = chunkRng();

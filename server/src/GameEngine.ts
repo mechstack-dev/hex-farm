@@ -106,7 +106,7 @@ export class GameEngine {
         let updated: any = entity;
         if (entity.type === 'player') {
           const player = entity as any;
-          let staminaRegen = 1;
+          let staminaRegen = 1.5;
 
           // Process buffs
           if (player.buffs && player.buffs.length > 0) {
@@ -159,6 +159,29 @@ export class GameEngine {
                   updated.growthStage = 4;
                   // We can't easily notify here without access to IO or socket ID,
                   // but we'll return it as an updated entity which clients will see.
+              }
+          }
+
+          // Propagation logic
+          if (updated.growthStage >= 5 && Math.random() < 0.0001) { // 0.01% chance per tick
+              const neighbors = getNeighbors(updated.pos);
+              const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
+              const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
+              const isOccupied = targetEntities.some(e => e.type !== 'floor' && e.type !== 'player');
+
+              if (!isOccupied) {
+                  const newPlant: Plant = {
+                      id: `plant-${targetPos.q}-${targetPos.r}-${now}`,
+                      type: 'plant',
+                      species: updated.species,
+                      pos: targetPos,
+                      growthStage: 0,
+                      plantedAt: now,
+                      lastWatered: 0,
+                      lastUpdate: now
+                  };
+                  this.world.addEntity(newPlant);
+                  updatedEntities.push(newPlant);
               }
           }
         } else if (entity.type === 'building') {

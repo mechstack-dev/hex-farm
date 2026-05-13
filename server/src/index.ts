@@ -378,8 +378,11 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       const hasScythe = (player.inventory['scythe'] || 0) > 0;
-      const targets = hasScythe ? [player.pos, ...getNeighbors(player.pos)] : [player.pos];
+      const targets = [player.pos, ...getNeighbors(player.pos)];
       let harvestedCount = 0;
+      const sCost = getStaminaCost(player, 'farming', hasScythe ? 10 : 20);
+
+      if (!hasStamina(player, sCost)) return;
 
       targets.forEach(pos => {
         const entities = world.getEntitiesAt(pos.q, pos.r);
@@ -437,12 +440,15 @@ io.on('connection', (socket) => {
       });
 
       if (harvestedCount > 0) {
+        player.stamina -= sCost;
         socket.emit('entityUpdate', player);
         checkAchievements(player);
-        if (hasScythe) {
-          const cropText = harvestedCount === 1 ? 'crop' : 'crops';
-          notify(socket.id, `Harvested ${harvestedCount} ${cropText} with scythe!`, 'success');
-        }
+        const toolMsg = hasScythe ? ' with scythe' : '';
+        const cropText = harvestedCount === 1 ? 'crop' : 'crops';
+        notify(socket.id, `Harvested ${harvestedCount} ${cropText}${toolMsg}!`, 'success');
+      } else {
+        // Only notify if they specifically tried to harvest but nothing was there
+        notify(socket.id, "Nothing to harvest in this area.", 'info');
       }
     }
   });
@@ -1021,6 +1027,34 @@ io.on('connection', (socket) => {
           return;
       }
 
+      if (building && building.species === 'ancient-shrine') {
+          const now = Date.now();
+          const lastUsed = (player.stats['last_shrine_use'] || 0);
+          if (now - lastUsed < GAME_DAY) {
+              notify(socket.id, "The shrine is silent. It has already blessed you today.", 'info');
+              return;
+          }
+
+          const buffs = ['stamina_regen', 'mining_luck', 'farming_luck', 'foraging_luck', 'fishing_luck'];
+          const chosenBuff = buffs[Math.floor(Math.random() * buffs.length)];
+          const amount = 1;
+          const duration = 10 * 60 * 1000; // 10 minutes
+
+          player.buffs = player.buffs.filter(b => b.type !== chosenBuff);
+          player.buffs.push({ type: chosenBuff, amount, expiresAt: now + duration });
+          player.stats['last_shrine_use'] = now;
+
+          socket.emit('entityUpdate', player);
+          notify(socket.id, `The Ancient Shrine glows! You feel a surge of ${chosenBuff.replace('_', ' ')}.`, 'success');
+          io.emit('chat', {
+              sender: 'System',
+              senderId: 'system',
+              message: `${player.name} received a blessing from an Ancient Shrine!`,
+              timestamp: now
+          });
+          return;
+      }
+
       if (building && building.species === 'shipping-bin') {
           let earned = 0;
           Object.entries(ITEM_PRICES).forEach(([item, price]) => {
@@ -1496,6 +1530,51 @@ io.on('connection', (socket) => {
             else if (animal.species === 'cat') notify(socket.id, "The cat is busy grooming.", 'info');
             else notify(socket.id, "This animal isn't ready to give anything yet.", 'info');
         }
+        return;
+      }
+
+      // If no other interaction, try harvesting mature plants at current position
+      const localEntities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const maturePlant = localEntities.find(e => e.type === 'plant' && (e as Plant).growthStage >= 5) as Plant | undefined;
+      if (maturePlant) {
+          if (maturePlant.species === 'apple-tree' || maturePlant.species === 'orange-tree' || maturePlant.species === 'berry-bush') {
+              // These already have logic above for periodic harvesting via interact,
+              // but let's ensure we don't fall through to generic harvest if it was just harvested.
+              return;
+          }
+
+          world.removeEntity(maturePlant.id, maturePlant.pos.q, maturePlant.pos.r);
+          const species = maturePlant.species || 'unknown';
+
+          // Give crop
+          player.inventory[species] = (player.inventory[species] || 0) + 1;
+          player.stats['harvested_total'] = (player.stats['harvested_total'] || 0) + 1;
+
+          // XP Gain
+          const xpGained = species === 'mushroom' ? 5 : 10;
+          const skill = species === 'mushroom' ? 'foraging' : 'farming';
+          const { leveledUp, newLevel } = addXP(player, skill, xpGained);
+          if (leveledUp) {
+              notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
+              checkAchievements(player);
+          }
+
+          // Chance to give 1-2 seeds
+          let seedsGained = 0;
+          if (species !== 'mushroom') {
+              const seedType = `${species}-seed`;
+              const farmingLuck = player.buffs.find(b => b.type === 'farming_luck');
+              seedsGained = (Math.floor(Math.random() * 2) + 1) + (farmingLuck ? 1 : 0);
+              player.inventory[seedType] = (player.inventory[seedType] || 0) + seedsGained;
+          }
+
+          const seedMsg = seedsGained > 0 ? ` Gained ${seedsGained} seeds.` : '';
+          notify(socket.id, `Harvested ${species}!${seedMsg}`, 'success');
+
+          io.emit('entityRemove', { id: maturePlant.id, pos: maturePlant.pos });
+          socket.emit('entityUpdate', player);
+          checkAchievements(player);
+          return;
       }
     }
   });
