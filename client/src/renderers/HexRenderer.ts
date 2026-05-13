@@ -406,10 +406,14 @@ export class HexRenderer {
     this.graphics.stroke({ color: 0x3d2b1f, width: 2 });
   }
 
-  drawSprinkler(x: number, y: number) {
+  drawSprinkler(entity: Entity, x: number, y: number) {
     // Base
+    let color = 0x4682B4; // Basic: SteelBlue
+    if (entity.species === 'iron-sprinkler') color = 0xC0C0C0; // Silver
+    else if (entity.species === 'gold-sprinkler') color = 0xFFD700; // Gold
+
     this.graphics.circle(x, y, 8);
-    this.graphics.fill({ color: 0x4682B4, alpha: 1 });
+    this.graphics.fill({ color, alpha: 1 });
     this.graphics.stroke({ color: 0x333333, width: 1 });
 
     // Rotating head (animated)
@@ -842,7 +846,7 @@ export class HexRenderer {
       } else if (entity.type === 'fence') {
         this.drawFence(x, y);
       } else if (entity.type === 'sprinkler') {
-        this.drawSprinkler(x, y);
+        this.drawSprinkler(entity, x, y);
       } else if (entity.type === 'building') {
         this.drawBuilding(entity, x, y);
       } else if (entity.type === 'floor') {

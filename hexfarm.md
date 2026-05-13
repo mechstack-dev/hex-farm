@@ -101,13 +101,14 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **M**: Barn (20 Wood, 10 Stone)
    - **Q**: Shipping Bin (10 Wood, 10 Stone)
    - **T**: Seed Maker (15 Wood, 5 Stone)
+   - **Shift+Q**: Compost Bin (10 Wood, 2 Stone)
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
-   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter). Additional recipes: **Alt+0** for Coal-Grilled Fish. New recipes (manual or via menu if updated): Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew.
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter). Additional recipes: **Alt+0** for Coal-Grilled Fish. New recipes: Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, **Fruity Sorbet**, **Hearty Stew**, **Seafood Platter**.
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Dynamite:** Press **Z** to use Dynamite. It clears everything in a 1-hex radius (excluding water) but does not refund resources.
@@ -159,7 +160,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Achievement System:** Milestones and global announcements.
 
 ### Medium Priority
-- [x] **Automation:** Sprinklers and Barns.
+- [x] **Automation:** Tiered Sprinklers and Barns.
 - [x] **Infrastructure:** Sheds, Chests, Fences, Paths, Barns, and Cooking Pots.
 - [x] **Economy:** Merchant system at (0,0).
 - [x] **Tool Upgrades:** Copper tools for efficiency.
@@ -190,6 +191,10 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **NPC Relationship System:** Friendship hearts and gifting.
 - [x] **Growing Trees:** Trees now have growth stages and dynamic wood yield.
 - [x] **Coal Resource:** Added coal as a rare drop and cooking ingredient.
+- [x] **Inventory Safety:** Prevented clearing buildings containing items.
+- [x] **Compost Bin:** Convert crops to powerful fertilizer.
+- [x] **Advanced Buffs:** Farming, Foraging, and Fishing luck.
+- [x] **NPC Milestones:** Reaching 1000 friendship grants unique perks.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term
