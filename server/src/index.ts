@@ -79,6 +79,7 @@ io.on('connection', (socket) => {
         stats: {},
         relationships: {},
         lastGiftTime: {},
+        lastNPCDailyGiftTime: {},
         perks: []
       };
     }
@@ -100,6 +101,7 @@ io.on('connection', (socket) => {
     if (!player.stats) player.stats = {};
     if (!player.relationships) player.relationships = {};
     if (!player.lastGiftTime) player.lastGiftTime = {};
+    if (!player.lastNPCDailyGiftTime) player.lastNPCDailyGiftTime = {};
     if (!player.perks) player.perks = [];
 
     players.set(socket.id, player);
@@ -1102,16 +1104,19 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const categoriesToStore = [
-          'turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'berry', 'mushroom',
-          'milk', 'wool', 'egg', 'truffle', 'wood', 'stone', 'fish', 'junk', 'honey', 'wildflower-honey', 'sunflower-honey',
-          'salad', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'mushroom-soup', 'berry-tart',
-          'turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed', 'apple-tree-seed', 'sunflower-seed'
-        ];
+        const toolBases = ['hoe', 'watering-can', 'axe', 'pickaxe', 'fishing-rod', 'dynamite'];
+        const isTool = (item: string) => {
+            if (toolBases.includes(item)) return true;
+            if (item.startsWith('copper-') || item.startsWith('iron-') || item.startsWith('gold-')) {
+                const base = item.split('-').slice(1).join('-');
+                return toolBases.includes(base);
+            }
+            return false;
+        };
 
         let hasAnythingToStore = false;
-        categoriesToStore.forEach(item => {
-            if (playerInv[item] > 0) {
+        Object.keys(playerInv).forEach(item => {
+            if (playerInv[item] > 0 && !isTool(item)) {
                 buildingInv[item] = (buildingInv[item] || 0) + playerInv[item];
                 playerInv[item] = 0;
                 hasAnythingToStore = true;
@@ -1179,6 +1184,37 @@ io.on('connection', (socket) => {
       }
 
       if (animal) {
+        const npcName = animal.species || '';
+        const currentTime = Date.now();
+        const canGetNPCGift = ['miner', 'fisherman', 'blacksmith', 'merchant'].includes(npcName) &&
+            (player.relationships[npcName] || 0) >= 500 &&
+            (currentTime - (player.lastNPCDailyGiftTime[npcName] || 0) >= GAME_DAY);
+
+        if (canGetNPCGift && Math.random() < 0.2) {
+            let gift = 'stone';
+            let msg = '';
+            if (npcName === 'miner') {
+                gift = Math.random() < 0.7 ? 'coal' : 'iron-ore';
+                msg = `Miner: "Found some extra ${gift.replace('-', ' ')} today. You want it?"`;
+            } else if (npcName === 'merchant') {
+                const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'sunflower-seed'];
+                gift = seeds[Math.floor(Math.random() * seeds.length)];
+                msg = `Merchant: "Got some spare ${gift.replace('-seed', '')} seeds for my favorite farmer!"`;
+            } else if (npcName === 'fisherman') {
+                gift = 'fish';
+                msg = `Fisherman: "Had a great haul today, here's a fresh one for ye."`;
+            } else if (npcName === 'blacksmith') {
+                gift = 'stone';
+                msg = `Blacksmith: "Clearin' out some scrap stone. Take it if ye like."`;
+            }
+
+            player.inventory[gift] = (player.inventory[gift] || 0) + 1;
+            player.lastNPCDailyGiftTime[npcName] = currentTime;
+            notify(socket.id, msg, 'success');
+            socket.emit('entityUpdate', player);
+            // Removed 'return' to allow primary interaction logic to continue
+        }
+
         if (animal.species === 'miner') {
           const ores = { 'gold-ore': 500, 'iron-ore': 100, 'stone': 10 };
           let earned = 0;
@@ -1538,7 +1574,13 @@ io.on('connection', (socket) => {
         'fish-stew': { 'fish': 1, 'carrot': 1, 'corn': 1 },
         'fruity-sorbet': { 'berry': 2, 'apple': 1, 'sunflower': 1 },
         'hearty-stew': { 'winter-radish': 1, 'carrot': 1, 'mushroom': 1, 'wood': 1 },
-        'seafood-platter': { 'fish': 2, 'corn': 1, 'junk': 1 }
+        'seafood-platter': { 'fish': 2, 'corn': 1, 'junk': 1 },
+        'honey-glazed-carrots': { 'carrot': 2, 'honey': 1 },
+        'goat-cheese-salad': { 'turnip': 1, 'goat-milk': 1 },
+        'duck-egg-mayo': { 'duck-egg': 1, 'sunflower': 1 },
+        'berry-smoothie': { 'berry': 2, 'milk': 1 },
+        'pumpkin-pie': { 'pumpkin': 1, 'wheat': 1, 'egg': 1 },
+        'apple-cider': { 'apple': 3, 'honey': 1 }
       };
 
       const ingredients = recipes[recipe];

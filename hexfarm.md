@@ -36,7 +36,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Shipping Bin:** Sell all crops and products in your inventory at 80% value instantly.
 - **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
 - **Beehives:** Produce Honey over time. If a **Sunflower** is within a 2-hex radius, they produce premium **Sunflower Honey**, otherwise they produce standard **Wildflower Honey**. They also provide a 1.5x growth boost to plants within a 2-hex radius.
-- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`). High friendship levels unlock new dialogue.
+- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`). High friendship levels unlock new dialogue. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
@@ -63,7 +63,7 @@ HexFarm is designed to be played over long periods.
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone. Mining rocks also has a chance to yield **Iron Ore**.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
-- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, and **Fish Stew**.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, **Fish Stew**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, and **Apple Cider**.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
 - **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore/Gold Ore to upgrade tools to Copper, Iron, and Gold versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
@@ -108,7 +108,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
-   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter). Additional recipes: **Alt+0** for Coal-Grilled Fish. New recipes: Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, **Fruity Sorbet**, **Hearty Stew**, **Seafood Platter**.
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter). Additional recipes: **Alt+0** for Coal-Grilled Fish. New recipes: Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, **Fruity Sorbet**, **Hearty Stew**, **Seafood Platter**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, and **Apple Cider**.
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Dynamite:** Press **Z** to use Dynamite. It clears everything in a 1-hex radius (excluding water) but does not refund resources.
@@ -195,6 +195,10 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Compost Bin:** Convert crops to powerful fertilizer.
 - [x] **Advanced Buffs:** Farming, Foraging, and Fishing luck.
 - [x] **NPC Milestones:** Reaching 1000 friendship grants unique perks.
+- [x] **Storage Refactor:** Store any non-tool item in Chests/Sheds.
+- [x] **More Recipes:** Added 6 new complex recipes including Honey-Glazed Carrots and Pumpkin Pie.
+- [x] **NPC Daily Gifts:** High friendship NPCs give daily gifts.
+- [x] **Improved Fence Visuals:** Connected rails between adjacent fences.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

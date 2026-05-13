@@ -395,15 +395,30 @@ export class HexRenderer {
     }
   }
 
-  drawFence(x: number, y: number) {
-    this.graphics.poly([
-        x - HEX_SIZE * 0.8, y - 5,
-        x + HEX_SIZE * 0.8, y - 5,
-        x + HEX_SIZE * 0.8, y + 5,
-        x - HEX_SIZE * 0.8, y + 5,
-    ]);
+  drawFence(x: number, y: number, neighbors: boolean[]) {
+    // Post
+    this.graphics.circle(x, y, 6);
     this.graphics.fill({ color: 0x8B4513, alpha: 1 });
     this.graphics.stroke({ color: 0x3d2b1f, width: 2 });
+
+    // Connecting rails
+    neighbors.forEach((hasNeighbor, i) => {
+        if (hasNeighbor) {
+            const directions = [
+                { q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 },
+                { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }
+            ];
+            const d = directions[i];
+            const { x: nx, y: ny } = axialToPixel(d.q, d.r, HEX_SIZE);
+            const rx = x + nx * 0.5;
+            const ry = y + ny * 0.5;
+
+            this.graphics.moveTo(x, y);
+            this.graphics.lineTo(rx, ry);
+            this.graphics.stroke({ color: 0x8B4513, width: 6 });
+            this.graphics.stroke({ color: 0x3d2b1f, width: 2 });
+        }
+    });
   }
 
   drawSprinkler(entity: Entity, x: number, y: number) {
@@ -797,6 +812,11 @@ export class HexRenderer {
     // Highlight current player hex
     this.drawHexHighlight(this.lastPlayerPos.q, this.lastPlayerPos.r);
 
+    const fencePositions = new Set<string>();
+    this.lastEntities.forEach(e => {
+        if (e.type === 'fence') fencePositions.add(`${e.pos.q},${e.pos.r}`);
+    });
+
     const sortedEntities = [...this.lastEntities].sort((a, b) => (TYPE_ORDER[a.type] || 0) - (TYPE_ORDER[b.type] || 0));
 
     sortedEntities.forEach(entity => {
@@ -844,7 +864,12 @@ export class HexRenderer {
           this.updateNPCLabel(entity as any, x, y, 'Miner');
         }
       } else if (entity.type === 'fence') {
-        this.drawFence(x, y);
+        const directions = [
+            { q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 },
+            { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }
+        ];
+        const neighbors = directions.map(d => fencePositions.has(`${entity.pos.q + d.q},${entity.pos.r + d.r}`));
+        this.drawFence(x, y, neighbors);
       } else if (entity.type === 'sprinkler') {
         this.drawSprinkler(entity, x, y);
       } else if (entity.type === 'building') {

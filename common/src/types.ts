@@ -25,7 +25,9 @@ export const ITEM_PRICES: Record<string, number> = {
   'salad': 60, 'apple-pie': 80, 'pumpkin-soup': 100, 'corn-chowder': 80, 'grilled-fish': 60,
   'mushroom-soup': 85, 'berry-tart': 90, 'miners-stew': 150, 'veggie-platter': 200, 'coal-grilled-fish': 120,
   'fruit-salad': 45, 'mushroom-risotto': 95, 'corn-bread': 110, 'fish-stew': 110,
-  'fruity-sorbet': 180, 'hearty-stew': 180, 'seafood-platter': 180
+  'fruity-sorbet': 180, 'hearty-stew': 180, 'seafood-platter': 180,
+  'honey-glazed-carrots': 120, 'goat-cheese-salad': 140, 'duck-egg-mayo': 80,
+  'berry-smoothie': 90, 'pumpkin-pie': 150, 'apple-cider': 110
 };
 
 export const SEED_PRICES: Record<string, number> = {
@@ -65,10 +67,16 @@ export const FOOD_VALUES: Record<string, number> = {
   'fish-stew': 75,
   'fruity-sorbet': 60,
   'hearty-stew': 80,
-  'seafood-platter': 70
+  'seafood-platter': 70,
+  'honey-glazed-carrots': 70,
+  'goat-cheese-salad': 75,
+  'duck-egg-mayo': 40,
+  'berry-smoothie': 50,
+  'pumpkin-pie': 85,
+  'apple-cider': 60
 };
 
-export const BEST_FOODS = ['veggie-platter', 'fish-stew', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';
 
@@ -137,6 +145,7 @@ export interface Player extends Entity {
   stats: Record<string, number>;
   relationships: Record<string, number>;
   lastGiftTime: Record<string, number>;
+  lastNPCDailyGiftTime: Record<string, number>;
   perks: string[];
 }
 
