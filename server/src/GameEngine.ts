@@ -31,9 +31,30 @@ export class GameEngine {
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
         if (entity.type === 'sprinkler') {
-          sprinklerPositions.add(`${entity.pos.q},${entity.pos.r}`);
-          getNeighbors(entity.pos).forEach(n => {
-            sprinklerPositions.add(`${n.q},${n.r}`);
+          const radius = entity.species === 'gold-sprinkler' ? 3 : (entity.species === 'iron-sprinkler' ? 2 : 1);
+
+          const getRecursiveNeighbors = (pos: any, r: number): string[] => {
+              let results = new Set<string>();
+              results.add(`${pos.q},${pos.r}`);
+              let currentRing = [pos];
+              for (let i = 0; i < r; i++) {
+                  let nextRing: any[] = [];
+                  currentRing.forEach(p => {
+                      getNeighbors(p).forEach(n => {
+                          const key = `${n.q},${n.r}`;
+                          if (!results.has(key)) {
+                              results.add(key);
+                              nextRing.push(n);
+                          }
+                      });
+                  });
+                  currentRing = nextRing;
+              }
+              return Array.from(results);
+          };
+
+          getRecursiveNeighbors(entity.pos, radius).forEach(key => {
+              sprinklerPositions.add(key);
           });
         } else if (entity.type === 'obstacle' && entity.species === 'scarecrow') {
             scarecrowPositions.add(`${entity.pos.q},${entity.pos.r}`);

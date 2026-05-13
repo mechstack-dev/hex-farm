@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { HexRenderer } from './renderers/HexRenderer'
 import type { Entity, Position, EnvironmentState } from 'common'
-import { getChunkCoords } from 'common'
+import { getChunkCoords, BEST_FOODS } from 'common'
 import { socket, joinGame, movePlayer } from './network'
 import { useInput } from './hooks/useInput'
 import './App.css'
@@ -18,6 +18,7 @@ function App() {
   const [playerMaxStamina, setPlayerMaxStamina] = useState<number>(100);
   const [playerSkills, setPlayerSkills] = useState<Record<string, {level: number, xp: number}>>({});
   const [playerBuffs, setPlayerBuffs] = useState<{type: string, amount: number, expiresAt: number}[]>([]);
+  const [playerPerks, setPlayerPerks] = useState<string[]>([]);
   const [playerAchievements, setPlayerAchievements] = useState<string[]>([]);
   const [playerRelationships, setPlayerRelationships] = useState<Record<string, number>>({});
   const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
@@ -85,6 +86,7 @@ function App() {
         setPlayerMaxStamina(p.maxStamina || 100);
         setPlayerSkills(p.skills || {});
         setPlayerBuffs(p.buffs || []);
+        setPlayerPerks(p.perks || []);
         setPlayerAchievements(p.achievements || []);
         setPlayerRelationships(p.relationships || {});
         setPlayerActiveQuest(p.activeQuest || null);
@@ -184,7 +186,9 @@ function App() {
       } else if (e.key.toLowerCase() === 'r') {
         socket.emit('build_path');
       } else if (e.key.toLowerCase() === 'k') {
-        socket.emit('build_sprinkler');
+        if (e.shiftKey) socket.emit('build_sprinkler', 'iron');
+        else if (e.altKey) socket.emit('build_sprinkler', 'gold');
+        else socket.emit('build_sprinkler', 'basic');
       } else if (e.key.toLowerCase() === 'b') {
         socket.emit('build_scarecrow');
       } else if (e.key.toLowerCase() === 'x') {
@@ -214,7 +218,8 @@ function App() {
       } else if (e.key.toLowerCase() === 'm') {
         socket.emit('build_building', 'barn');
       } else if (e.key.toLowerCase() === 'q') {
-        socket.emit('build_building', 'shipping-bin');
+        if (e.shiftKey) socket.emit('build_building', 'compost-bin');
+        else socket.emit('build_building', 'shipping-bin');
       } else if (e.key.toLowerCase() === 't') {
         socket.emit('build_building', 'seed-maker');
       } else if (e.key.toLowerCase() === 'g') {
@@ -225,8 +230,7 @@ function App() {
         socket.emit('use_dynamite');
       } else if (e.key.toLowerCase() === 'c') {
         // Simple logic to consume best food in inventory
-        const foods = ['veggie-platter', 'fish-stew', 'miners-stew', 'coal-grilled-fish', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'corn-chowder', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'winter-radish', 'berry', 'mushroom', 'apple', 'fish', 'corn', 'carrot', 'turnip'];
-        const toEat = foods.find(f => playerInventory[f] > 0);
+        const toEat = BEST_FOODS.find(f => playerInventory[f] > 0);
         if (toEat) socket.emit('consume', toEat);
         else socket.emit('consume', 'apple'); // Fallback for error message
       } else if (e.code === 'Digit1' && e.altKey) {
@@ -257,6 +261,12 @@ function App() {
         socket.emit('cook', 'corn-bread');
       } else if (e.code === 'BracketRight' && e.altKey) {
         socket.emit('cook', 'fish-stew');
+      } else if (e.code === 'KeyS' && e.altKey) {
+        socket.emit('cook', 'fruity-sorbet');
+      } else if (e.code === 'KeyD' && e.altKey) {
+        socket.emit('cook', 'hearty-stew');
+      } else if (e.code === 'KeyF' && e.altKey) {
+        socket.emit('cook', 'seafood-platter');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -313,8 +323,8 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew'].includes(item)) categories.crops.items.push([item, count]);
-        else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal'].includes(item)) categories.resources.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'apple', 'berry', 'mushroom', 'fish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'compost-fertilizer'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
@@ -410,6 +420,23 @@ function App() {
             ))}
           </div>
         )}
+        {playerPerks.length > 0 && (
+          <div className="perks" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
+            {playerPerks.map(perk => {
+              const perkNames: Record<string, string> = {
+                  'perk-merchant': "Merchant's Guild",
+                  'perk-blacksmith': "Smith's Apprentice",
+                  'perk-fisherman': "Expert Angler",
+                  'perk-miner': "Deep Delver"
+              };
+              return (
+                <div key={perk} style={{ background: 'rgba(255, 215, 0, 0.4)', padding: '2px 5px', borderRadius: '3px', fontSize: '10px', border: '1px solid gold', color: 'gold' }}>
+                    {perkNames[perk] || perk}
+                </div>
+              );
+            })}
+          </div>
+        )}
         <div className="skills" style={{ background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px', marginBottom: '10px', fontSize: '12px' }}>
           {Object.entries(playerSkills).map(([skill, data]) => (
             <div key={skill} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
@@ -461,10 +488,10 @@ function App() {
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
             <p style={{ margin: '2px 0' }}>Press <b>1-8</b> to Plant, <b>Shift + 1-7, 9</b> to Buy Seeds (Shift+8: Fishing Rod)</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
-            <p style={{ margin: '2px 0' }}>Press <b>K</b> to Sprinkler, <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin, <b>T</b> to Seed Maker</p>
+            <p style={{ margin: '2px 0' }}>Press <b>K</b> for Sprinkler (Shift+K: Iron, Alt+K: Gold), <b>B</b> to Scarecrow, <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive, <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin (Shift+Q: Compost Bin), <b>T</b> to Seed Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>H</b> to Harvest, <b>E</b> to Interact, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift</p>
-            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ]): Various Recipes</p>
+            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F): Various Recipes</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
             <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>9, 0, -, =</b>: Basic Tools</p>
           </div>
