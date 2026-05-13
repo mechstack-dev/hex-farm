@@ -3,29 +3,21 @@ import { useEffect } from 'react';
 export function useInput(onMove: (dq: number, dr: number) => void) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
+      switch (e.code) {
         case 'ArrowUp':
+        case 'KeyW':
           onMove(0, -1);
           break;
         case 'ArrowDown':
+        case 'KeyS':
           onMove(0, 1);
           break;
         case 'ArrowLeft':
+        case 'KeyA':
           onMove(-1, 0);
           break;
         case 'ArrowRight':
-          onMove(1, 0);
-          break;
-        case 'w':
-          onMove(0, -1);
-          break;
-        case 's':
-          onMove(0, 1);
-          break;
-        case 'a':
-          onMove(-1, 0);
-          break;
-        case 'd':
+        case 'KeyD':
           onMove(1, 0);
           break;
       }

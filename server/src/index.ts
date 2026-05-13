@@ -157,7 +157,7 @@ io.on('connection', (socket) => {
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
         (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building') ||
-        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree'))
+        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree'))
       );
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
@@ -754,7 +754,7 @@ io.on('connection', (socket) => {
         // Prioritize actual obstacles/plants/fences over background floor
         obstacle = entities.find(e =>
             (e.type === 'obstacle' && e.species !== 'water') ||
-            (e.type === 'plant' && (e.species === 'apple-tree' || e.species === 'tree')) ||
+            (e.type === 'plant' && (e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'tree')) ||
             e.type === 'fence'
         );
         if (obstacle) break;
@@ -769,7 +769,7 @@ io.on('connection', (socket) => {
       if (!hasStamina(player, sCost)) return;
 
       if (obstacle) {
-        if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
+        if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || obstacle.species === 'orange-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
           const hasGoldAxe = (player.inventory['gold-axe'] || 0) > 0;
           const hasIronAxe = (player.inventory['iron-axe'] || 0) > 0;
           const hasCopperAxe = (player.inventory['copper-axe'] || 0) > 0;
@@ -797,7 +797,9 @@ io.on('connection', (socket) => {
 
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
-          const name = obstacle.species === 'apple-tree' ? 'apple tree' : 'tree';
+          let name = 'tree';
+          if (obstacle.species === 'apple-tree') name = 'apple tree';
+          if (obstacle.species === 'orange-tree') name = 'orange tree';
 
           // Discovery Reward
           const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
@@ -1015,7 +1017,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'cooking-pot') {
-          notify(socket.id, "Recipes: Salad (1T,1C), Apple Pie (3A,1W), Pumpkin Soup (1P,1M), Corn Chowder (2C,1M), Grilled Fish (1F,1W), Fruit Salad (1A,1B), Mushroom Risotto (2M,1W), Corn Bread (2C,1W), Fish Stew (1F,1Ca,1Co). Press numbers in cook menu.", 'info');
+          socket.emit('show_cooking_menu');
           return;
       }
 
@@ -1345,6 +1347,7 @@ io.on('connection', (socket) => {
             if (availableUpgrade.ore) {
                 player.inventory[availableUpgrade.ore] -= availableUpgrade.oreCount;
             }
+            player.inventory[availableUpgrade.base]--;
             player.inventory[availableUpgrade.upgrade] = 1;
             notify(socket.id, `Upgraded to ${availableUpgrade.upgrade.replace('-', ' ')}!`, 'success');
             socket.emit('entityUpdate', player);
@@ -1793,7 +1796,44 @@ io.on('connection', (socket) => {
             notify(socket.id, `${npcName.charAt(0).toUpperCase() + npcName.slice(1)}: "Oh, thank you. That's very kind."`, 'success');
           }
 
-          player.relationships[npcName] = Math.min(1000, Math.max(0, (player.relationships[npcName] || 0) + points));
+          const oldPoints = player.relationships[npcName] || 0;
+          player.relationships[npcName] = Math.min(1000, Math.max(0, oldPoints + points));
+          const newPoints = player.relationships[npcName];
+
+          // Milestone dialogue
+          const milestones = [250, 500, 750, 1000];
+          const reached = milestones.find(m => oldPoints < m && newPoints >= m);
+          if (reached) {
+              const dialogues: Record<string, Record<number, string>> = {
+                  'merchant': {
+                      250: "Merchant: \"You're becoming a regular around here! I appreciate the business.\"",
+                      500: "Merchant: \"I've seen many farmers come and go, but you've got real staying power.\"",
+                      750: "Merchant: \"It's rare to find someone so dedicated. You're more than just a customer now.\"",
+                      1000: "Merchant: \"You're practically family. Welcome to the Merchant's Guild!\""
+                  },
+                  'blacksmith': {
+                      250: "Blacksmith: \"Not bad, farmer. You're starting to understand the value of good materials.\"",
+                      500: "Blacksmith: \"Your tools tell a story of hard work. I respect that.\"",
+                      750: "Blacksmith: \"Few have the patience for the forge... or for me. Thanks for stickin' around.\"",
+                      1000: "Blacksmith: \"You've got the heart of a smith. I'd be proud to call you my apprentice.\""
+                  },
+                  'fisherman': {
+                      250: "Fisherman: \"The ripples are changing... you're starting to fit in here.\"",
+                      500: "Fisherman: \"Patience is a virtue, and you've got it in spades.\"",
+                      750: "Fisherman: \"I can almost hear the water calling your name. You're a true angler.\"",
+                      1000: "Fisherman: \"The legendary catch is within your reach. You're a master of the waves.\""
+                  },
+                  'miner': {
+                      250: "Miner: \"Still got all your fingers? Good. You're tougher than you look.\"",
+                      500: "Miner: \"The stones are starting to talk to you, eh? Just don't let 'em talk back.\"",
+                      750: "Miner: \"Deep delvin' is in your blood. I can see the dust in your eyes.\"",
+                      1000: "Miner: \"You've reached the bottom and come back up. You're a true Deep Delver.\""
+                  }
+              };
+              if (dialogues[npcName] && dialogues[npcName][reached]) {
+                  notify(socket.id, dialogues[npcName][reached], 'success');
+              }
+          }
 
           // Perk logic
           if (player.relationships[npcName] >= 1000) {
