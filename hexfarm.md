@@ -204,6 +204,10 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Oranges:** New fruit tree and juice recipe.
 - [x] **Scythe:** Area-of-effect harvesting tool.
 - [x] **Wild Fruit Trees:** Apple and Orange trees now spawn rarely in the world.
+- [x] **Cooking UI:** Dedicated menu for crafting meals.
+- [x] **NPC Milestones:** Heart events with unique dialogue at 250/500/750 friendship.
+- [x] **Input Reliability:** Standardized `e.code` and unique modifiers (Ctrl for tools, Alt for cooking) for all game hotkeys.
+- [x] **UI Polish:** Added buff timers and item prices to inventory.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

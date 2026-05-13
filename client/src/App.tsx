@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { HexRenderer } from './renderers/HexRenderer'
+import { CookingMenu } from './components/CookingMenu'
 import type { Entity, Position, EnvironmentState } from 'common'
-import { getChunkCoords, BEST_FOODS } from 'common'
+import { getChunkCoords, BEST_FOODS, ITEM_PRICES } from 'common'
 import { socket, joinGame, movePlayer } from './network'
 import { useInput } from './hooks/useInput'
 import './App.css'
@@ -22,6 +23,7 @@ function App() {
   const [playerAchievements, setPlayerAchievements] = useState<string[]>([]);
   const [playerRelationships, setPlayerRelationships] = useState<Record<string, number>>({});
   const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
+  const [showCookingMenu, setShowCookingMenu] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
@@ -114,6 +116,10 @@ function App() {
       }, 5000);
     });
 
+    socket.on('show_cooking_menu', () => {
+      setShowCookingMenu(true);
+    });
+
     socket.on('chat', (msg: {sender: string, message: string, timestamp: number}) => {
       setChatMessages(prev => [...prev, { id: msg.timestamp, sender: msg.sender, message: msg.message }].slice(-50));
     });
@@ -138,157 +144,196 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isChatFocused) {
-          if (e.key === 'Escape') {
+          if (e.code === 'Escape') {
               setIsChatFocused(false);
               (document.activeElement as HTMLElement)?.blur();
           }
           return;
       }
-      if (e.key === 'Enter') {
+
+      if (e.code === 'Enter') {
           setIsChatFocused(true);
           return;
       }
 
-      if (e.code === 'Digit1') {
-        if (e.shiftKey) socket.emit('buy_seed', 'turnip');
-        else socket.emit('plant', 'turnip');
-      } else if (e.code === 'Digit2') {
-        if (e.shiftKey) socket.emit('buy_seed', 'carrot');
-        else socket.emit('plant', 'carrot');
-      } else if (e.code === 'Digit3') {
-        if (e.shiftKey) socket.emit('buy_seed', 'pumpkin');
-        else socket.emit('plant', 'pumpkin');
-      } else if (e.code === 'Digit4') {
-        if (e.shiftKey) socket.emit('buy_seed', 'corn');
-        else socket.emit('plant', 'corn');
-      } else if (e.code === 'Digit5') {
-        if (e.shiftKey) socket.emit('buy_seed', 'wheat');
-        else socket.emit('plant', 'wheat');
-      } else if (e.code === 'Digit6') {
-        if (e.shiftKey) socket.emit('buy_seed', 'apple-tree');
-        else socket.emit('plant', 'apple-tree');
-      } else if (e.code === 'Digit7') {
-        if (e.shiftKey) socket.emit('buy_seed', 'winter-radish');
-        else socket.emit('plant', 'winter-radish');
-      } else if (e.code === 'Digit8') {
-        if (e.shiftKey) socket.emit('buy_tool', 'fishing-rod');
-        else socket.emit('plant', 'sunflower');
-      } else if (e.key.toLowerCase() === 'i') {
-        socket.emit('water');
-      } else if (e.key.toLowerCase() === 'h') {
-        socket.emit('harvest');
-      } else if (e.key.toLowerCase() === 'f') {
-        socket.emit('build_fence');
-      } else if (e.key.toLowerCase() === 'e') {
-        socket.emit('interact');
-      } else if (e.key.toLowerCase() === 'p') {
-        socket.emit('plow');
-      } else if (e.key.toLowerCase() === 'r') {
-        socket.emit('build_path');
-      } else if (e.key.toLowerCase() === 'k') {
-        if (e.shiftKey) socket.emit('build_sprinkler', 'iron');
-        else if (e.altKey) socket.emit('build_sprinkler', 'gold');
-        else socket.emit('build_sprinkler', 'basic');
-      } else if (e.key.toLowerCase() === 'b') {
-        socket.emit('build_scarecrow');
-      } else if (e.key.toLowerCase() === 'x') {
-        if (e.shiftKey) socket.emit('sell_junk');
-        else socket.emit('clear_obstacle');
-      } else if (e.code === 'Digit9') {
-        if (e.shiftKey) socket.emit('buy_seed', 'orange-tree');
-        else if (e.altKey) socket.emit('buy_tool', 'hoe');
-        else socket.emit('plant', 'orange-tree');
-      } else if (e.code === 'Digit0') {
-        if (e.shiftKey) socket.emit('buy_seed', 'sunflower');
-        else if (e.altKey) socket.emit('buy_tool', 'watering-can');
-        else socket.emit('buy_tool', 'scythe');
-      } else if (e.code === 'Minus') {
-        if (e.altKey) socket.emit('buy_tool', 'axe');
-      } else if (e.code === 'Equal') {
-        if (e.altKey) socket.emit('buy_tool', 'pickaxe');
-      } else if (e.key.toLowerCase() === 'j') {
-        socket.emit('fish');
-      } else if (e.key.toLowerCase() === 'l') {
-        socket.emit('build_building', 'shed');
-      } else if (e.key.toLowerCase() === 'v') {
-        socket.emit('build_building', 'chest');
-      } else if (e.key.toLowerCase() === 'u') {
-        socket.emit('build_building', 'well');
-      } else if (e.key.toLowerCase() === 'n') {
-        socket.emit('build_building', 'beehive');
-      } else if (e.key.toLowerCase() === 'o') {
-        socket.emit('build_building', 'cooking-pot');
-      } else if (e.key.toLowerCase() === 'm') {
-        socket.emit('build_building', 'barn');
-      } else if (e.key.toLowerCase() === 'q') {
-        if (e.shiftKey) socket.emit('build_building', 'compost-bin');
-        else socket.emit('build_building', 'shipping-bin');
-      } else if (e.key.toLowerCase() === 't') {
-        socket.emit('build_building', 'seed-maker');
-      } else if (e.key.toLowerCase() === 'g') {
-        socket.emit('fertilize');
-      } else if (e.key.toLowerCase() === 'y') {
-        socket.emit('teleport_home');
-      } else if (e.key.toLowerCase() === 'z') {
-        socket.emit('use_dynamite');
-      } else if (e.key.toLowerCase() === 'c') {
-        // Simple logic to consume best food in inventory
-        const toEat = BEST_FOODS.find(f => playerInventory[f] > 0);
-        if (toEat) socket.emit('consume', toEat);
-        else socket.emit('consume', 'apple'); // Fallback for error message
-      } else if (e.code === 'Digit1' && e.altKey) {
-        socket.emit('cook', 'salad');
-      } else if (e.code === 'Digit2' && e.altKey) {
-        socket.emit('cook', 'apple-pie');
-      } else if (e.code === 'Digit3' && e.altKey) {
-        socket.emit('cook', 'pumpkin-soup');
-      } else if (e.code === 'Digit4' && e.altKey) {
-        socket.emit('cook', 'corn-chowder');
-      } else if (e.code === 'Digit5' && e.altKey) {
-        socket.emit('cook', 'grilled-fish');
-      } else if (e.code === 'Digit6' && e.altKey) {
-        socket.emit('cook', 'mushroom-soup');
-      } else if (e.code === 'Digit7' && e.altKey) {
-        socket.emit('cook', 'berry-tart');
-      } else if (e.code === 'Digit8' && e.altKey) {
-        socket.emit('cook', 'miners-stew');
-      } else if (e.code === 'Digit9' && e.altKey) {
-        socket.emit('cook', 'veggie-platter');
-      } else if (e.code === 'Digit0' && e.altKey) {
-        socket.emit('cook', 'coal-grilled-fish');
-      } else if (e.code === 'Minus' && e.altKey) {
-        socket.emit('cook', 'fruit-salad');
-      } else if (e.code === 'Equal' && e.altKey) {
-        socket.emit('cook', 'mushroom-risotto');
-      } else if (e.code === 'BracketLeft' && e.altKey) {
-        socket.emit('cook', 'corn-bread');
-      } else if (e.code === 'BracketRight' && e.altKey) {
-        socket.emit('cook', 'fish-stew');
-      } else if (e.code === 'KeyS' && e.altKey) {
-        socket.emit('cook', 'fruity-sorbet');
-      } else if (e.code === 'KeyD' && e.altKey) {
-        socket.emit('cook', 'hearty-stew');
-      } else if (e.code === 'KeyF' && e.altKey) {
-        socket.emit('cook', 'seafood-platter');
-      } else if (e.code === 'KeyG' && e.altKey) {
-        socket.emit('cook', 'honey-glazed-carrots');
-      } else if (e.code === 'KeyH' && e.altKey) {
-        socket.emit('cook', 'goat-cheese-salad');
-      } else if (e.code === 'KeyJ' && e.altKey) {
-        socket.emit('cook', 'duck-egg-mayo');
-      } else if (e.code === 'KeyK' && e.altKey) {
-        socket.emit('cook', 'berry-smoothie');
-      } else if (e.code === 'KeyL' && e.altKey) {
-        socket.emit('cook', 'pumpkin-pie');
-      } else if (e.code === 'KeyP' && e.altKey) {
-        socket.emit('cook', 'apple-cider');
-      } else if (e.code === 'KeyU' && e.altKey) {
-        socket.emit('cook', 'orange-juice');
+      const { shiftKey, altKey, ctrlKey } = e;
+
+      switch (e.code) {
+        case 'Digit1':
+          if (altKey) socket.emit('cook', 'salad');
+          else if (shiftKey) socket.emit('buy_seed', 'turnip');
+          else socket.emit('plant', 'turnip');
+          break;
+        case 'Digit2':
+          if (altKey) socket.emit('cook', 'apple-pie');
+          else if (shiftKey) socket.emit('buy_seed', 'carrot');
+          else socket.emit('plant', 'carrot');
+          break;
+        case 'Digit3':
+          if (altKey) socket.emit('cook', 'pumpkin-soup');
+          else if (shiftKey) socket.emit('buy_seed', 'pumpkin');
+          else socket.emit('plant', 'pumpkin');
+          break;
+        case 'Digit4':
+          if (altKey) socket.emit('cook', 'corn-chowder');
+          else if (shiftKey) socket.emit('buy_seed', 'corn');
+          else socket.emit('plant', 'corn');
+          break;
+        case 'Digit5':
+          if (altKey) socket.emit('cook', 'grilled-fish');
+          else if (shiftKey) socket.emit('buy_seed', 'wheat');
+          else socket.emit('plant', 'wheat');
+          break;
+        case 'Digit6':
+          if (altKey) socket.emit('cook', 'mushroom-soup');
+          else if (shiftKey) socket.emit('buy_seed', 'apple-tree');
+          else socket.emit('plant', 'apple-tree');
+          break;
+        case 'Digit7':
+          if (altKey) socket.emit('cook', 'berry-tart');
+          else if (shiftKey) socket.emit('buy_seed', 'winter-radish');
+          else socket.emit('plant', 'winter-radish');
+          break;
+        case 'Digit8':
+          if (altKey) socket.emit('cook', 'miners-stew');
+          else if (shiftKey) socket.emit('buy_tool', 'fishing-rod');
+          else socket.emit('plant', 'sunflower');
+          break;
+        case 'Digit9':
+          if (altKey) {
+            socket.emit('cook', 'veggie-platter');
+          } else if (shiftKey) {
+            socket.emit('buy_seed', 'orange-tree');
+          } else {
+            socket.emit('plant', 'orange-tree');
+          }
+          break;
+        case 'Digit0':
+          if (altKey) {
+            socket.emit('cook', 'coal-grilled-fish');
+          } else if (shiftKey) {
+            socket.emit('buy_seed', 'sunflower');
+          } else {
+            socket.emit('buy_tool', 'scythe');
+          }
+          break;
+        case 'Minus':
+          if (altKey) {
+            socket.emit('cook', 'fruit-salad');
+          }
+          break;
+        case 'Equal':
+          if (altKey) {
+            socket.emit('cook', 'mushroom-risotto');
+          }
+          break;
+        case 'BracketLeft':
+          if (altKey) socket.emit('cook', 'corn-bread');
+          break;
+        case 'BracketRight':
+          if (altKey) socket.emit('cook', 'fish-stew');
+          break;
+        case 'KeyS':
+          if (altKey) socket.emit('cook', 'fruity-sorbet');
+          break;
+        case 'KeyD':
+          if (altKey) socket.emit('cook', 'hearty-stew');
+          break;
+        case 'KeyF':
+          if (altKey) socket.emit('cook', 'seafood-platter');
+          else socket.emit('build_fence');
+          break;
+        case 'KeyG':
+          if (altKey) socket.emit('cook', 'honey-glazed-carrots');
+          else socket.emit('fertilize');
+          break;
+        case 'KeyH':
+          if (altKey) socket.emit('cook', 'goat-cheese-salad');
+          else socket.emit('harvest');
+          break;
+        case 'KeyJ':
+          if (altKey) socket.emit('cook', 'duck-egg-mayo');
+          else socket.emit('fish');
+          break;
+        case 'KeyK':
+          if (altKey) {
+            if (shiftKey) socket.emit('cook', 'berry-smoothie');
+            else socket.emit('build_sprinkler', 'gold');
+          } else if (shiftKey) socket.emit('build_sprinkler', 'iron');
+          else socket.emit('build_sprinkler', 'basic');
+          break;
+        case 'KeyL':
+          if (altKey) socket.emit('cook', 'pumpkin-pie');
+          else socket.emit('build_building', 'shed');
+          break;
+        case 'KeyP':
+          if (altKey) socket.emit('cook', 'apple-cider');
+          else socket.emit('plow');
+          break;
+        case 'KeyU':
+          if (altKey) socket.emit('cook', 'orange-juice');
+          else socket.emit('build_building', 'well');
+          break;
+        case 'KeyI':
+          socket.emit('water');
+          break;
+        case 'KeyE':
+          socket.emit('interact');
+          break;
+        case 'KeyR':
+          socket.emit('build_path');
+          break;
+        case 'KeyB':
+          socket.emit('build_scarecrow');
+          break;
+        case 'KeyX':
+          if (shiftKey) socket.emit('sell_junk');
+          else socket.emit('clear_obstacle');
+          break;
+        case 'KeyV':
+          socket.emit('build_building', 'chest');
+          break;
+        case 'KeyN':
+          socket.emit('build_building', 'beehive');
+          break;
+        case 'KeyO':
+          socket.emit('build_building', 'cooking-pot');
+          break;
+        case 'KeyM':
+          socket.emit('build_building', 'barn');
+          break;
+        case 'KeyQ':
+          if (shiftKey) socket.emit('build_building', 'compost-bin');
+          else socket.emit('build_building', 'shipping-bin');
+          break;
+        case 'KeyT':
+          socket.emit('build_building', 'seed-maker');
+          break;
+        case 'KeyY':
+          socket.emit('teleport_home');
+          break;
+        case 'KeyZ':
+          socket.emit('use_dynamite');
+          break;
+        case 'KeyC':
+          const toEat = BEST_FOODS.find(f => playerInventory[f] > 0);
+          if (toEat) socket.emit('consume', toEat);
+          else socket.emit('consume', 'apple');
+          break;
+      }
+
+      // Handle specific tool buy overlap with Ctrl or other modifiers if needed
+      // Currently, we'll use a clearer mapping in the switch or a separate check that doesn't overlap
+      if (ctrlKey) {
+        if (e.code === 'Digit9') socket.emit('buy_tool', 'hoe');
+        else if (e.code === 'Digit0') socket.emit('buy_tool', 'watering-can');
+        else if (e.code === 'Minus') socket.emit('buy_tool', 'axe');
+        else if (e.code === 'Equal') socket.emit('buy_tool', 'pickaxe');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isChatFocused, playerInventory]);
 
   useEffect(() => {
     if (renderer.current) {
@@ -369,6 +414,7 @@ function App() {
 
   return (
     <div className="App">
+      {showCookingMenu && <CookingMenu inventory={playerInventory} onClose={() => setShowCookingMenu(false)} />}
       {!isJoined && (
         <div className="login-overlay" style={{
           position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
@@ -430,11 +476,16 @@ function App() {
         </div>
         {playerBuffs.length > 0 && (
           <div className="buffs" style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
-            {playerBuffs.map(b => (
-              <div key={b.type} style={{ background: 'rgba(0, 255, 255, 0.4)', padding: '2px 5px', borderRadius: '3px', fontSize: '10px', border: '1px solid cyan' }}>
-                {b.type.replace('_', ' ')}
-              </div>
-            ))}
+            {playerBuffs.map(b => {
+              const secondsLeft = Math.max(0, Math.floor((b.expiresAt - Date.now()) / 1000));
+              const minutes = Math.floor(secondsLeft / 60);
+              const seconds = secondsLeft % 60;
+              return (
+                <div key={b.type} style={{ background: 'rgba(0, 255, 255, 0.4)', padding: '2px 5px', borderRadius: '3px', fontSize: '10px', border: '1px solid cyan' }}>
+                  {b.type.replace('_', ' ')} ({minutes}:{seconds.toString().padStart(2, '0')})
+                </div>
+              );
+            })}
           </div>
         )}
         {playerPerks.length > 0 && (
@@ -521,9 +572,15 @@ function App() {
             <div key={cat.name} style={{ marginBottom: '10px' }}>
               <h4 style={{ margin: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>{cat.name}</h4>
               <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {cat.items.map(([item, count]) => (
-                  <li key={item} style={{ textTransform: 'capitalize' }}>{item.replace('-seed', '').replace('-kit', '')}: {count}</li>
-                ))}
+                {cat.items.map(([item, count]) => {
+                  const price = ITEM_PRICES[item];
+                  return (
+                    <li key={item} style={{ textTransform: 'capitalize' }}>
+                      {item.replace('-seed', '').replace('-kit', '')}: {count}
+                      {price !== undefined && <span style={{ fontSize: '10px', color: '#ffd700', marginLeft: '5px' }}>({price}c)</span>}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
