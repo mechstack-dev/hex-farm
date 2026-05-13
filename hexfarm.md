@@ -25,7 +25,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Real-time Growth:** Plants progress through stages based on elapsed time. Different species (Turnips, Carrots, Pumpkins) have different growth rates.
 - **Watering Bonus:** Plants grow twice as fast if they have been watered within the last 24 hours (configurable in `PlantLogic.ts`).
 - **Fertilizer:** Players can use "Junk" caught while fishing as fertilizer to give plants an instant growth boost.
-- **Stamina:** Actions like plowing, watering, and clearing obstacles consume stamina. Stamina regenerates slowly over time.
+- **Stamina:** Actions like plowing, watering, and clearing obstacles consume stamina. Stamina regenerates over time.
 - **Consumption:** Eating crops or cooked food restores stamina. Cooked dishes provide much higher stamina bonuses and some provide temporary buffs.
 - **Buffs:** Certain foods like Pumpkin Soup provide temporary buffs, such as increased stamina regeneration.
 - **Pests:** Mature plants that are not protected by a Scarecrow (2-hex radius) have a small chance each game tick to be damaged by pests, regressing their growth stage.
@@ -37,6 +37,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
 - **Beehives:** Produce Honey over time. If a **Sunflower** is within a 2-hex radius, they produce premium **Sunflower Honey**, otherwise they produce standard **Wildflower Honey**. They also provide a 1.5x growth boost to plants within a 2-hex radius.
 - **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`). High friendship levels unlock new dialogue. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
+- **Natural Propagation:** Mature plants and trees have a small chance each tick to sprout new growth in adjacent empty hexes, allowing nature to reclaim the land and forests to expand naturally.
+- **Ancient Shrines:** Rarely found in the wild. Interacting with a shrine grants a powerful random 10-minute buff once per day.
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
@@ -84,7 +86,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 2. **Planting:** Press **1-6** to plant seeds on tilled soil.
 3. **Care:** Press **I** to water. Press **G** to use **Fertilizer** (consumes 1 Junk, boosts growth).
 4. **Watering Sources:** Standing near a **Well** or using a **Watering Can** allows watering. Wells provide a local infinite water source for the surrounding area.
-5. **Harvesting:** Press **H** to harvest mature plants.
+5. **Harvesting:** Press **E** (Interact) or **H** to harvest mature plants.
 6. **Clearing:** Press **X** to clear trees (Axe) or rocks (Pickaxe).
 7. **Building Infrastructure:**
    - **F**: Fence (2 Wood)
@@ -160,7 +162,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Global Chat:** Real-time communication between players.
 - [x] **Skill System:** XP and levels for various activities.
 - [x] **Achievement System:** Milestones and global announcements.
-- [ ] Simplify what actions the user can take, and make the game a lot more about what the interactions and growth of nature, natual plant propagation, and the effects of simple player actions have on a world. It should be an enjoyable game for someone to show up and only walk around and explore, if they so desire.
+- [x] Simplify what actions the user can take, and make the game a lot more about what the interactions and growth of nature, natual plant propagation, and the effects of simple player actions have on a world. It should be an enjoyable game for someone to show up and only walk around and explore, if they so desire.
 
 ### Medium Priority
 - [x] **Automation:** Tiered Sprinklers and Barns.
@@ -209,6 +211,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **NPC Milestones:** Heart events with unique dialogue at 250/500/750 friendship.
 - [x] **Input Reliability:** Standardized `e.code` and unique modifiers (Ctrl for tools, Alt for cooking) for all game hotkeys.
 - [x] **UI Polish:** Added buff timers and item prices to inventory.
+- [x] **Natural Propagation:** Plants and trees now spread naturally over time.
+- [x] **Ancient Shrines:** Discovery rewards for explorers that grant buffs.
+- [x] **Control Simplification:** Merged harvest into the universal interact ('E') key.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

@@ -568,7 +568,43 @@ export class HexRenderer {
         this.drawShippingBin(x, y);
     } else if (entity.species === 'seed-maker') {
         this.drawSeedMaker(x, y);
+    } else if (entity.species === 'ancient-shrine') {
+        this.drawAncientShrine(x, y);
     }
+  }
+
+  drawAncientShrine(x: number, y: number) {
+    // Base platform
+    this.graphics.poly([
+        x - 20, y + 10,
+        x + 20, y + 10,
+        x + 15, y + 15,
+        x - 15, y + 15
+    ]);
+    this.graphics.fill({ color: 0x4A4A4A, alpha: 1 });
+    this.graphics.stroke({ color: 0x222222, width: 2 });
+
+    // Pillar
+    this.graphics.rect(x - 6, y - 10, 12, 20);
+    this.graphics.fill({ color: 0x696969, alpha: 1 });
+    this.graphics.stroke({ color: 0x222222, width: 1 });
+
+    // Floating crystal
+    const float = Math.sin(Date.now() / 600) * 5;
+    const cy = y - 25 + float;
+    this.graphics.poly([
+        x, cy - 12,
+        x + 8, cy,
+        x, cy + 12,
+        x - 8, cy
+    ]);
+    this.graphics.fill({ color: 0x00FFFF, alpha: 0.8 });
+    this.graphics.stroke({ color: 0xFFFFFF, width: 2, alpha: 0.5 });
+
+    // Particles/Aura
+    const glow = (Math.sin(Date.now() / 300) + 1) / 2;
+    this.graphics.circle(x, cy, 15 + glow * 5);
+    this.graphics.fill({ color: 0x00FFFF, alpha: 0.2 });
   }
 
   drawShippingBin(x: number, y: number) {
