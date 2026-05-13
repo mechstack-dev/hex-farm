@@ -160,6 +160,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Global Chat:** Real-time communication between players.
 - [x] **Skill System:** XP and levels for various activities.
 - [x] **Achievement System:** Milestones and global announcements.
+- [ ] Simplify what actions the user can take, and make the game a lot more about what the interactions and growth of nature, natual plant propagation, and the effects of simple player actions have on a world. It should be an enjoyable game for someone to show up and only walk around and explore, if they so desire.
 
 ### Medium Priority
 - [x] **Automation:** Tiered Sprinklers and Barns.
