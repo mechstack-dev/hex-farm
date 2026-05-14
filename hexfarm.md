@@ -43,6 +43,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
+- **Fountains:** Decorative buildings that provide a +1.0 stamina regeneration boost to players within a 2-hex radius.
 
 ---
 
@@ -107,6 +108,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Shift+Q**: Compost Bin (10 Wood, 2 Stone)
    - **Alt+B**: Greenhouse (30 Wood, 20 Stone) - Protects plants from seasonal growth penalties.
    - **Alt+N**: Weather Station (10 Wood, 15 Stone) - Provides a forecast for tomorrow's weather.
+   - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.
@@ -219,7 +221,14 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Recycling Machine:** Added building to convert junk into useful resources.
 - [x] **Decorative Life:** Added butterflies and fireflies to the world.
 - [x] **Relationship Refinement:** Daily conversation bonus and localized breeding caps.
+- [x] **Fountains:** Added fountain building with stamina regeneration aura.
+- [x] **Nature Dynamics:** Mushrooms spawn during rain; flowers and sunflowers now propagate naturally.
+- [x] **Decorative Birds:** Added birds flying across the world.
+- [x] **Persistence Fixes:** Deterministic IDs for static entities and reliable removal tracking.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
+- [ ] **NPC Gift Requests**: NPCs occasionally ask for specific items via global chat.
+- [ ] **Pet Friendship**: Ability to build relationship with dogs and cats through interaction.
+- [ ] **Player Customization**: Ability to choose different player colors or simple skins.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

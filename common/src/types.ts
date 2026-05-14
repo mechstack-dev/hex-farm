@@ -18,6 +18,7 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'recycling-machine': { wood: 0, stone: 10 },
   'greenhouse': { wood: 30, stone: 20 },
   'weather-station': { wood: 10, stone: 15 },
+  'fountain': { wood: 0, stone: 20 },
 };
 
 export const ITEM_PRICES: Record<string, number> = {

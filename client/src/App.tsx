@@ -281,7 +281,8 @@ function App() {
           socket.emit('interact');
           break;
         case 'KeyR':
-          socket.emit('build_path');
+          if (altKey) socket.emit('build_building', 'fountain');
+          else socket.emit('build_path');
           break;
         case 'KeyB':
           if (altKey) socket.emit('build_building', 'greenhouse');
@@ -558,7 +559,7 @@ function App() {
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
             <p style={{ margin: '2px 0' }}>Press <b>1-9</b> to Plant (8: Sunflower, 9: Orange Tree), <b>Shift + 1-7, 9, 0</b> to Buy Seeds (Shift+8: Fishing Rod, Shift+9: Orange Tree, Shift+0: Sunflower)</p>
-            <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path, <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
+            <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path (Alt+R: Fountain), <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> for Sprinkler (Shift+K: Iron, Alt+K: Gold), <b>B</b> to Scarecrow (Alt+B: Greenhouse), <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive (Alt+N: Weather Station), <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin (Shift+Q: Compost Bin, Alt+Q: Recycling Machine), <b>T</b> to Seed Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>E</b> to Interact / Harvest, <b>H</b> to Harvest Area, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift | Find Ancient Shrines for blessings!</p>

@@ -1612,6 +1612,10 @@ io.on('connection', (socket) => {
           // XP Gain
           const xpGained = species === 'mushroom' ? 5 : 10;
           const skill = species === 'mushroom' ? 'foraging' : 'farming';
+          const sCost = getStaminaCost(player, skill, 5);
+          if (!hasStamina(player, sCost)) return;
+
+          player.stamina -= sCost;
           const { leveledUp, newLevel } = addXP(player, skill, xpGained);
           if (leveledUp) {
               notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');

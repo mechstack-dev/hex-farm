@@ -180,8 +180,10 @@ export class WorldManager {
     const chunk = this.getChunk(cq, cr);
     chunk.entities = chunk.entities.filter(e => e.id !== id);
 
+    const isPlayer = id.startsWith('player-');
+
     if (this.persistentEntities.has(id)) {
-        if (permanent || !id.startsWith('player-')) {
+        if (permanent || !isPlayer) {
           this.removeFromPersistence(id, q, r);
         } else {
           // For players being removed from active state, we still want to remove them from chunk index
@@ -189,7 +191,11 @@ export class WorldManager {
           this.removeFromChunkIndex(id, q, r);
         }
         this.markDirty();
-    } else if (id.startsWith('tree-') || id.startsWith('rock-')) {
+    }
+
+    // If it's not a player and it's either permanent or not persistent anymore,
+    // track it as removed to prevent static generator from recreating it.
+    if (!isPlayer && (permanent || !this.persistentEntities.has(id))) {
         this.removedStaticIds.add(id);
         this.markDirty();
     }
