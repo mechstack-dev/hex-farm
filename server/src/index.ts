@@ -161,7 +161,7 @@ io.on('connection', (socket) => {
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
         (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building' || e.type === 'animal') ||
-        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree'))
+        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'berry-bush'))
       );
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
@@ -309,6 +309,9 @@ io.on('connection', (socket) => {
                   const coins = 1 + Math.floor(Math.random() * 5);
                   player.coins += coins;
                   notify(socket.id, `Found ${coins} coins in the grass!`, 'success');
+              } else if (rand < 0.11) {
+                  player.inventory['ancient-coin'] = (player.inventory['ancient-coin'] || 0) + 1;
+                  notify(socket.id, "You found a dusty Ancient Coin!", 'success');
               }
             }
             const tilled = {
@@ -815,10 +818,16 @@ io.on('connection', (socket) => {
           const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
           const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0);
           if (Math.random() < discoveryChance) {
-            const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed', 'orange-tree-seed', 'winter-radish-seed'];
-            const seed = seeds[Math.floor(Math.random() * seeds.length)];
-            player.inventory[seed] = (player.inventory[seed] || 0) + 1;
-            notify(socket.id, `You found a ${seed.replace('-seed', '')} seed in the ${name}!`, 'success');
+            const rand = Math.random();
+            if (rand < 0.05) {
+                player.inventory['ancient-coin'] = (player.inventory['ancient-coin'] || 0) + 1;
+                notify(socket.id, `You found an Ancient Coin stuck in the ${name}!`, 'success');
+            } else {
+                const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed', 'orange-tree-seed', 'winter-radish-seed'];
+                const seed = seeds[Math.floor(Math.random() * seeds.length)];
+                player.inventory[seed] = (player.inventory[seed] || 0) + 1;
+                notify(socket.id, `You found a ${seed.replace('-seed', '')} seed in the ${name}!`, 'success');
+            }
           }
 
           notify(socket.id, `Cut down ${name}. Gained ${totalWood} wood.`, 'success');
@@ -881,9 +890,18 @@ io.on('connection', (socket) => {
           const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
           const discoveryChance = 0.05 + (discoveryLuck ? 0.05 : 0);
           if (Math.random() < discoveryChance) {
-            const coins = 5 + Math.floor(Math.random() * 10);
-            player.coins += coins;
-            notify(socket.id, `You found ${coins} coins hidden under the rock!`, 'success');
+            const rand = Math.random();
+            if (rand < 0.2) {
+                player.inventory['geode'] = (player.inventory['geode'] || 0) + 1;
+                notify(socket.id, "You found a Geode!", 'success');
+            } else if (rand < 0.3) {
+                player.inventory['ancient-coin'] = (player.inventory['ancient-coin'] || 0) + 1;
+                notify(socket.id, "You found an Ancient Coin under the rock!", 'success');
+            } else {
+                const coins = 5 + Math.floor(Math.random() * 10);
+                player.coins += coins;
+                notify(socket.id, `You found ${coins} coins hidden under the rock!`, 'success');
+            }
           }
 
           notify(socket.id, `Broke rock. Gained ${amount} stone.`, 'success');
@@ -1447,6 +1465,19 @@ io.on('connection', (socket) => {
             notify(socket.id, `Upgraded to ${availableUpgrade.upgrade.replace('-', ' ')}!`, 'success');
             socket.emit('entityUpdate', player);
             checkAchievements(player);
+          } else if ((player.inventory['geode'] || 0) > 0 && player.coins >= 20) {
+              player.inventory['geode']--;
+              player.coins -= 20;
+              const rand = Math.random();
+              let reward = 'coal';
+              if (rand < 0.1) reward = 'diamond';
+              else if (rand < 0.4) reward = 'gold-ore';
+              else if (rand < 0.7) reward = 'iron-ore';
+              else reward = 'coal';
+
+              player.inventory[reward] = (player.inventory[reward] || 0) + 1;
+              notify(socket.id, `Blacksmith cracked the geode! You found a ${reward.replace('-', ' ')}.`, 'success');
+              socket.emit('entityUpdate', player);
           } else {
             const heartLevel = Math.floor((player.relationships['blacksmith'] || 0) / 100);
             let dialogues = [
@@ -1455,6 +1486,7 @@ io.on('connection', (socket) => {
               "Copper tools are a farmer's best friend, but Iron is for masters.",
               "Hot enough for ye? The forge is always roaring.",
               "Bring me some coins and ore, and I'll show you what real craftsmanship looks like.",
+              "I can crack open those geodes for ye, only 20 coins a pop.",
               "For Iron upgrades, I need 500 coins and 5 Iron Ore.",
               "For Gold upgrades, I need 1000 coins and 5 Gold Ore."
             ];

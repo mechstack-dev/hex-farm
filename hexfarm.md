@@ -19,7 +19,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Players:** Persistent entities with unique IDs and names. Includes skills and levels.
 - **Plants:** Have `growthStage`, `lastWatered`, and `plantedAt` properties. They grow in real-time.
 - **Animals:** Move randomly to neighboring hexes at set intervals (`nextMoveTime`).
-- **Obstacles:** Static entities like trees and rocks that block movement.
+- **NPCs:** Merchant, Blacksmith, Fisherman, and Miner are specialized animals with fixed home positions. They move within a 3-hex radius of their home, making them feel more like active inhabitants of the world.
+- **Obstacles:** Static entities like trees and rocks that block movement. **Berry Bushes** also block movement for players and animals.
 
 ### Growth Mechanics
 - **Real-time Growth:** Plants progress through stages based on elapsed time. Different species (Turnips, Carrots, Pumpkins) have different growth rates.
@@ -44,6 +45,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 - **Fountains:** Decorative buildings that provide a +1.0 stamina regeneration boost to players within a 2-hex radius.
+- **Discovery & Geodes:** Clearing obstacles and plowing has a chance to yield rare items like **Ancient Coins**, **Geodes**, and **Diamonds**. Geodes can be processed by the Blacksmith for a small fee.
 
 ---
 
@@ -110,8 +112,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+N**: Weather Station (10 Wood, 15 Stone) - Provides a forecast for tomorrow's weather.
    - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
-   - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
-   - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.
+   - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
+   - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
@@ -225,7 +227,13 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Nature Dynamics:** Mushrooms spawn during rain; flowers and sunflowers now propagate naturally.
 - [x] **Decorative Birds:** Added birds flying across the world.
 - [x] **Persistence Fixes:** Deterministic IDs for static entities and reliable removal tracking.
+- [x] **NPC Schedules:** NPCs now move around their home locations instead of being static.
+- [x] **Rare Discoveries:** Added Ancient Coins, Geodes, and Diamonds as rare discovery rewards.
+- [x] **Geode Processing:** Blacksmith can now crack geodes for coins.
+- [x] **Input Polish:** Prevented character movement when using hotkey combinations.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
+- [ ] **Building Upgrades:** Allow players to upgrade buildings (e.g., larger Barns or Chests).
+- [ ] **More Decorative Furniture:** Rugs, lamps, and other items for house decoration.
 - [x] **NPC Gift Requests**: NPCs occasionally ask for specific items via global chat.
 - [x] **Pet Friendship**: Ability to build relationship with dogs and cats through interaction.
 - [x] **Player Customization**: Ability to choose different player colors or simple skins.
