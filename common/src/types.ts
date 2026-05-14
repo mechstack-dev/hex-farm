@@ -19,11 +19,12 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'greenhouse': { wood: 30, stone: 20 },
   'weather-station': { wood: 10, stone: 15 },
   'fountain': { wood: 0, stone: 20 },
+  'lamp': { wood: 2, stone: 5 },
 };
 
 export const ITEM_PRICES: Record<string, number> = {
   'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
-  'winter-radish': 40, 'sunflower': 45, 'apple': 15, 'orange': 20, 'berry': 12, 'mushroom': 18,
+  'winter-radish': 40, 'sunflower': 45, 'kale': 15, 'apple': 15, 'orange': 20, 'berry': 12, 'mushroom': 18,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
   'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
@@ -37,7 +38,7 @@ export const ITEM_PRICES: Record<string, number> = {
 
 export const SEED_PRICES: Record<string, number> = {
   'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20,
-  'winter-radish': 30, 'apple-tree': 50, 'orange-tree': 60, 'sunflower': 35
+  'winter-radish': 30, 'kale': 8, 'apple-tree': 50, 'orange-tree': 60, 'sunflower': 35
 };
 
 export const TOOL_PRICES: Record<string, number> = {
@@ -57,6 +58,7 @@ export const FOOD_VALUES: Record<string, number> = {
   'carrot': 8,
   'corn': 10,
   'winter-radish': 12,
+  'kale': 10,
   'fish': 15,
   'salad': 40,
   'apple-pie': 60,
@@ -84,7 +86,7 @@ export const FOOD_VALUES: Record<string, number> = {
   'orange-juice': 50
 };
 
-export const BEST_FOODS = ['golden-hexfish', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['golden-hexfish', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
 
 export const RECIPES: Record<string, Record<string, number>> = {
   'salad': { 'turnip': 1, 'carrot': 1 },

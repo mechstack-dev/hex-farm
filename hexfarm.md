@@ -111,6 +111,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+B**: Greenhouse (30 Wood, 20 Stone) - Protects plants from seasonal growth penalties.
    - **Alt+N**: Weather Station (10 Wood, 15 Stone) - Provides a forecast for tomorrow's weather.
    - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
+   - **Alt+E**: Lamp (2 Wood, 5 Stone) - Decorative building that glows at night and dusk.
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
@@ -237,6 +238,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **NPC Gift Requests**: NPCs occasionally ask for specific items via global chat.
 - [x] **Pet Friendship**: Ability to build relationship with dogs and cats through interaction.
 - [x] **Player Customization**: Ability to choose different player colors or simple skins.
+- [x] **New Winter Crop**: Added Kale as a specialized winter crop.
+- [x] **Lamps**: Added decorative lamps that glow at night.
+- [x] **Enhanced Bird Behavior**: Birds can now land on mature crops and ground objects.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
