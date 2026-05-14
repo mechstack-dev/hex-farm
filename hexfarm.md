@@ -35,8 +35,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Barns:** Automatically collect products from animals within a 2-hex radius.
 - **Shipping Bin:** Sell all crops and products in your inventory at 80% value instantly.
 - **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
-- **Beehives:** Produce Honey over time. If a **Sunflower** is within a 2-hex radius, they produce premium **Sunflower Honey**, otherwise they produce standard **Wildflower Honey**. They also provide a 1.5x growth boost to plants within a 2-hex radius.
-- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`). High friendship levels unlock new dialogue. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
+- **Beehives:** Produce Honey over time. If a **Sunflower** is within a 2-hex radius, they produce premium **Sunflower Honey**, otherwise they produce standard **Wildflower Honey**. They also provide a 1.5x growth boost and a 5x natural propagation boost to plants within a 2-hex radius.
+- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`). High friendship levels unlock new dialogue and rewards. At 750 friendship, NPCs give a significant one-time reward. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
 - **Natural Propagation:** Mature plants and trees have a small chance each tick to sprout new growth in adjacent empty hexes, allowing nature to reclaim the land and forests to expand naturally.
 - **Ancient Shrines:** Rarely found in the wild. Interacting with a shrine grants a powerful random 10-minute buff once per day.
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**.
@@ -105,6 +105,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Q**: Shipping Bin (10 Wood, 10 Stone)
    - **T**: Seed Maker (15 Wood, 5 Stone)
    - **Shift+Q**: Compost Bin (10 Wood, 2 Stone)
+   - **Alt+B**: Greenhouse (30 Wood, 20 Stone) - Protects plants from seasonal growth penalties.
+   - **Alt+N**: Weather Station (10 Wood, 15 Stone) - Provides a forecast for tomorrow's weather.
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
    - **Merchant:** Stand near (0,0) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near (5, 5) and press **E** to upgrade tools. Requires previous tier + coins/ore.

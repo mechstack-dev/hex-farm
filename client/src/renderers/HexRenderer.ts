@@ -573,7 +573,69 @@ export class HexRenderer {
         this.drawAncientShrine(x, y);
     } else if (entity.species === 'recycling-machine') {
         this.drawRecyclingMachine(x, y);
+    } else if (entity.species === 'greenhouse') {
+        this.drawGreenhouse(x, y);
+    } else if (entity.species === 'weather-station') {
+        this.drawWeatherStation(x, y);
     }
+  }
+
+  drawGreenhouse(x: number, y: number) {
+    // Glass structure
+    this.graphics.poly([
+        x - 20, y + 15,
+        x + 20, y + 15,
+        x + 20, y - 5,
+        x + 10, y - 15,
+        x - 10, y - 15,
+        x - 20, y - 5
+    ]);
+    this.graphics.fill({ color: 0xADD8E6, alpha: 0.4 }); // Transparent glass
+    this.graphics.stroke({ color: 0xFFFFFF, width: 2, alpha: 0.8 });
+
+    // Internal plants (visual only)
+    for (let i = -1; i <= 1; i++) {
+        const px = x + i * 8;
+        const py = y + 5;
+        this.graphics.circle(px, py, 4);
+        this.graphics.fill({ color: 0x32CD32, alpha: 0.6 });
+    }
+
+    // Framing
+    this.graphics.moveTo(x - 20, y - 5);
+    this.graphics.lineTo(x + 20, y - 5);
+    this.graphics.moveTo(x, y - 15);
+    this.graphics.lineTo(x, y + 15);
+    this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
+  }
+
+  drawWeatherStation(x: number, y: number) {
+    // Post
+    this.graphics.rect(x - 2, y - 10, 4, 25);
+    this.graphics.fill({ color: 0x708090, alpha: 1 });
+
+    // Station box
+    this.graphics.rect(x - 8, y - 5, 16, 12);
+    this.graphics.fill({ color: 0xFFFFFF, alpha: 0.9 });
+    this.graphics.stroke({ color: 0x333333, width: 1 });
+
+    // Anemometer (rotating)
+    const angle = Date.now() / 150;
+    for (let i = 0; i < 3; i++) {
+        const armAngle = angle + (i * Math.PI * 2 / 3);
+        const ax = x + Math.cos(armAngle) * 12;
+        const ay = y - 10 + Math.sin(armAngle) * 12;
+
+        this.graphics.moveTo(x, y - 10);
+        this.graphics.lineTo(ax, ay);
+        this.graphics.stroke({ color: 0x333333, width: 1 });
+        this.graphics.circle(ax, ay, 3);
+        this.graphics.fill({ color: 0xFF0000, alpha: 1 });
+    }
+
+    // Screen detail
+    this.graphics.rect(x - 5, y - 2, 10, 5);
+    this.graphics.fill({ color: 0x00FF00, alpha: 0.4 });
   }
 
   drawRecyclingMachine(x: number, y: number) {

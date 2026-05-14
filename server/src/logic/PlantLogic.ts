@@ -34,14 +34,14 @@ const SPECIES_GROWTH: Record<string, number> = {
   'sunflower': 2.5 * GAME_DAY,
 };
 
-export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny', season: Season = 'spring'): Plant {
+export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny', season: Season = 'spring', isProtected: boolean = false): Plant {
   const elapsed = now - plant.lastUpdate;
   const isWatered = (now - plant.lastWatered < GAME_DAY) || weather === 'rainy';
   
   const duration = SPECIES_GROWTH[plant.species] || SPECIES_GROWTH['turnip'];
 
   const preferred = PREFERRED_SEASONS[plant.species] || PREFERRED_SEASONS['turnip'];
-  const seasonMultiplier = preferred.includes(season) ? 1.0 : SEASONAL_PENALTY;
+  const seasonMultiplier = (isProtected || preferred.includes(season)) ? 1.0 : SEASONAL_PENALTY;
 
   const effectiveTime = isWatered ? elapsed * WATER_BONUS : elapsed;
   const growthIncrement = (effectiveTime * seasonMultiplier) / duration;
