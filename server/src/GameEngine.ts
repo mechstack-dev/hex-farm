@@ -280,7 +280,8 @@ export class GameEngine {
             }
         } else if (entity.type === 'animal') {
           const animal = entity as Animal;
-          if (animal.species !== 'merchant' && animal.species !== 'blacksmith' && animal.species !== 'fisherman' && animal.species !== 'miner') {
+          const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner'].includes(animal.species);
+          if (!isNPC) {
               // Breeding chance
               const speciesAnimalsInChunk = chunk.entities.filter(e => e.type === 'animal' && (e as Animal).species === animal.species);
               const speciesAnimals = animalPositionsBySpecies.get(animal.species) || [];
@@ -342,9 +343,10 @@ export class GameEngine {
                   }
               }
 
-              if (animal.nextMoveTime < now) {
-                  updated = moveAnimal(animal, this.world);
-              }
+          }
+
+          if (animal.nextMoveTime < now) {
+              updated = moveAnimal(animal, this.world);
           }
         }
 

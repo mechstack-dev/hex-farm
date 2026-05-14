@@ -25,7 +25,8 @@ export class Generator {
                 type: 'animal',
                 species: 'merchant',
                 pos: { q: 0, r: 0 },
-                nextMoveTime: Infinity, // Merchant doesn't move
+                homePos: { q: 0, r: 0 },
+                nextMoveTime: 0,
                 lastProductTime: 0
             } as unknown as Entity);
             continue;
@@ -38,7 +39,8 @@ export class Generator {
                 type: 'animal',
                 species: 'blacksmith',
                 pos: { q: 5, r: 5 },
-                nextMoveTime: Infinity,
+                homePos: { q: 5, r: 5 },
+                nextMoveTime: 0,
                 lastProductTime: 0
             } as unknown as Entity);
             continue;
@@ -53,7 +55,8 @@ export class Generator {
                 type: 'animal',
                 species: 'miner',
                 pos: { q: 10005, r: 10005 },
-                nextMoveTime: Infinity,
+                homePos: { q: 10005, r: 10005 },
+                nextMoveTime: 0,
                 lastProductTime: 0
             } as unknown as Entity);
             continue;
@@ -111,7 +114,8 @@ export class Generator {
                         type: 'animal',
                         species: 'fisherman',
                         pos: shore,
-                        nextMoveTime: Infinity,
+                        homePos: shore,
+                        nextMoveTime: 0,
                         lastProductTime: 0
                     } as unknown as Entity);
                 }

@@ -26,7 +26,7 @@ export const ITEM_PRICES: Record<string, number> = {
   'winter-radish': 40, 'sunflower': 45, 'apple': 15, 'orange': 20, 'berry': 12, 'mushroom': 18,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
-  'golden-hexfish': 500,
+  'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
   'salad': 60, 'apple-pie': 80, 'pumpkin-soup': 100, 'corn-chowder': 80, 'grilled-fish': 60,
   'mushroom-soup': 85, 'berry-tart': 90, 'miners-stew': 150, 'veggie-platter': 200, 'coal-grilled-fish': 120,
   'fruit-salad': 45, 'mushroom-risotto': 95, 'corn-bread': 110, 'fish-stew': 110,
@@ -149,6 +149,7 @@ export interface Animal extends Entity {
   nextMoveTime: number;
   lastProductTime: number;
   lastBredTime?: number;
+  homePos?: Position;
 }
 
 export interface SkillData {

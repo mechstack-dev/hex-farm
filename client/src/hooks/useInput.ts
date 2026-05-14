@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 export function useInput(onMove: (dq: number, dr: number) => void) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
       switch (e.code) {
         case 'ArrowUp':
         case 'KeyW':
