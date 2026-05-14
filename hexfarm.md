@@ -226,9 +226,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Decorative Birds:** Added birds flying across the world.
 - [x] **Persistence Fixes:** Deterministic IDs for static entities and reliable removal tracking.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
-- [ ] **NPC Gift Requests**: NPCs occasionally ask for specific items via global chat.
-- [ ] **Pet Friendship**: Ability to build relationship with dogs and cats through interaction.
-- [ ] **Player Customization**: Ability to choose different player colors or simple skins.
+- [x] **NPC Gift Requests**: NPCs occasionally ask for specific items via global chat.
+- [x] **Pet Friendship**: Ability to build relationship with dogs and cats through interaction.
+- [x] **Player Customization**: Ability to choose different player colors or simple skins.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

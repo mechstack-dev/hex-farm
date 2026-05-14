@@ -3,7 +3,7 @@ import { HexRenderer } from './renderers/HexRenderer'
 import { CookingMenu } from './components/CookingMenu'
 import type { Entity, Position, EnvironmentState } from 'common'
 import { getChunkCoords, BEST_FOODS, ITEM_PRICES } from 'common'
-import { socket, joinGame, movePlayer } from './network'
+import { socket, movePlayer } from './network'
 import { useInput } from './hooks/useInput'
 import './App.css'
 
@@ -12,6 +12,7 @@ function App() {
   const renderer = useRef<HexRenderer | null>(null);
   const [isJoined, setIsJoined] = useState(false);
   const [playerName, setPlayerName] = useState('');
+  const [playerColor, setPlayerColor] = useState('#0000ff');
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
   const [playerInventory, setPlayerInventory] = useState<Record<string, number>>({});
   const [playerCoins, setPlayerCoins] = useState<number>(0);
@@ -401,7 +402,8 @@ function App() {
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (playerName.trim()) {
-      joinGame(playerName.trim());
+      const colorNum = parseInt(playerColor.replace('#', ''), 16);
+      socket.emit('join', playerName.trim(), colorNum);
       setIsJoined(true);
     }
   };
@@ -435,6 +437,15 @@ function App() {
               style={{ padding: '10px', borderRadius: '5px', border: 'none' }}
               autoFocus
             />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label>Choose Color:</label>
+              <input
+                type="color"
+                value={playerColor}
+                onChange={(e) => setPlayerColor(e.target.value)}
+                style={{ padding: '0', borderRadius: '5px', border: 'none', width: '40px', height: '40px', cursor: 'pointer' }}
+              />
+            </div>
             <button type="submit" style={{ padding: '10px', borderRadius: '5px', border: 'none', background: '#28a745', color: 'white', cursor: 'pointer' }}>
               Join Game
             </button>
@@ -593,11 +604,20 @@ function App() {
         <div className="chat-container" style={{ marginTop: 'auto', pointerEvents: 'auto', width: '300px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <p style={{ fontSize: '10px', margin: 0, color: '#aaa' }}>Type <b>/give [name] [item] [amount]</b> to trade</p>
             <div className="chat-log" style={{ background: 'rgba(0,0,0,0.5)', padding: '10px', borderRadius: '5px', height: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column-reverse' }}>
-                {chatMessages.slice().reverse().map(m => (
-                    <div key={m.id} style={{ fontSize: '14px', marginBottom: '2px' }}>
-                        <b style={{ color: '#00ff00' }}>{m.sender}:</b> {m.message}
-                    </div>
-                ))}
+                {chatMessages.slice().reverse().map(m => {
+                    const isNPCRequest = m.message.includes('[REQUEST]');
+                    return (
+                        <div key={m.id} style={{
+                            fontSize: '14px',
+                            marginBottom: '2px',
+                            background: isNPCRequest ? 'rgba(255, 215, 0, 0.2)' : 'transparent',
+                            borderLeft: isNPCRequest ? '3px solid gold' : 'none',
+                            paddingLeft: isNPCRequest ? '5px' : '0'
+                        }}>
+                            <b style={{ color: isNPCRequest ? 'gold' : '#00ff00' }}>{m.sender}:</b> {m.message}
+                        </div>
+                    );
+                })}
             </div>
             <form onSubmit={handleSendChat} style={{ display: 'flex', gap: '5px' }}>
                 <input

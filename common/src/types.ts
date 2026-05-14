@@ -183,6 +183,7 @@ export interface Player extends Entity {
   lastNPCDailyGiftTime: Record<string, number>;
   lastTalkTime: Record<string, number>;
   perks: string[];
+  color: number;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
