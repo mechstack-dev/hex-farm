@@ -3,9 +3,8 @@ import type { Entity, Position, Plant, Animal, EnvironmentState } from 'common';
 import { axialToPixel, GAME_DAY } from 'common';
 import { socket } from '../network';
 
-let myId: string | null = null;
-socket.on('init', ({ playerId }: { playerId: string }) => {
-    myId = playerId;
+socket.on('init', ({ playerId: _playerId }: { playerId: string }) => {
+    // We can use _playerId if we need to identify the local player specifically in the renderer later
 });
 
 const HEX_SIZE = 30;
@@ -29,6 +28,7 @@ export class HexRenderer {
   private interpolatedCamera: { x: number, y: number } = { x: 0, y: 0 };
   private playerLabels: Map<string, PIXI.Text> = new Map();
   private plantLabels: Map<string, PIXI.Text> = new Map();
+  private hearts: { x: number, y: number, alpha: number, startTime: number }[] = [];
 
   constructor(element: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -50,6 +50,11 @@ export class HexRenderer {
         this.initialized = true;
 
         this.app.ticker.add(() => this.update());
+
+        socket.on('pet_interact', ({ pos }: { pos: Position }) => {
+            const { x, y } = axialToPixel(pos.q, pos.r, HEX_SIZE);
+            this.hearts.push({ x, y: y - 20, alpha: 1, startTime: Date.now() });
+        });
     });
   }
 
@@ -1008,9 +1013,9 @@ export class HexRenderer {
       }
 
       if (entity.type === 'player') {
-        const isMe = entity.id === myId;
-        this.drawPlayer(x, y, isMe ? 0xFF0000 : 0x0000FF);
-        this.updatePlayerLabel(entity as any, x, y);
+        const player = entity as any;
+        this.drawPlayer(x, y, player.color || 0x0000FF);
+        this.updatePlayerLabel(player, x, y);
       } else if (entity.type === 'obstacle') {
         if (entity.species === 'water') {
             this.drawWater(x, y);
@@ -1063,7 +1068,32 @@ export class HexRenderer {
             this.drawBirds();
         }
         this.drawDecorativeEntities(timeOfDay);
+        this.drawHearts();
     }
+  }
+
+  drawHearts() {
+    const now = Date.now();
+    this.hearts = this.hearts.filter(h => now - h.startTime < 2000);
+
+    this.hearts.forEach(h => {
+        const elapsed = now - h.startTime;
+        const progress = elapsed / 2000;
+        const currentY = h.y - progress * 40;
+        const currentAlpha = 1 - progress;
+
+        // Draw Heart
+        this.overlay.beginPath();
+        const size = 5;
+        const hx = h.x + this.container.x;
+        const hy = currentY + this.container.y;
+
+        this.overlay.moveTo(hx, hy);
+        this.overlay.bezierCurveTo(hx - size, hy - size, hx - size * 2, hy + size, hx, hy + size * 2);
+        this.overlay.bezierCurveTo(hx + size * 2, hy + size, hx + size, hy - size, hx, hy);
+
+        this.overlay.fill({ color: 0xFF0000, alpha: currentAlpha });
+    });
   }
 
   drawDecorativeEntities(timeOfDay: number) {

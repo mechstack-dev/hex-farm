@@ -28,7 +28,7 @@ const players: Map<string, Player> = new Map();
 io.on('connection', (socket) => {
   console.log('a user connected', socket.id);
 
-  socket.on('join', (name: string) => {
+  socket.on('join', (name: string, color?: number) => {
     // Sanitize name to prevent path traversal and other issues
     const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').trim();
     if (!sanitizedName) {
@@ -81,11 +81,13 @@ io.on('connection', (socket) => {
         lastGiftTime: {},
         lastNPCDailyGiftTime: {},
         lastTalkTime: {},
-        perks: []
+        perks: [],
+        color: color !== undefined ? color : 0x0000FF
       };
     }
 
     // Migration for existing players
+    if (player.color === undefined) player.color = color !== undefined ? color : 0x0000FF;
     if (player.stamina === undefined) player.stamina = 100;
     if (player.maxStamina === undefined) player.maxStamina = 100;
     if (!player.skills) {
@@ -1573,16 +1575,28 @@ io.on('connection', (socket) => {
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', animal);
             notify(socket.id, `Collected ${product}!`, 'success');
-          } else if (animal.species === 'dog') {
-              notify(socket.id, "Woof! The dog wags its tail.", 'info');
+          } else if (animal.species === 'dog' || animal.species === 'cat') {
+              const isDog = animal.species === 'dog';
+              notify(socket.id, isDog ? "Woof! The dog wags its tail." : "Meow! The cat purrs.", 'info');
+
+              // Pet friendship
+              const npcName = animal.id; // Use unique ID for specific pets
+              const oldPoints = player.relationships[npcName] || 0;
+              player.relationships[npcName] = Math.min(1000, oldPoints + 10);
+
+              // Reward at 500+ points
+              if (player.relationships[npcName] >= 500 && Math.random() < 0.2) {
+                  const rewards = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'junk'];
+                  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+                  player.inventory[reward] = (player.inventory[reward] || 0) + 1;
+                  notify(socket.id, `${isDog ? 'The dog' : 'The cat'} brought you a ${reward.replace('-seed', '')}!`, 'success');
+              }
+
               animal.lastProductTime = now;
               world.updateEntity(animal);
               io.emit('entityUpdate', animal);
-          } else if (animal.species === 'cat') {
-              notify(socket.id, "Meow! The cat purrs.", 'info');
-              animal.lastProductTime = now;
-              world.updateEntity(animal);
-              io.emit('entityUpdate', animal);
+              socket.emit('entityUpdate', player);
+              io.emit('pet_interact', { pos: animal.pos });
           }
         } else {
             if (animal.species === 'dog') notify(socket.id, "The dog is napping.", 'info');
@@ -2032,6 +2046,23 @@ io.on('connection', (socket) => {
           }
       }
 
+    if (sanitized.startsWith('/color ')) {
+        const parts = sanitized.split(' ');
+        if (parts.length >= 2) {
+            let colorStr = parts[1].replace('#', '');
+            const color = parseInt(colorStr, 16);
+            if (!isNaN(color)) {
+                player.color = color;
+                socket.emit('entityUpdate', player);
+                notify(socket.id, `Changed your color to #${colorStr.toUpperCase()}.`, 'success');
+                return;
+            } else {
+                notify(socket.id, "Invalid hex color!", 'error');
+                return;
+            }
+        }
+    }
+
       io.emit('chat', {
         sender: player.name,
         senderId: player.id,
@@ -2052,6 +2083,8 @@ io.on('connection', (socket) => {
   });
 });
 
+let lastDayCount = -1;
+
 // Real game loop
 setInterval(() => {
   const { updatedEntities, environment, environmentChanged } = engine.tick();
@@ -2060,6 +2093,23 @@ setInterval(() => {
   });
   if (environmentChanged) {
     io.emit('environmentUpdate', environment);
+
+    // NPC Daily Request
+    if (environment.dayCount !== lastDayCount && environment.timeOfDay < 0.1) {
+        lastDayCount = environment.dayCount;
+        const npcs = ['Merchant', 'Blacksmith', 'Fisherman', 'Miner'];
+        const items = Object.keys(ITEM_PRICES);
+        const randomNPC = npcs[Math.floor(Math.random() * npcs.length)];
+        const randomItem = items[Math.floor(Math.random() * items.length)];
+        const count = 3 + Math.floor(Math.random() * 5);
+
+        io.emit('chat', {
+            sender: randomNPC,
+            senderId: 'npc-request',
+            message: `[REQUEST] I'm looking for ${count} ${randomItem.replace('-', ' ')} today! Any helpers?`,
+            timestamp: Date.now()
+        });
+    }
   }
 }, 1000);
 
