@@ -156,7 +156,7 @@ io.on('connection', (socket) => {
 
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
-        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building') ||
+        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building' || e.type === 'animal') ||
         (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree'))
       );
       if (!isBlocked) {
@@ -1027,6 +1027,12 @@ io.on('connection', (socket) => {
           return;
       }
 
+      if (building && building.species === 'weather-station') {
+          const nextWeather = engine.getNextWeather();
+          notify(socket.id, `Weather Station: Tomorrow's forecast is ${nextWeather}.`, 'info');
+          return;
+      }
+
       if (building && building.species === 'ancient-shrine') {
           const now = Date.now();
           const lastUsed = (player.stats['last_shrine_use'] || 0);
@@ -1878,6 +1884,24 @@ io.on('connection', (socket) => {
           const oldPoints = player.relationships[npcName] || 0;
           player.relationships[npcName] = Math.min(1000, Math.max(0, oldPoints + points));
           const newPoints = player.relationships[npcName];
+
+          // Milestone rewards at 750
+          if (oldPoints < 750 && newPoints >= 750) {
+              if (npcName === 'merchant') {
+                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'sunflower-seed', 'winter-radish-seed'];
+                  seeds.forEach(s => player.inventory[s] = (player.inventory[s] || 0) + 10);
+                  notify(socket.id, `Merchant: "You've been a great partner. Here's a bulk supply of seeds!"`, 'success');
+              } else if (npcName === 'blacksmith') {
+                  player.inventory['gold-ore'] = (player.inventory['gold-ore'] || 0) + 5;
+                  notify(socket.id, `Blacksmith: "Take some of my private stock. You've earned it."`, 'success');
+              } else if (npcName === 'fisherman') {
+                  player.inventory['golden-hexfish'] = (player.inventory['golden-hexfish'] || 0) + 1;
+                  notify(socket.id, `Fisherman: "The legendary Golden Hexfish! It's yours, friend."`, 'success');
+              } else if (npcName === 'miner') {
+                  player.inventory['dynamite'] = (player.inventory['dynamite'] || 0) + 10;
+                  notify(socket.id, `Miner: "A gift for a fellow deep-delver. Don't blow yourself up!"`, 'success');
+              }
+          }
 
           // Milestone dialogue
           const milestones = [250, 500, 750, 1000];

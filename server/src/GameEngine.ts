@@ -26,6 +26,7 @@ export class GameEngine {
     const sprinklerPositions = new Set<string>();
     const scarecrowPositions = new Set<string>();
     const beehivePositions = new Set<string>();
+    const greenhousePositions = new Set<string>();
     const sunflowerPositions = new Set<string>();
     const barnPositions = new Map<string, any>();
     chunks.forEach(chunk => {
@@ -71,6 +72,11 @@ export class GameEngine {
                 getNeighbors(n1).forEach(n2 => {
                     beehivePositions.add(`${n2.q},${n2.r}`);
                 });
+            });
+        } else if (entity.type === 'building' && entity.species === 'greenhouse') {
+            greenhousePositions.add(`${entity.pos.q},${entity.pos.r}`);
+            getNeighbors(entity.pos).forEach(n1 => {
+                greenhousePositions.add(`${n1.q},${n1.r}`);
             });
         } else if ((entity.type === 'floor' || entity.type === 'plant') && entity.species === 'sunflower') {
             sunflowerPositions.add(`${entity.pos.q},${entity.pos.r}`);
@@ -149,7 +155,8 @@ export class GameEngine {
               plant.lastUpdate = now - boostedElapsed;
           }
 
-          updated = updatePlant(plant, now, environment.weather, environment.season);
+          const isProtected = greenhousePositions.has(posKey);
+          updated = updatePlant(plant, now, environment.weather, environment.season, isProtected);
           // Restore original lastUpdate to prevent double-dipping or jumping
           updated.lastUpdate = now;
 
@@ -163,7 +170,8 @@ export class GameEngine {
           }
 
           // Propagation logic
-          if (updated.growthStage >= 5 && Math.random() < 0.0001) { // 0.01% chance per tick
+          const propagationChance = beehivePositions.has(posKey) ? 0.0005 : 0.0001;
+          if (updated.growthStage >= 5 && Math.random() < propagationChance) {
               const neighbors = getNeighbors(updated.pos);
               const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
               const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
@@ -305,5 +313,9 @@ export class GameEngine {
     });
 
     return { updatedEntities, environment, environmentChanged };
+  }
+
+  getNextWeather(): string {
+    return this.seasonManager.getNextWeather();
   }
 }

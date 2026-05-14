@@ -7,10 +7,19 @@ export class SeasonManager {
 
   private currentSeason: Season = 'spring';
   private currentWeather: Weather = 'sunny';
+  private nextWeather: Weather = 'sunny';
   private dayCount: number = 0;
 
   constructor() {
     this.startTime = Date.now();
+    this.nextWeather = this.generateRandomWeather();
+  }
+
+  private generateRandomWeather(): Weather {
+    const rand = Math.random();
+    if (rand < 0.2) return 'rainy';
+    else if (rand < 0.4) return 'cloudy';
+    else return 'sunny';
   }
 
   update(now: number): boolean {
@@ -24,11 +33,9 @@ export class SeasonManager {
       this.dayCount = newDayCount;
       changed = true;
 
-      // Random weather change each day
-      const rand = Math.random();
-      if (rand < 0.2) this.currentWeather = 'rainy';
-      else if (rand < 0.4) this.currentWeather = 'cloudy';
-      else this.currentWeather = 'sunny';
+      // Weather for the new day was pre-determined
+      this.currentWeather = this.nextWeather;
+      this.nextWeather = this.generateRandomWeather();
     }
 
     const seasonIndex = Math.floor(this.dayCount / 7) % 4;
@@ -53,5 +60,9 @@ export class SeasonManager {
       dayCount: this.dayCount,
       timeOfDay
     };
+  }
+
+  getNextWeather(): Weather {
+    return this.nextWeather;
   }
 }

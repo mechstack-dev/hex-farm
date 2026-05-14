@@ -16,6 +16,8 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'seed-maker': { wood: 15, stone: 5 },
   'compost-bin': { wood: 10, stone: 2 },
   'recycling-machine': { wood: 0, stone: 10 },
+  'greenhouse': { wood: 30, stone: 20 },
+  'weather-station': { wood: 10, stone: 15 },
 };
 
 export const ITEM_PRICES: Record<string, number> = {
@@ -23,6 +25,7 @@ export const ITEM_PRICES: Record<string, number> = {
   'winter-radish': 40, 'sunflower': 45, 'apple': 15, 'orange': 20, 'berry': 12, 'mushroom': 18,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
+  'golden-hexfish': 500,
   'salad': 60, 'apple-pie': 80, 'pumpkin-soup': 100, 'corn-chowder': 80, 'grilled-fish': 60,
   'mushroom-soup': 85, 'berry-tart': 90, 'miners-stew': 150, 'veggie-platter': 200, 'coal-grilled-fish': 120,
   'fruit-salad': 45, 'mushroom-risotto': 95, 'corn-bread': 110, 'fish-stew': 110,
@@ -46,6 +49,7 @@ export const KIT_PRICES: Record<string, number> = {
 };
 
 export const FOOD_VALUES: Record<string, number> = {
+  'golden-hexfish': 100,
   'apple': 20,
   'orange': 15,
   'turnip': 5,
@@ -79,7 +83,7 @@ export const FOOD_VALUES: Record<string, number> = {
   'orange-juice': 50
 };
 
-export const BEST_FOODS = ['pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['golden-hexfish', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
 
 export const RECIPES: Record<string, Record<string, number>> = {
   'salad': { 'turnip': 1, 'carrot': 1 },
