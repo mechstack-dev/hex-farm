@@ -22,13 +22,14 @@ export class HexRenderer {
   private lastEnvironment: EnvironmentState | null = null;
   private rainDrops: { x: number, y: number, speed: number, length: number }[] = [];
   private snowFlakes: { x: number, y: number, speed: number, size: number, drift: number }[] = [];
-  private birds: { x: number, y: number, vx: number, vy: number, size: number }[] = [];
+  private birds: { x: number, y: number, vx: number, vy: number, size: number, state: 'flying' | 'landed', timer: number }[] = [];
   private decorativeEntities: { x: number, y: number, type: 'firefly' | 'butterfly', offset: number, speed: number }[] = [];
   private interpolatedPositions: Map<string, { x: number, y: number }> = new Map();
   private interpolatedCamera: { x: number, y: number } = { x: 0, y: 0 };
   private playerLabels: Map<string, PIXI.Text> = new Map();
   private plantLabels: Map<string, PIXI.Text> = new Map();
   private hearts: { x: number, y: number, alpha: number, startTime: number }[] = [];
+  private visibleLandingSpots: { x: number, y: number }[] = [];
 
   constructor(element: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -191,6 +192,7 @@ export class HexRenderer {
     else if (plant.species === 'corn') color = 0xFFFF00;
     else if (plant.species === 'orange') color = 0xFFA500;
     else if (plant.species === 'winter-radish') color = 0xE6E6FA; // Lavender/White
+    else if (plant.species === 'kale') color = 0x006400; // Dark Green
     else if (plant.species === 'mushroom') color = 0xA52A2A;
     else if (plant.species === 'sunflower') color = 0xFFFF00;
 
@@ -308,6 +310,18 @@ export class HexRenderer {
             // Center
             this.graphics.circle(x, y - size, 3);
             this.graphics.fill({ color: 0x4B2C20, alpha: 1 });
+        } else if (plant.species === 'kale') {
+            // Dark green curly leaves
+            for (let i = 0; i < 5; i++) {
+                const angle = (i / 5) * Math.PI * 2;
+                const lx = x + Math.cos(angle) * (size * 0.6);
+                const ly = y + Math.sin(angle) * (size * 0.6);
+                this.graphics.circle(lx, ly, size * 0.5);
+                this.graphics.fill({ color: 0x006400, alpha: 1 });
+                // Leaf texture
+                this.graphics.circle(lx, ly, size * 0.3);
+                this.graphics.stroke({ color: 0x004d00, width: 1 });
+            }
         }
     }
 
@@ -585,7 +599,37 @@ export class HexRenderer {
         this.drawWeatherStation(x, y);
     } else if (entity.species === 'fountain') {
         this.drawFountain(x, y);
+    } else if (entity.species === 'lamp') {
+        this.drawLamp(x, y);
     }
+  }
+
+  drawLamp(x: number, y: number) {
+    const timeOfDay = this.lastEnvironment?.timeOfDay || 0;
+    const isNight = timeOfDay < 0.25 || timeOfDay > 0.75;
+    const isDusk = (timeOfDay >= 0.7 && timeOfDay <= 0.8) || (timeOfDay >= 0.2 && timeOfDay <= 0.3);
+
+    // Lamp post
+    this.graphics.rect(x - 2, y, 4, 15);
+    this.graphics.fill({ color: 0x333333, alpha: 1 });
+
+    // Lantern base
+    this.graphics.rect(x - 6, y - 5, 12, 10);
+    this.graphics.fill({ color: 0x444444, alpha: 1 });
+    this.graphics.stroke({ color: 0x000000, width: 1 });
+
+    // Glass/Light part
+    const lightColor = (isNight || isDusk) ? 0xFFFF00 : 0xEEEEEE;
+    this.graphics.rect(x - 4, y - 4, 8, 6);
+    this.graphics.fill({ color: lightColor, alpha: 0.9 });
+
+    // Cap
+    this.graphics.poly([
+        x - 8, y - 5,
+        x + 8, y - 5,
+        x, y - 10
+    ]);
+    this.graphics.fill({ color: 0x222222, alpha: 1 });
   }
 
   drawGreenhouse(x: number, y: number) {
@@ -954,6 +998,7 @@ export class HexRenderer {
     if (!this.initialized || !this.lastEnvironment) return;
 
     this.graphics.clear();
+    this.visibleLandingSpots = [];
 
     const { season, timeOfDay } = this.lastEnvironment;
     const lerpFactor = 0.15;
@@ -1017,6 +1062,9 @@ export class HexRenderer {
         this.drawPlayer(x, y, player.color || 0x0000FF);
         this.updatePlayerLabel(player, x, y);
       } else if (entity.type === 'obstacle') {
+        if (entity.species === 'tree' || (!entity.species && entity.id.startsWith('tree'))) {
+            this.visibleLandingSpots.push({ x, y });
+        }
         if (entity.species === 'water') {
             this.drawWater(x, y);
         } else if (entity.species === 'tree' || (!entity.species && entity.id.startsWith('tree'))) {
@@ -1029,6 +1077,9 @@ export class HexRenderer {
       } else if (entity.type === 'plant') {
         this.drawPlant(entity as any, x, y);
         this.updatePlantLabel(entity as any, x, y);
+        if ((entity as any).growthStage >= 5) {
+            this.visibleLandingSpots.push({ x, y });
+        }
       } else if (entity.type === 'animal') {
         this.drawAnimal(entity as any, x, y);
         if ((entity as any).species === 'merchant') {
@@ -1051,8 +1102,24 @@ export class HexRenderer {
         this.drawSprinkler(entity, x, y);
       } else if (entity.type === 'building') {
         this.drawBuilding(entity, x, y);
+
+        // Lamp glow effect
+        if (entity.species === 'lamp') {
+            const isNight = timeOfDay < 0.25 || timeOfDay > 0.75;
+            const isDusk = (timeOfDay >= 0.7 && timeOfDay <= 0.8) || (timeOfDay >= 0.2 && timeOfDay <= 0.3);
+
+            if (isNight || isDusk) {
+                let intensity = isNight ? 0.3 : 0.15;
+                const flicker = Math.sin(Date.now() / 100) * 0.05;
+                this.overlay.circle(x + this.container.x, y + this.container.y, 40);
+                this.overlay.fill({ color: 0xFFFF00, alpha: intensity + flicker });
+            }
+        }
       } else if (entity.type === 'floor') {
         this.drawFloor(entity, x, y);
+        if (entity.species === 'grass') {
+            this.visibleLandingSpots.push({ x, y });
+        }
       }
     });
 
@@ -1223,34 +1290,66 @@ export class HexRenderer {
                 y: Math.random() * this.app.screen.height,
                 vx: 2 + Math.random() * 2,
                 vy: (Math.random() - 0.5) * 1,
-                size: 3 + Math.random() * 2
+                size: 3 + Math.random() * 2,
+                state: 'flying',
+                timer: 0
             });
         }
     }
 
-    const time = Date.now() / 200;
+    const time = Date.now();
+    const wingAnim = Math.sin(time / 200);
+
     this.birds.forEach(bird => {
-        bird.x += bird.vx;
-        bird.y += bird.vy;
+        if (bird.state === 'flying') {
+            bird.x += bird.vx;
+            bird.y += bird.vy;
 
-        if (bird.x > this.app.screen.width + 50) {
-            bird.x = -50;
-            bird.y = Math.random() * this.app.screen.height;
+            if (bird.x > this.app.screen.width + 50) {
+                bird.x = -50;
+                bird.y = Math.random() * this.app.screen.height;
+            }
+
+            // Chance to land
+            if (Math.random() < 0.005 && this.visibleLandingSpots.length > 0) {
+                const spot = this.visibleLandingSpots[Math.floor(Math.random() * this.visibleLandingSpots.length)];
+                bird.state = 'landed';
+                bird.x = spot.x + this.container.x;
+                bird.y = spot.y + this.container.y - 5;
+                bird.timer = time + 3000 + Math.random() * 5000;
+            }
+
+            const wing = wingAnim * bird.size;
+            // Body
+            this.overlay.moveTo(bird.x, bird.y);
+            this.overlay.lineTo(bird.x - bird.size * 2, bird.y);
+            this.overlay.stroke({ color: 0x000000, width: 2, alpha: 0.6 });
+
+            // Wings
+            this.overlay.moveTo(bird.x - bird.size, bird.y);
+            this.overlay.lineTo(bird.x - bird.size * 1.5, bird.y - wing);
+            this.overlay.moveTo(bird.x - bird.size, bird.y);
+            this.overlay.lineTo(bird.x - bird.size * 1.5, bird.y + wing);
+            this.overlay.stroke({ color: 0x000000, width: 1, alpha: 0.6 });
+        } else {
+            // Landed
+            if (time > bird.timer) {
+                bird.state = 'flying';
+            }
+
+            // Draw sitting bird
+            this.overlay.circle(bird.x, bird.y, bird.size);
+            this.overlay.fill({ color: 0x000000, alpha: 0.6 });
+            this.overlay.moveTo(bird.x, bird.y);
+            this.overlay.lineTo(bird.x + bird.size * 1.5, bird.y + bird.size * 0.5);
+            this.overlay.stroke({ color: 0x000000, width: 1, alpha: 0.6 });
+
+            // Occasional head twitch
+            if (Math.sin(time / 500) > 0.8) {
+                this.overlay.circle(bird.x + bird.size * 0.5, bird.y - bird.size, 2);
+                this.overlay.fill({ color: 0x000000, alpha: 0.6 });
+            }
         }
-
-        const wing = Math.sin(time) * bird.size;
-
-        // Body
-        this.overlay.moveTo(bird.x, bird.y);
-        this.overlay.lineTo(bird.x - bird.size * 2, bird.y);
-        this.overlay.stroke({ color: 0x000000, width: 2, alpha: 0.6 });
-
-        // Wings
-        this.overlay.moveTo(bird.x - bird.size, bird.y);
-        this.overlay.lineTo(bird.x - bird.size * 1.5, bird.y - wing);
-        this.overlay.moveTo(bird.x - bird.size, bird.y);
-        this.overlay.lineTo(bird.x - bird.size * 1.5, bird.y + wing);
-        this.overlay.stroke({ color: 0x000000, width: 1, alpha: 0.6 });
     });
   }
 

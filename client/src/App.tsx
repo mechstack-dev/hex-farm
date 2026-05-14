@@ -200,6 +200,15 @@ function App() {
           else if (shiftKey) socket.emit('buy_tool', 'fishing-rod');
           else socket.emit('plant', 'sunflower');
           break;
+        case 'Minus':
+          if (altKey) {
+            socket.emit('cook', 'fruit-salad');
+          } else if (shiftKey) {
+            socket.emit('buy_seed', 'kale');
+          } else {
+            socket.emit('plant', 'kale');
+          }
+          break;
         case 'Digit9':
           if (altKey) {
             socket.emit('cook', 'veggie-platter');
@@ -216,11 +225,6 @@ function App() {
             socket.emit('buy_seed', 'sunflower');
           } else {
             socket.emit('buy_tool', 'scythe');
-          }
-          break;
-        case 'Minus':
-          if (altKey) {
-            socket.emit('cook', 'fruit-salad');
           }
           break;
         case 'Equal':
@@ -279,7 +283,8 @@ function App() {
           socket.emit('water');
           break;
         case 'KeyE':
-          socket.emit('interact');
+          if (altKey) socket.emit('build_building', 'lamp');
+          else socket.emit('interact');
           break;
         case 'KeyR':
           if (altKey) socket.emit('build_building', 'fountain');
@@ -390,7 +395,7 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'apple', 'orange', 'berry', 'mushroom', 'fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'berry', 'mushroom', 'fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice'].includes(item)) categories.crops.items.push([item, count]);
         else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'compost-fertilizer', 'ancient-coin', 'geode', 'diamond'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
@@ -569,8 +574,8 @@ function App() {
         {showControls && (
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
-            <p style={{ margin: '2px 0' }}>Press <b>1-9</b> to Plant (8: Sunflower, 9: Orange Tree), <b>Shift + 1-7, 9, 0</b> to Buy Seeds (Shift+8: Fishing Rod, Shift+9: Orange Tree, Shift+0: Sunflower)</p>
-            <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path (Alt+R: Fountain), <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence</p>
+            <p style={{ margin: '2px 0' }}>Press <b>1-9</b> to Plant (8: Sunflower, 9: Orange Tree), <b>Minus (-)</b> to Plant Kale, <b>Shift + 1-7, 9, 0, Minus</b> to Buy Seeds (Shift+8: Fishing Rod, Shift+9: Orange Tree, Shift+0: Sunflower, Shift+Minus: Kale)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path (Alt+R: Fountain), <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence, <b>Alt+E</b> to build Lamp</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b> for Sprinkler (Shift+K: Iron, Alt+K: Gold), <b>B</b> to Scarecrow (Alt+B: Greenhouse), <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive (Alt+N: Weather Station), <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin (Shift+Q: Compost Bin, Alt+Q: Recycling Machine), <b>T</b> to Seed Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>E</b> to Interact / Harvest, <b>H</b> to Harvest Area, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift | Find Ancient Shrines for blessings!</p>

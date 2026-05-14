@@ -90,9 +90,11 @@ You can run both the server and client from the root directory:
 - **Z:** Use Dynamite (Clears 1-hex radius)
 - **Enter:** Open Chat
 - **Esc:** Close Chat / Menu
+- **Alt + E**: Build Lamp
 
 ### Farming & Building
 - **1 - 9:** Plant Seeds (8: Sunflower, 9: Orange Tree)
+- **Minus (-)**: Plant Kale
 - **P:** Plow / Till soil
 - **I:** Water (requires Watering Can or nearby Well)
 - **G:** Fertilize (uses Junk or Compost Fertilizer)
@@ -143,7 +145,9 @@ You can run both the server and client from the root directory:
 - [x] Tool Tier Upgrades (Copper, Iron, Gold)
 - [x] Natural Propagation (Living World)
 - [x] Recycling Machine & Junk Processing
-- [x] Decorative Life (Butterflies & Fireflies)
+- [x] Decorative Life (Butterflies, Fireflies, and Landing Birds)
+- [x] New Crops (Winter Kale)
+- [x] Decorative Lighting (Lamps)
 
 ### Planned
 - [ ] **Environmental Depth:** More NPCs with unique schedules and events.

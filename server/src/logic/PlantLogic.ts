@@ -11,6 +11,7 @@ const PREFERRED_SEASONS: Record<string, Season[]> = {
   'corn': ['summer'],
   'wheat': ['autumn'],
   'winter-radish': ['winter'],
+  'kale': ['winter'],
   'apple-tree': ['spring', 'summer', 'autumn', 'winter'],
   'orange-tree': ['summer'],
   'mushroom': ['autumn'],
@@ -26,6 +27,7 @@ const SPECIES_GROWTH: Record<string, number> = {
   'corn': 1.5 * GAME_DAY,   // 1.5 days per stage
   'wheat': 1.25 * GAME_DAY, // 1.25 days per stage
   'winter-radish': 2.5 * GAME_DAY, // 2.5 days per stage
+  'kale': 2 * GAME_DAY,   // 2 days per stage
   'apple-tree': 4 * GAME_DAY, // 4 days per stage
   'orange-tree': 4 * GAME_DAY,
   'mushroom': 1.5 * GAME_DAY,
