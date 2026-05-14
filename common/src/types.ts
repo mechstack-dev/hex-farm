@@ -180,6 +180,7 @@ export interface Player extends Entity {
   relationships: Record<string, number>;
   lastGiftTime: Record<string, number>;
   lastNPCDailyGiftTime: Record<string, number>;
+  lastTalkTime: Record<string, number>;
   perks: string[];
 }
 
