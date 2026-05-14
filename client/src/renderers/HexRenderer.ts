@@ -23,6 +23,7 @@ export class HexRenderer {
   private lastEnvironment: EnvironmentState | null = null;
   private rainDrops: { x: number, y: number, speed: number, length: number }[] = [];
   private snowFlakes: { x: number, y: number, speed: number, size: number, drift: number }[] = [];
+  private decorativeEntities: { x: number, y: number, type: 'firefly' | 'butterfly', offset: number, speed: number }[] = [];
   private interpolatedPositions: Map<string, { x: number, y: number }> = new Map();
   private interpolatedCamera: { x: number, y: number } = { x: 0, y: 0 };
   private playerLabels: Map<string, PIXI.Text> = new Map();
@@ -570,6 +571,42 @@ export class HexRenderer {
         this.drawSeedMaker(x, y);
     } else if (entity.species === 'ancient-shrine') {
         this.drawAncientShrine(x, y);
+    } else if (entity.species === 'recycling-machine') {
+        this.drawRecyclingMachine(x, y);
+    }
+  }
+
+  drawRecyclingMachine(x: number, y: number) {
+    // Body
+    this.graphics.rect(x - 12, y - 10, 24, 20);
+    this.graphics.fill({ color: 0x4682B4, alpha: 1 }); // SteelBlue
+    this.graphics.stroke({ color: 0x2F4F4F, width: 2 });
+
+    // Top funnel
+    this.graphics.poly([
+        x - 14, y - 15,
+        x + 14, y - 15,
+        x + 8, y - 10,
+        x - 8, y - 10
+    ]);
+    this.graphics.fill({ color: 0x708090, alpha: 1 });
+    this.graphics.stroke({ color: 0x2F4F4F, width: 1 });
+
+    // Gears (animated)
+    const angle = Date.now() / 300;
+    for (let i = 0; i < 2; i++) {
+        const gx = x - 5 + i * 10;
+        const gy = y;
+        this.graphics.circle(gx, gy, 4);
+        this.graphics.fill({ color: 0x333333, alpha: 1 });
+
+        // Gear teeth
+        for (let j = 0; j < 4; j++) {
+            const ta = angle + j * Math.PI / 2 + (i * Math.PI / 4);
+            this.graphics.moveTo(gx, gy);
+            this.graphics.lineTo(gx + Math.cos(ta) * 6, gy + Math.sin(ta) * 6);
+            this.graphics.stroke({ color: 0x555555, width: 2 });
+        }
     }
   }
 
@@ -918,13 +955,58 @@ export class HexRenderer {
     });
 
     this.drawDayNightOverlay(isCave ? 1.0 : timeOfDay, isCave ? 'sunny' : this.lastEnvironment.weather);
-    if (!isCave && this.lastEnvironment.weather === 'rainy') {
-        if (season === 'winter') {
-            this.drawSnow();
-        } else {
-            this.drawRain();
+    if (!isCave) {
+        if (this.lastEnvironment.weather === 'rainy') {
+            if (season === 'winter') {
+                this.drawSnow();
+            } else {
+                this.drawRain();
+            }
+        }
+        this.drawDecorativeEntities(timeOfDay);
+    }
+  }
+
+  drawDecorativeEntities(timeOfDay: number) {
+    const isNight = timeOfDay < 0.25 || timeOfDay > 0.75;
+    const type = isNight ? 'firefly' : 'butterfly';
+
+    if (this.decorativeEntities.length === 0 || this.decorativeEntities[0].type !== type) {
+        this.decorativeEntities = [];
+        for (let i = 0; i < 20; i++) {
+            this.decorativeEntities.push({
+                x: Math.random() * this.app.screen.width,
+                y: Math.random() * this.app.screen.height,
+                type,
+                offset: Math.random() * Math.PI * 2,
+                speed: 0.5 + Math.random() * 1.5
+            });
         }
     }
+
+    this.decorativeEntities.forEach(ent => {
+        const time = Date.now() / 1000;
+        ent.x += Math.sin(time * ent.speed + ent.offset) * 2;
+        ent.y += Math.cos(time * ent.speed + ent.offset) * 2;
+
+        if (ent.type === 'firefly') {
+            const glow = (Math.sin(time * 3 + ent.offset) + 1) / 2;
+            this.overlay.circle(ent.x, ent.y, 2);
+            this.overlay.fill({ color: 0xFFFF00, alpha: 0.4 + glow * 0.6 });
+        } else {
+            // Butterfly
+            this.overlay.ellipse(ent.x - 2, ent.y, 4, 6);
+            this.overlay.fill({ color: 0xFF69B4, alpha: 0.8 });
+            this.overlay.ellipse(ent.x + 2, ent.y, 4, 6);
+            this.overlay.fill({ color: 0xFF69B4, alpha: 0.8 });
+        }
+
+        // Boundary wrap
+        if (ent.x < 0) ent.x = this.app.screen.width;
+        if (ent.x > this.app.screen.width) ent.x = 0;
+        if (ent.y < 0) ent.y = this.app.screen.height;
+        if (ent.y > this.app.screen.height) ent.y = 0;
+    });
   }
 
   drawSnow() {
@@ -1047,9 +1129,11 @@ export class HexRenderer {
         this.container.addChild(label);
         this.plantLabels.set(plant.id, label);
     } else {
-        label.text = text;
-        label.style.fill = isMature ? 0xFFFF00 : 0xFFFFFF;
-        label.style.fontSize = isMature ? 12 : 10;
+        if (label.text !== text) {
+            label.text = text;
+            label.style.fill = isMature ? 0xFFFF00 : 0xFFFFFF;
+            label.style.fontSize = isMature ? 12 : 10;
+        }
     }
     label.x = x;
     label.y = y - HEX_SIZE * 0.4;

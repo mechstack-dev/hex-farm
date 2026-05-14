@@ -141,13 +141,15 @@ You can run both the server and client from the root directory:
 - [x] Mining Depths (Caves)
 - [x] Advanced Cooking & Buff System
 - [x] Tool Tier Upgrades (Copper, Iron, Gold)
+- [x] Natural Propagation (Living World)
+- [x] Recycling Machine & Junk Processing
+- [x] Decorative Life (Butterflies & Fireflies)
 
 ### Planned
 - [ ] **Environmental Depth:** More NPCs with unique schedules and events.
 - [ ] **Sound & Music:** Relaxing ambient sounds and seasonal music.
 - [ ] **Visual Polish:** Full replacement of geometric shapes with detailed pixel art sprites.
 - [ ] **Automation Expansion:** More advanced machinery for farm management.
-- [ ] **Natural Propagation:** Plants spreading naturally over time to create a living world.
 
 ---
 
