@@ -214,6 +214,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Natural Propagation:** Plants and trees now spread naturally over time.
 - [x] **Ancient Shrines:** Discovery rewards for explorers that grant buffs.
 - [x] **Control Simplification:** Merged harvest into the universal interact ('E') key.
+- [x] **Recycling Machine:** Added building to convert junk into useful resources.
+- [x] **Decorative Life:** Added butterflies and fireflies to the world.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import { distance, GAME_DAY, getNeighbors, BUILDING_COSTS, ITEM_PRICES, SEED_PRICES, TOOL_PRICES, KIT_PRICES, FOOD_VALUES } from 'common';
+import { distance, GAME_DAY, getNeighbors, BUILDING_COSTS, ITEM_PRICES, SEED_PRICES, TOOL_PRICES, KIT_PRICES, FOOD_VALUES, RECIPES } from 'common';
 import type { Player, Position, Plant, Building } from 'common';
 import { addXP, getStaminaCost } from './logic/SkillLogic.js';
 
@@ -1108,6 +1108,33 @@ io.on('connection', (socket) => {
           return;
       }
 
+      if (building && building.species === 'recycling-machine') {
+          const junkCount = player.inventory['junk'] || 0;
+          if (junkCount > 0) {
+              player.inventory['junk']--;
+              const rand = Math.random();
+              let result = 'stone';
+              let amount = 1;
+              if (rand < 0.1) {
+                  result = 'coal';
+                  amount = 1;
+              } else if (rand < 0.2) {
+                  result = 'iron-ore';
+                  amount = 1;
+              } else {
+                  result = 'stone';
+                  amount = 2;
+              }
+
+              player.inventory[result] = (player.inventory[result] || 0) + amount;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, `Recycled junk into ${amount} ${result.replace('-', ' ')}!`, 'success');
+          } else {
+              notify(socket.id, "No junk to recycle.", 'info');
+          }
+          return;
+      }
+
       if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
@@ -1657,34 +1684,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      const recipes: Record<string, Record<string, number>> = {
-        'salad': { 'turnip': 1, 'carrot': 1 },
-        'apple-pie': { 'apple': 3, 'wheat': 1 },
-        'pumpkin-soup': { 'pumpkin': 1, 'milk': 1 },
-        'corn-chowder': { 'corn': 2, 'milk': 1 },
-        'grilled-fish': { 'fish': 1, 'wood': 1 },
-        'mushroom-soup': { 'mushroom': 2, 'milk': 1 },
-        'berry-tart': { 'berry': 3, 'wheat': 1 },
-        'miners-stew': { 'carrot': 2, 'fish': 1, 'iron-ore': 1 },
-        'veggie-platter': { 'turnip': 2, 'pumpkin': 1, 'corn': 1 },
-        'coal-grilled-fish': { 'fish': 1, 'coal': 1 },
-        'fruit-salad': { 'apple': 1, 'berry': 1 },
-        'mushroom-risotto': { 'mushroom': 2, 'wheat': 1 },
-        'corn-bread': { 'corn': 2, 'wheat': 1 },
-        'fish-stew': { 'fish': 1, 'carrot': 1, 'corn': 1 },
-        'fruity-sorbet': { 'berry': 2, 'apple': 1, 'sunflower': 1 },
-        'hearty-stew': { 'winter-radish': 1, 'carrot': 1, 'mushroom': 1, 'wood': 1 },
-        'seafood-platter': { 'fish': 2, 'corn': 1, 'junk': 1 },
-        'honey-glazed-carrots': { 'carrot': 2, 'honey': 1 },
-        'goat-cheese-salad': { 'turnip': 1, 'goat-milk': 1 },
-        'duck-egg-mayo': { 'duck-egg': 1, 'sunflower': 1 },
-        'berry-smoothie': { 'berry': 2, 'milk': 1 },
-        'pumpkin-pie': { 'pumpkin': 1, 'wheat': 1, 'egg': 1 },
-        'apple-cider': { 'apple': 3, 'honey': 1 },
-        'orange-juice': { 'orange': 3 }
-      };
-
-      const ingredients = recipes[recipe];
+      const ingredients = RECIPES[recipe];
       if (ingredients) {
         for (const [ing, count] of Object.entries(ingredients)) {
           if ((player.inventory[ing] || 0) < count) {

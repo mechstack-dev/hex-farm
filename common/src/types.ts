@@ -15,6 +15,7 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'shipping-bin': { wood: 10, stone: 10 },
   'seed-maker': { wood: 15, stone: 5 },
   'compost-bin': { wood: 10, stone: 2 },
+  'recycling-machine': { wood: 0, stone: 10 },
 };
 
 export const ITEM_PRICES: Record<string, number> = {
@@ -79,6 +80,33 @@ export const FOOD_VALUES: Record<string, number> = {
 };
 
 export const BEST_FOODS = ['pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
+
+export const RECIPES: Record<string, Record<string, number>> = {
+  'salad': { 'turnip': 1, 'carrot': 1 },
+  'apple-pie': { 'apple': 3, 'wheat': 1 },
+  'pumpkin-soup': { 'pumpkin': 1, 'milk': 1 },
+  'corn-chowder': { 'corn': 2, 'milk': 1 },
+  'grilled-fish': { 'fish': 1, 'wood': 1 },
+  'mushroom-soup': { 'mushroom': 2, 'milk': 1 },
+  'berry-tart': { 'berry': 3, 'wheat': 1 },
+  'miners-stew': { 'carrot': 2, 'fish': 1, 'iron-ore': 1 },
+  'veggie-platter': { 'turnip': 2, 'pumpkin': 1, 'corn': 1 },
+  'coal-grilled-fish': { 'fish': 1, 'coal': 1 },
+  'fruit-salad': { 'apple': 1, 'berry': 1 },
+  'mushroom-risotto': { 'mushroom': 2, 'wheat': 1 },
+  'corn-bread': { 'corn': 2, 'wheat': 1 },
+  'fish-stew': { 'fish': 1, 'carrot': 1, 'corn': 1 },
+  'fruity-sorbet': { 'berry': 2, 'apple': 1, 'sunflower': 1 },
+  'hearty-stew': { 'winter-radish': 1, 'carrot': 1, 'mushroom': 1, 'wood': 1 },
+  'seafood-platter': { 'fish': 2, 'corn': 1, 'junk': 1 },
+  'honey-glazed-carrots': { 'carrot': 2, 'honey': 1 },
+  'goat-cheese-salad': { 'turnip': 1, 'goat-milk': 1 },
+  'duck-egg-mayo': { 'duck-egg': 1, 'sunflower': 1 },
+  'berry-smoothie': { 'berry': 2, 'milk': 1 },
+  'pumpkin-pie': { 'pumpkin': 1, 'wheat': 1, 'egg': 1 },
+  'apple-cider': { 'apple': 3, 'honey': 1 },
+  'orange-juice': { 'orange': 3 }
+};
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';
 
