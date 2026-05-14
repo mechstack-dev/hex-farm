@@ -71,16 +71,15 @@ export class Generator {
                 });
             } else if (chunkRng() < 0.03) {
                 // Mushrooms in caves
-                const now = Date.now();
                 entities.push({
-                    id: `plant-${q}-${r}-${now}`,
+                    id: `plant-mushroom-${q}-${r}`,
                     type: 'plant',
                     species: 'mushroom',
                     pos: { q, r },
                     growthStage: 5,
-                    plantedAt: now,
+                    plantedAt: 0,
                     lastWatered: 0,
-                    lastUpdate: now
+                    lastUpdate: 0
                 } as unknown as Entity);
             } else if (chunkRng() < 0.05) {
                 entities.push({
@@ -126,16 +125,15 @@ export class Generator {
             pos: { q, r }
           });
         } else if (n > 0.5) {
-          const now = Date.now();
           entities.push({
-            id: `plant-${q}-${r}-${now}`,
+            id: `plant-tree-${q}-${r}`,
             type: 'plant',
             species: 'tree',
             pos: { q, r },
             growthStage: 5,
-            plantedAt: now,
+            plantedAt: 0,
             lastWatered: 0,
-            lastUpdate: now
+            lastUpdate: 0
           } as unknown as Entity);
         } else if (chunkRng() < 0.05) {
           entities.push({
@@ -191,16 +189,15 @@ export class Generator {
           else if (rand < 0.85) species = 'apple-tree';
           else species = 'orange-tree';
 
-          const now = Date.now();
           entities.push({
-            id: `plant-${q}-${r}-${now}`,
+            id: `plant-${species}-${q}-${r}`,
             type: 'plant',
             species,
             pos: { q, r },
             growthStage: 5, // Spawned mature
-            plantedAt: now,
+            plantedAt: 0,
             lastWatered: 0,
-            lastUpdate: now
+            lastUpdate: 0
           } as unknown as Entity);
         }
       }

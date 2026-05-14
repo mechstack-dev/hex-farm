@@ -29,6 +29,7 @@ export class GameEngine {
     const greenhousePositions = new Set<string>();
     const sunflowerPositions = new Set<string>();
     const barnPositions = new Map<string, any>();
+    const fountainPositions = new Set<string>();
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
         if (entity.type === 'sprinkler') {
@@ -78,8 +79,16 @@ export class GameEngine {
             getNeighbors(entity.pos).forEach(n1 => {
                 greenhousePositions.add(`${n1.q},${n1.r}`);
             });
-        } else if ((entity.type === 'floor' || entity.type === 'plant') && entity.species === 'sunflower') {
+        } else if ((entity.type === 'floor' || entity.type === 'plant') && (entity.species === 'sunflower' || entity.species === 'flower')) {
             sunflowerPositions.add(`${entity.pos.q},${entity.pos.r}`);
+        } else if (entity.type === 'building' && entity.species === 'fountain') {
+            fountainPositions.add(`${entity.pos.q},${entity.pos.r}`);
+            getNeighbors(entity.pos).forEach(n1 => {
+                fountainPositions.add(`${n1.q},${n1.r}`);
+                getNeighbors(n1).forEach(n2 => {
+                    fountainPositions.add(`${n2.q},${n2.r}`);
+                });
+            });
         } else if (entity.type === 'building' && entity.species === 'barn') {
             const barn = entity as any;
             barnPositions.set(`${entity.pos.q},${entity.pos.r}`, barn);
@@ -133,6 +142,11 @@ export class GameEngine {
 
             const regenBuff = player.buffs.find((b: any) => b.type === 'stamina_regen');
             if (regenBuff) staminaRegen += regenBuff.amount;
+          }
+
+          // Fountain boost
+          if (fountainPositions.has(`${player.pos.q},${player.pos.r}`)) {
+              staminaRegen += 1.0;
           }
 
           if (player.stamina < player.maxStamina) {
@@ -195,6 +209,43 @@ export class GameEngine {
                   updatedEntities.push(newPlant);
               }
           }
+        } else if (entity.type === 'floor' && entity.species === 'grass') {
+            // Mushroom spawning during rain
+            if (environment.weather === 'rainy' && Math.random() < 0.0001) {
+                const targetPos = entity.pos;
+                const newMushroom: Plant = {
+                    id: `plant-mushroom-${targetPos.q}-${targetPos.r}-${now}`,
+                    type: 'plant',
+                    species: 'mushroom',
+                    pos: targetPos,
+                    growthStage: 0,
+                    plantedAt: now,
+                    lastWatered: now,
+                    lastUpdate: now
+                };
+                this.world.addEntity(newMushroom);
+                updatedEntities.push(newMushroom);
+            }
+
+            // Flower propagation
+            if (Math.random() < 0.00005) {
+                const neighbors = getNeighbors(entity.pos);
+                const sourceFlower = neighbors.find(n => sunflowerPositions.has(`${n.q},${n.r}`));
+                if (sourceFlower) {
+                    const sourceEntities = this.world.getEntitiesAt(sourceFlower.q, sourceFlower.r);
+                    const flowerEntity = sourceEntities.find(e => (e.type === 'floor' || e.type === 'plant') && (e.species === 'flower' || e.species === 'sunflower'));
+                    if (flowerEntity) {
+                        const newFlower = {
+                            id: `floor-${entity.pos.q}-${entity.pos.r}-${now}`,
+                            type: 'floor' as const,
+                            species: flowerEntity.species,
+                            pos: entity.pos
+                        };
+                        this.world.addEntity(newFlower);
+                        updatedEntities.push(newFlower);
+                    }
+                }
+            }
         } else if (entity.type === 'building') {
             const building = entity as any;
             if (building.species === 'beehive') {

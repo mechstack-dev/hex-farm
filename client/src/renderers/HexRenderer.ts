@@ -23,6 +23,7 @@ export class HexRenderer {
   private lastEnvironment: EnvironmentState | null = null;
   private rainDrops: { x: number, y: number, speed: number, length: number }[] = [];
   private snowFlakes: { x: number, y: number, speed: number, size: number, drift: number }[] = [];
+  private birds: { x: number, y: number, vx: number, vy: number, size: number }[] = [];
   private decorativeEntities: { x: number, y: number, type: 'firefly' | 'butterfly', offset: number, speed: number }[] = [];
   private interpolatedPositions: Map<string, { x: number, y: number }> = new Map();
   private interpolatedCamera: { x: number, y: number } = { x: 0, y: 0 };
@@ -577,6 +578,8 @@ export class HexRenderer {
         this.drawGreenhouse(x, y);
     } else if (entity.species === 'weather-station') {
         this.drawWeatherStation(x, y);
+    } else if (entity.species === 'fountain') {
+        this.drawFountain(x, y);
     }
   }
 
@@ -607,6 +610,38 @@ export class HexRenderer {
     this.graphics.moveTo(x, y - 15);
     this.graphics.lineTo(x, y + 15);
     this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
+  }
+
+  drawFountain(x: number, y: number) {
+    // Base stone basin
+    this.graphics.circle(x, y + 5, 18);
+    this.graphics.fill({ color: 0x808080, alpha: 1 });
+    this.graphics.stroke({ color: 0x333333, width: 2 });
+
+    // Water in basin
+    this.graphics.circle(x, y + 5, 14);
+    this.graphics.fill({ color: 0x4169E1, alpha: 1 });
+
+    // Central pillar
+    this.graphics.rect(x - 4, y - 10, 8, 15);
+    this.graphics.fill({ color: 0x696969, alpha: 1 });
+    this.graphics.stroke({ color: 0x333333, width: 1 });
+
+    // Spouting water (animated)
+    const time = Date.now() / 300;
+    for (let i = 0; i < 4; i++) {
+        const angle = time + (i * Math.PI / 2);
+        const dist = 8 + Math.sin(time * 2) * 2;
+        const wx = x + Math.cos(angle) * dist;
+        const wy = y - 10 + Math.sin(angle) * dist;
+
+        this.graphics.moveTo(x, y - 10);
+        this.graphics.quadraticCurveTo(x + Math.cos(angle) * (dist + 5), y - 15, wx, wy + 15);
+        this.graphics.stroke({ color: 0xADD8E6, width: 2, alpha: 0.6 });
+
+        this.graphics.circle(wx, wy + 15, 2);
+        this.graphics.fill({ color: 0xFFFFFF, alpha: 0.8 });
+    }
   }
 
   drawWeatherStation(x: number, y: number) {
@@ -1024,6 +1059,8 @@ export class HexRenderer {
             } else {
                 this.drawRain();
             }
+        } else {
+            this.drawBirds();
         }
         this.drawDecorativeEntities(timeOfDay);
     }
@@ -1146,6 +1183,45 @@ export class HexRenderer {
         this.overlay.lineTo(drop.x, drop.y + drop.length);
     });
     this.overlay.stroke({ color: 0xADD8E6, width: 1, alpha: 0.4 });
+  }
+
+  drawBirds() {
+    if (this.birds.length === 0) {
+        for (let i = 0; i < 5; i++) {
+            this.birds.push({
+                x: Math.random() * this.app.screen.width,
+                y: Math.random() * this.app.screen.height,
+                vx: 2 + Math.random() * 2,
+                vy: (Math.random() - 0.5) * 1,
+                size: 3 + Math.random() * 2
+            });
+        }
+    }
+
+    const time = Date.now() / 200;
+    this.birds.forEach(bird => {
+        bird.x += bird.vx;
+        bird.y += bird.vy;
+
+        if (bird.x > this.app.screen.width + 50) {
+            bird.x = -50;
+            bird.y = Math.random() * this.app.screen.height;
+        }
+
+        const wing = Math.sin(time) * bird.size;
+
+        // Body
+        this.overlay.moveTo(bird.x, bird.y);
+        this.overlay.lineTo(bird.x - bird.size * 2, bird.y);
+        this.overlay.stroke({ color: 0x000000, width: 2, alpha: 0.6 });
+
+        // Wings
+        this.overlay.moveTo(bird.x - bird.size, bird.y);
+        this.overlay.lineTo(bird.x - bird.size * 1.5, bird.y - wing);
+        this.overlay.moveTo(bird.x - bird.size, bird.y);
+        this.overlay.lineTo(bird.x - bird.size * 1.5, bird.y + wing);
+        this.overlay.stroke({ color: 0x000000, width: 1, alpha: 0.6 });
+    });
   }
 
   updatePlayerLabel(player: any, x: number, y: number) {
