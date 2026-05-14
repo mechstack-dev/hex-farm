@@ -36,8 +36,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Shipping Bin:** Sell all crops and products in your inventory at 80% value instantly.
 - **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
 - **Beehives:** Produce Honey over time. If a **Sunflower** is within a 2-hex radius, they produce premium **Sunflower Honey**, otherwise they produce standard **Wildflower Honey**. They also provide a 1.5x growth boost and a 5x natural propagation boost to plants within a 2-hex radius.
-- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`). High friendship levels unlock new dialogue and rewards. At 750 friendship, NPCs give a significant one-time reward. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
-- **Natural Propagation:** Mature plants and trees have a small chance each tick to sprout new growth in adjacent empty hexes, allowing nature to reclaim the land and forests to expand naturally.
+- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`) or by simply chatting with them once per game day (+5 points). High friendship levels unlock new dialogue and rewards. At 750 friendship, NPCs give a significant one-time reward. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
+- **Natural Propagation:** Mature plants and trees have a small chance each tick to sprout new growth in adjacent empty hexes, allowing nature to reclaim the land and forests to expand naturally. Plants will not propagate onto player-built **Paths**.
 - **Ancient Shrines:** Rarely found in the wild. Interacting with a shrine grants a powerful random 10-minute buff once per day.
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
@@ -218,6 +218,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Control Simplification:** Merged harvest into the universal interact ('E') key.
 - [x] **Recycling Machine:** Added building to convert junk into useful resources.
 - [x] **Decorative Life:** Added butterflies and fireflies to the world.
+- [x] **Relationship Refinement:** Daily conversation bonus and localized breeding caps.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 
 ### Long Term

@@ -80,6 +80,7 @@ io.on('connection', (socket) => {
         relationships: {},
         lastGiftTime: {},
         lastNPCDailyGiftTime: {},
+        lastTalkTime: {},
         perks: []
       };
     }
@@ -102,6 +103,7 @@ io.on('connection', (socket) => {
     if (!player.relationships) player.relationships = {};
     if (!player.lastGiftTime) player.lastGiftTime = {};
     if (!player.lastNPCDailyGiftTime) player.lastNPCDailyGiftTime = {};
+    if (!player.lastTalkTime) player.lastTalkTime = {};
     if (!player.perks) player.perks = [];
 
     players.set(socket.id, player);
@@ -297,7 +299,7 @@ io.on('connection', (socket) => {
               // Scavenging logic
               const rand = Math.random();
               if (rand < 0.05) {
-                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed'];
+                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed', 'sunflower-seed'];
                   const seed = seeds[Math.floor(Math.random() * seeds.length)];
                   player.inventory[seed] = (player.inventory[seed] || 0) + 1;
                   notify(socket.id, `Scavenged a ${seed.replace('-seed', '')} seed!`, 'success');
@@ -1245,10 +1247,16 @@ io.on('connection', (socket) => {
             const product = plant.species === 'apple-tree' ? 'apple' : 'orange';
             player.inventory[product] = (player.inventory[product] || 0) + 1;
             plant.lastProductTime = now;
+
+            // XP Gain
+            const { leveledUp, newLevel } = addXP(player, 'foraging', 10);
+            if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+
             world.updateEntity(plant);
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', plant);
             notify(socket.id, `Harvested an ${product} from the tree!`, 'success');
+            checkAchievements(player);
         } else {
             notify(socket.id, `This tree doesn't have any ripe ${plant.species === 'apple-tree' ? 'apples' : 'oranges'} yet.`, 'info');
         }
@@ -1260,10 +1268,16 @@ io.on('connection', (socket) => {
         if (now - (plant.lastProductTime || 0) >= GAME_DAY) {
             player.inventory['berry'] = (player.inventory['berry'] || 0) + 1;
             plant.lastProductTime = now;
+
+            // XP Gain
+            const { leveledUp, newLevel } = addXP(player, 'foraging', 10);
+            if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+
             world.updateEntity(plant);
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', plant);
             notify(socket.id, "Gathered some berries!", 'success');
+            checkAchievements(player);
         } else {
             notify(socket.id, "The berries are still ripening.", 'info');
         }
@@ -1273,6 +1287,18 @@ io.on('connection', (socket) => {
       if (animal) {
         const npcName = animal.species || '';
         const currentTime = Date.now();
+
+          // Daily talk boost
+          if (['miner', 'fisherman', 'blacksmith', 'merchant'].includes(npcName)) {
+              if (currentTime - (player.lastTalkTime[npcName] || 0) >= GAME_DAY) {
+                  player.lastTalkTime[npcName] = currentTime;
+                  const oldPoints = player.relationships[npcName] || 0;
+                  player.relationships[npcName] = Math.min(1000, oldPoints + 5);
+                  notify(socket.id, `You chatted with the ${npcName}. Relationship improved! (+5)`, 'success');
+                  socket.emit('entityUpdate', player);
+              }
+          }
+
         const canGetNPCGift = ['miner', 'fisherman', 'blacksmith', 'merchant'].includes(npcName) &&
             (player.relationships[npcName] || 0) >= 500 &&
             (currentTime - (player.lastNPCDailyGiftTime[npcName] || 0) >= GAME_DAY);

@@ -18,7 +18,7 @@ async def verify():
         # Move to merchant (0,0) - we start at 0,0 usually but let's make sure
         # Press 'N' to try and build beehive (should fail due to resources)
         await page.keyboard.press("n")
-        await page.wait_for_selector("text=Need 5 wood and 5 stone")
+        await page.wait_for_selector("text=Need 5 wood and 5 stone", timeout=5000)
 
         # Interact with Merchant (should be at 0,0)
         # Try 'E' to interact

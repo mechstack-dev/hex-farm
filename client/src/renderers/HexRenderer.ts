@@ -1035,10 +1035,32 @@ export class HexRenderer {
 
     if (this.decorativeEntities.length === 0 || this.decorativeEntities[0].type !== type) {
         this.decorativeEntities = [];
+
+        // Try to spawn near attractive entities
+        const attractionPoints: {x: number, y: number}[] = [];
+        this.lastEntities.forEach(e => {
+            if (e.type === 'floor' && (e.species === 'flower' || e.species === 'sunflower')) {
+                const { x, y } = axialToPixel(e.pos.q, e.pos.r, HEX_SIZE);
+                attractionPoints.push({ x: x + this.container.x, y: y + this.container.y });
+            } else if (e.type === 'building' && e.species === 'ancient-shrine') {
+                const { x, y } = axialToPixel(e.pos.q, e.pos.r, HEX_SIZE);
+                attractionPoints.push({ x: x + this.container.x, y: y + this.container.y });
+            }
+        });
+
         for (let i = 0; i < 20; i++) {
+            let x, y;
+            if (attractionPoints.length > 0 && Math.random() < 0.7) {
+                const point = attractionPoints[Math.floor(Math.random() * attractionPoints.length)];
+                x = point.x + (Math.random() - 0.5) * 100;
+                y = point.y + (Math.random() - 0.5) * 100;
+            } else {
+                x = Math.random() * this.app.screen.width;
+                y = Math.random() * this.app.screen.height;
+            }
+
             this.decorativeEntities.push({
-                x: Math.random() * this.app.screen.width,
-                y: Math.random() * this.app.screen.height,
+                x, y,
                 type,
                 offset: Math.random() * Math.PI * 2,
                 speed: 0.5 + Math.random() * 1.5

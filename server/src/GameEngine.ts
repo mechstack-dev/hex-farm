@@ -175,7 +175,10 @@ export class GameEngine {
               const neighbors = getNeighbors(updated.pos);
               const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
               const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
-              const isOccupied = targetEntities.some(e => e.type !== 'floor' && e.type !== 'player');
+              const isOccupied = targetEntities.some(e =>
+                  (e.type !== 'floor' && e.type !== 'player') ||
+                  (e.type === 'floor' && e.species === 'path')
+              );
 
               if (!isOccupied) {
                   const newPlant: Plant = {
@@ -226,10 +229,12 @@ export class GameEngine {
             }
         } else if (entity.type === 'animal') {
           const animal = entity as Animal;
-          if (animal.species !== 'merchant') {
+          if (animal.species !== 'merchant' && animal.species !== 'blacksmith' && animal.species !== 'fisherman' && animal.species !== 'miner') {
               // Breeding chance
+              const speciesAnimalsInChunk = chunk.entities.filter(e => e.type === 'animal' && (e as Animal).species === animal.species);
               const speciesAnimals = animalPositionsBySpecies.get(animal.species) || [];
-              if (speciesAnimals.length >= 2 && speciesAnimals.length < 20) { // Population control
+
+              if (speciesAnimalsInChunk.length >= 2 && speciesAnimalsInChunk.length < 10) { // Population control per chunk
                   const lastBred = animal.lastBredTime || 0;
                   if (now - lastBred > GAME_DAY) {
                       const neighbors = getNeighbors(animal.pos);
