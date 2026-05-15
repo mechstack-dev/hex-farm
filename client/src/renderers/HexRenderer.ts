@@ -217,6 +217,8 @@ export class HexRenderer {
     else if (plant.species === 'turnip') color = 0xFFFFFF;
     else if (plant.species === 'corn') color = 0xFFFF00;
     else if (plant.species === 'orange') color = 0xFFA500;
+    else if (plant.species === 'peach') color = 0xFFDAB9; // PeachPuff
+    else if (plant.species === 'cherry') color = 0xFF0000;
     else if (plant.species === 'winter-radish') color = 0xE6E6FA; // Lavender/White
     else if (plant.species === 'kale') color = 0x006400; // Dark Green
     else if (plant.species === 'mushroom') color = 0xA52A2A;
@@ -258,7 +260,7 @@ export class HexRenderer {
                 this.graphics.fill({ color: 0x800080, alpha: 1 }); // Purple berries
             }
         }
-    } else if (plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'tree') {
+    } else if (plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree' || plant.species === 'tree') {
         // Growing Tree
         const trunkWidth = 2 + (stage * 0.8);
         const trunkHeight = 4 + (stage * 2.2);
@@ -279,10 +281,14 @@ export class HexRenderer {
             this.graphics.fill({ color: foliageColor, alpha: 1 });
 
             // Fruit for fruit trees
-            if ((plant.species === 'apple-tree' || plant.species === 'orange-tree') && stage >= 5) {
+            if ((plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree') && stage >= 5) {
                 const hasFruit = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
                 if (hasFruit) {
-                    const fruitColor = plant.species === 'apple-tree' ? 0xFF0000 : 0xFFA500;
+                    let fruitColor = 0xFF0000;
+                    if (plant.species === 'orange-tree') fruitColor = 0xFFA500;
+                    else if (plant.species === 'peach-tree') fruitColor = 0xFFDAB9;
+                    else if (plant.species === 'cherry-tree') fruitColor = 0xFF0000;
+
                     for (let i = 0; i < 5; i++) {
                         const ax = x + Math.cos(i * 1.2) * 10;
                         const ay = y + 5 - trunkHeight + Math.sin(i * 1.2) * 10;

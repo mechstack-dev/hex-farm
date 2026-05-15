@@ -188,10 +188,12 @@ export class Generator {
           // Spawn foraging items
           const rand = chunkRng();
           let species = 'mushroom';
-          if (rand < 0.4) species = 'mushroom';
-          else if (rand < 0.7) species = 'berry-bush';
-          else if (rand < 0.85) species = 'apple-tree';
-          else species = 'orange-tree';
+          if (rand < 0.3) species = 'mushroom';
+          else if (rand < 0.5) species = 'berry-bush';
+          else if (rand < 0.7) species = 'apple-tree';
+          else if (rand < 0.8) species = 'orange-tree';
+          else if (rand < 0.9) species = 'peach-tree';
+          else species = 'cherry-tree';
 
           entities.push({
             id: `plant-${species}-${q}-${r}`,
