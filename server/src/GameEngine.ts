@@ -3,7 +3,7 @@ import { updatePlant } from './logic/PlantLogic.js';
 import { moveAnimal } from './logic/AnimalLogic.js';
 import { SeasonManager } from './logic/SeasonManager.js';
 import type { Animal, Plant, EnvironmentState } from 'common';
-import { getChunkCoords, getNeighbors, GAME_DAY, SEED_PRICES } from 'common';
+import { getChunkCoords, getNeighbors, GAME_DAY, SEED_PRICES, CHUNK_SIZE } from 'common';
 
 export class GameEngine {
   private seasonManager: SeasonManager;
@@ -28,8 +28,12 @@ export class GameEngine {
     const beehivePositions = new Set<string>();
     const greenhousePositions = new Set<string>();
     const sunflowerPositions = new Set<string>();
+    const natureGracePositions = new Set<string>(); // Optimized: Pre-calculate nature counts
     const barnPositions = new Map<string, any>();
     const fountainPositions = new Set<string>();
+
+    const natureEntityPositions = new Set<string>();
+
     chunks.forEach(chunk => {
       chunk.entities.forEach(entity => {
         if (entity.type === 'sprinkler') {
@@ -81,6 +85,7 @@ export class GameEngine {
             });
         } else if ((entity.type === 'floor' || entity.type === 'plant') && (entity.species === 'sunflower' || entity.species === 'flower')) {
             sunflowerPositions.add(`${entity.pos.q},${entity.pos.r}`);
+            natureEntityPositions.add(`${entity.pos.q},${entity.pos.r}`);
         } else if (entity.type === 'building' && entity.species === 'fountain') {
             fountainPositions.add(`${entity.pos.q},${entity.pos.r}`);
             getNeighbors(entity.pos).forEach(n1 => {
@@ -117,7 +122,42 @@ export class GameEngine {
                 barnPositions.set(key, barn);
             });
         }
+
+        if ((entity.type === 'plant' || entity.type === 'obstacle') && (entity.species === 'tree' || entity.species === 'apple-tree' || entity.species === 'orange-tree' || entity.species === 'peach-tree' || entity.species === 'cherry-tree' || entity.species === 'berry-bush') && ((entity as any).growthStage >= 5 || entity.type === 'obstacle')) {
+            natureEntityPositions.add(`${entity.pos.q},${entity.pos.r}`);
+        }
       });
+    });
+
+    // Finalize natureGracePositions based on density
+    const potentialGracePos = new Set<string>();
+    natureEntityPositions.forEach(posKey => {
+        const [q, r] = posKey.split(',').map(Number);
+        const center = { q, r };
+        potentialGracePos.add(posKey);
+        getNeighbors(center).forEach(n1 => {
+            potentialGracePos.add(`${n1.q},${n1.r}`);
+            getNeighbors(n1).forEach(n2 => {
+                potentialGracePos.add(`${n2.q},${n2.r}`);
+            });
+        });
+    });
+
+    potentialGracePos.forEach(posKey => {
+        const [q, r] = posKey.split(',').map(Number);
+        let count = 0;
+        const range = 2;
+        for (let dq = -range; dq <= range; dq++) {
+            for (let dr = -range; dr <= range; dr++) {
+                if (Math.abs(dq + dr) > range) continue;
+                if (natureEntityPositions.has(`${q + dq},${r + dr}`)) {
+                    count++;
+                }
+            }
+        }
+        if (count >= 3) {
+            natureGracePositions.add(posKey);
+        }
     });
 
     // Breeding logic pre-calculation
@@ -156,6 +196,35 @@ export class GameEngine {
           }
       }
 
+      // Meteorite event chance during clear night
+      if (environment.timeOfDay > 0.8 || environment.timeOfDay < 0.2) {
+          if (environment.weather === 'sunny' && Math.random() < 0.0001) {
+              const emptyHexes = [];
+              // Find a few random empty hexes in the chunk
+              for (let i = 0; i < 10; i++) {
+                  const q = chunk.q * CHUNK_SIZE + Math.floor(Math.random() * CHUNK_SIZE);
+                  const r = chunk.r * CHUNK_SIZE + Math.floor(Math.random() * CHUNK_SIZE);
+                  const ents = this.world.getEntitiesAt(q, r);
+                  if (ents.length === 0 || (ents.length === 1 && ents[0].type === 'floor' && ents[0].species === 'grass')) {
+                      emptyHexes.push({ q, r });
+                  }
+              }
+
+              if (emptyHexes.length > 0) {
+                  const target = emptyHexes[Math.floor(Math.random() * emptyHexes.length)];
+                  const meteorite = {
+                      id: `meteorite-${target.q}-${target.r}-${now}`,
+                      type: 'obstacle' as const,
+                      species: 'meteorite',
+                      pos: target
+                  };
+                  this.world.addEntity(meteorite);
+                  updatedEntities.push(meteorite);
+                  (meteorite as any).meteoriteStrike = true; // Signal for client visual
+              }
+          }
+      }
+
       chunk.entities.forEach(entity => {
         let updated: any = entity;
         if (entity.type === 'player') {
@@ -189,24 +258,11 @@ export class GameEngine {
           }
 
           // Nature's Grace Aura boost (if near 3+ mature trees or flowers)
-          const range = 2;
-          let natureCount = 0;
-          for (let dq = -range; dq <= range; dq++) {
-            for (let dr = -range; dr <= range; dr++) {
-                if (Math.abs(dq + dr) > range) continue;
-                const posKey = `${player.pos.q + dq},${player.pos.r + dr}`;
-                if (sunflowerPositions.has(posKey)) {
-                    natureCount++;
-                } else {
-                    const ents = this.world.getEntitiesAt(player.pos.q + dq, player.pos.r + dr);
-                    if (ents.some(e => (e.type === 'plant' || e.type === 'obstacle') && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush') && ((e as any).growthStage >= 5 || e.type === 'obstacle'))) {
-                        natureCount++;
-                    }
-                }
-            }
-          }
-          if (natureCount >= 3) {
+          if (natureGracePositions.has(`${player.pos.q},${player.pos.r}`)) {
               staminaRegen += 0.5;
+              (player as any).hasGrace = true;
+          } else {
+              (player as any).hasGrace = false;
           }
 
           if (player.stamina < player.maxStamina) {
@@ -267,6 +323,27 @@ export class GameEngine {
                   updated.growthStage = 4;
                   // We can't easily notify here without access to IO or socket ID,
                   // but we'll return it as an updated entity which clients will see.
+              }
+          }
+
+          // Drop wood chance (sticks)
+          if (updated.species === 'tree' && updated.growthStage >= 5 && Math.random() < 0.0001) {
+              const neighbors = getNeighbors(updated.pos);
+              const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
+              const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
+              if (targetEntities.length === 0 || (targetEntities.length === 1 && targetEntities[0].type === 'floor' && targetEntities[0].species === 'grass')) {
+                  const woodDrop = {
+                      id: `resource-wood-${targetPos.q}-${targetPos.r}-${now}`,
+                      type: 'plant' as const, // Use plant type so it can be 'harvested' easily or cleared
+                      species: 'wood-stick',
+                      pos: targetPos,
+                      growthStage: 5,
+                      plantedAt: now,
+                      lastWatered: 0,
+                      lastUpdate: now
+                  };
+                  this.world.addEntity(woodDrop);
+                  updatedEntities.push(woodDrop);
               }
           }
 

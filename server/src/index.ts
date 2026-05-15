@@ -161,7 +161,7 @@ io.on('connection', (socket) => {
 
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
-        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building' || e.type === 'animal') ||
+        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building') ||
         (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
       );
       if (!isBlocked) {
@@ -855,6 +855,29 @@ io.on('connection', (socket) => {
               io.emit('entityUpdate', caveEntrance);
               notify(socket.id, "You discovered a cave entrance!", 'success');
           }
+        } else if (obstacle.species === 'meteorite') {
+          const hasGoldPickaxe = (player.inventory['gold-pickaxe'] || 0) > 0;
+          const hasIronPickaxe = (player.inventory['iron-pickaxe'] || 0) > 0;
+          const hasCopperPickaxe = (player.inventory['copper-pickaxe'] || 0) > 0;
+          if (!hasGoldPickaxe && !hasIronPickaxe && !hasCopperPickaxe && (player.inventory['pickaxe'] || 0) <= 0) {
+            notify(socket.id, "You need a pickaxe to break meteorites!", 'error');
+            return;
+          }
+          world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
+          player.stamina -= sCost;
+
+          // High value rewards
+          player.inventory['stone'] = (player.inventory['stone'] || 0) + 10;
+          player.inventory['iron-ore'] = (player.inventory['iron-ore'] || 0) + 5;
+          player.inventory['gold-ore'] = (player.inventory['gold-ore'] || 0) + 2;
+          if (Math.random() < 0.2) player.inventory['diamond'] = (player.inventory['diamond'] || 0) + 1;
+
+          const { leveledUp, newLevel } = addXP(player, 'mining', 50);
+          if (leveledUp) notify(socket.id, `Your mining skill leveled up to ${newLevel}!`, 'success');
+
+          io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
+          socket.emit('entityUpdate', player);
+          notify(socket.id, "You mined a meteorite! Found rare space minerals.", 'success');
         } else if (obstacle.species === 'rock' || (!obstacle.species && obstacle.id.startsWith('rock'))) {
           const hasGoldPickaxe = (player.inventory['gold-pickaxe'] || 0) > 0;
           const hasIronPickaxe = (player.inventory['iron-pickaxe'] || 0) > 0;
@@ -1785,6 +1808,17 @@ io.on('connection', (socket) => {
       const localEntities = world.getEntitiesAt(player.pos.q, player.pos.r);
       const maturePlant = localEntities.find(e => e.type === 'plant' && (e as Plant).growthStage >= 5) as Plant | undefined;
       if (maturePlant) {
+          if (maturePlant.species === 'wood-stick') {
+            world.removeEntity(maturePlant.id, maturePlant.pos.q, maturePlant.pos.r);
+            player.inventory['wood'] = (player.inventory['wood'] || 0) + 1;
+            const { leveledUp, newLevel } = addXP(player, 'foraging', 2);
+            if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+            io.emit('entityRemove', { id: maturePlant.id, pos: maturePlant.pos });
+            socket.emit('entityUpdate', player);
+            notify(socket.id, "Picked up a stick.", 'success');
+            return;
+          }
+
           if (maturePlant.species === 'apple-tree' || maturePlant.species === 'orange-tree' || maturePlant.species === 'berry-bush') {
               // These already have logic above for periodic harvesting via interact,
               // but let's ensure we don't fall through to generic harvest if it was just harvested.

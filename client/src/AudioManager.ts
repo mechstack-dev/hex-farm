@@ -19,6 +19,11 @@ export class AudioManager {
         // Implementation for Web Audio API or HTML5 Audio would go here
     }
 
+    public ambient(type: string) {
+        if (!this.enabled) return;
+        console.log(`[Audio] Ambient loop started: ${type}`);
+    }
+
     public toggle() {
         this.enabled = !this.enabled;
         return this.enabled;
