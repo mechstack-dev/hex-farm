@@ -6,18 +6,18 @@ interface HotbarProps {
 
 export const Hotbar: React.FC<HotbarProps> = ({ inventory }) => {
   const slots = [
-    { key: '1', species: 'turnip' },
-    { key: '2', species: 'carrot' },
-    { key: '3', species: 'pumpkin' },
-    { key: '4', species: 'corn' },
-    { key: '5', species: 'wheat' },
-    { key: '6', species: 'winter-radish' },
-    { key: '7', species: 'kale' },
-    { key: '8', species: 'sunflower' },
-    { key: '9', species: 'apple-tree' },
-    { key: '0', species: 'orange-tree' },
-    { key: '-', species: 'peach-tree' },
-    { key: '=', species: 'cherry-tree' },
+    { key: '1', species: 'turnip', color: '#FFFFFF' },
+    { key: '2', species: 'carrot', color: '#FFA500' },
+    { key: '3', species: 'pumpkin', color: '#FF8C00' },
+    { key: '4', species: 'corn', color: '#FFFF00' },
+    { key: '5', species: 'wheat', color: '#DAA520' },
+    { key: '6', species: 'winter-radish', color: '#E6E6FA' },
+    { key: '7', species: 'kale', color: '#006400' },
+    { key: '8', species: 'sunflower', color: '#FFD700' },
+    { key: '9', species: 'apple-tree', color: '#FF0000' },
+    { key: '0', species: 'orange-tree', color: '#FF4500' },
+    { key: '-', species: 'peach-tree', color: '#FFDAB9' },
+    { key: '=', species: 'cherry-tree', color: '#B22222' },
   ];
 
   return (
@@ -57,13 +57,23 @@ export const Hotbar: React.FC<HotbarProps> = ({ inventory }) => {
               color: '#aaa'
             }}>{slot.key}</span>
             <div style={{
-              fontSize: '18px',
+              width: '24px',
+              height: '24px',
+              background: slot.color,
+              borderRadius: slot.species.endsWith('-tree') ? '50%' : '2px',
+              border: seedCount > 0 ? '2px solid white' : '2px solid #333',
+              opacity: seedCount > 0 ? 1 : 0.3,
+              boxShadow: seedCount > 0 ? `0 0 10px ${slot.color}` : 'none'
+            }} />
+            <div style={{
+              fontSize: '10px',
               textTransform: 'capitalize',
               textAlign: 'center',
-              lineHeight: '1',
+              lineHeight: '1.2',
+              marginTop: '2px',
               color: seedCount > 0 ? 'white' : '#666'
             }}>
-              {slot.species.charAt(0).toUpperCase()}
+              {slot.species.replace('-tree', '').charAt(0).toUpperCase() + slot.species.replace('-tree', '').slice(1, 3)}
             </div>
             <span style={{
               position: 'absolute',

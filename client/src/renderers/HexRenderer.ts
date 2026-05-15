@@ -31,7 +31,10 @@ export class HexRenderer {
   private playerLabels: Map<string, PIXI.Text> = new Map();
   private plantLabels: Map<string, PIXI.Text> = new Map();
   private hearts: { x: number, y: number, alpha: number, startTime: number }[] = [];
+  private blessings: { x: number, y: number, alpha: number, startTime: number, offset: number }[] = [];
+  private bees: { x: number, y: number, originX: number, originY: number, offset: number, speed: number }[] = [];
   private visibleLandingSpots: { x: number, y: number }[] = [];
+  private meteoriteFlash: number = 0;
 
   constructor(element: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -332,6 +335,14 @@ export class HexRenderer {
             // Purple top
             this.graphics.ellipse(x, y - size * 0.5, size, size * 0.5);
             this.graphics.fill({ color: 0x800080, alpha: 0.8 });
+        } else if (plant.species === 'wood-stick') {
+            // Small stick on the ground
+            this.graphics.moveTo(x - 8, y + 8);
+            this.graphics.lineTo(x + 8, y + 4);
+            this.graphics.stroke({ color: 0x8B4513, width: 2 });
+            this.graphics.moveTo(x + 2, y + 6);
+            this.graphics.lineTo(x + 5, y + 2);
+            this.graphics.stroke({ color: 0x8B4513, width: 1.5 });
         } else if (plant.species === 'sunflower') {
             // Stalk
             this.graphics.rect(x - 2, y - size, 4, size * 2);
@@ -367,8 +378,13 @@ export class HexRenderer {
   }
 
   drawAnimal(animal: Animal, x: number, y: number) {
+    const isDuck = animal.species === 'duck';
+    const entitiesAtPos = this.lastEntities.filter(e => e.pos.q === animal.pos.q && e.pos.r === animal.pos.r);
+    const isOnWater = entitiesAtPos.some(e => e.type === 'obstacle' && e.species === 'water');
+
     // Simple bounce animation
-    const bounce = Math.abs(Math.sin(Date.now() / 300 + x)) * 3;
+    let bounce = Math.abs(Math.sin(Date.now() / 300 + x)) * 3;
+    if (isDuck && isOnWater) bounce = Math.sin(Date.now() / 600 + x) * 2; // Gentle bobbing on water
     const bounceY = y - bounce;
     let color = 0xFFFFFF;
     let sizeScale = 1.0;
@@ -447,6 +463,13 @@ export class HexRenderer {
             x + 8 * sizeScale, bounceY + 2
         ]);
         this.graphics.fill({ color: 0xFFA500, alpha: 1 });
+
+        if (isOnWater) {
+            // Water ripples for swimming duck
+            const rippleScale = (Date.now() / 1000) % 1;
+            this.graphics.ellipse(x, y + 2, 15 * rippleScale + 5, 8 * rippleScale + 2);
+            this.graphics.stroke({ color: 0xADD8E6, width: 1, alpha: 1 - rippleScale });
+        }
     }
   }
 
@@ -522,6 +545,35 @@ export class HexRenderer {
     this.graphics.fill({ color: 0xF5F5DC, alpha: 1 });
     this.graphics.rect(x - 10, y - 14, 20, 2);
     this.graphics.fill({ color: 0xDEB887, alpha: 1 });
+  }
+
+  drawMeteorite(x: number, y: number) {
+    const time = Date.now() / 500;
+    // Jagged dark rock
+    this.graphics.poly([
+        x - 12, y + 8,
+        x + 10, y + 10,
+        x + 14, y - 2,
+        x + 4, y - 12,
+        x - 8, y - 8,
+        x - 14, y - 2
+    ]);
+    this.graphics.fill({ color: 0x2C2C2C, alpha: 1 });
+    this.graphics.stroke({ color: 0x000000, width: 2 });
+
+    // Glowing cracks
+    const glow = (Math.sin(time * 2) + 1) / 2;
+    this.graphics.moveTo(x - 5, y - 5);
+    this.graphics.lineTo(x + 5, y + 5);
+    this.graphics.moveTo(x + 5, y - 5);
+    this.graphics.lineTo(x - 5, y + 5);
+    this.graphics.stroke({ color: 0xFF4500, width: 2, alpha: 0.5 + glow * 0.5 });
+
+    // Craters
+    this.graphics.circle(x - 6, y + 2, 3);
+    this.graphics.fill({ color: 0x1A1A1A, alpha: 1 });
+    this.graphics.circle(x + 4, y - 4, 2);
+    this.graphics.fill({ color: 0x1A1A1A, alpha: 1 });
   }
 
   drawBuilding(entity: Entity, x: number, y: number) {
@@ -1239,7 +1291,17 @@ export class HexRenderer {
         }
         this.drawPlayer(x, y, player.color || 0x0000FF);
         this.updatePlayerLabel(player, x, y);
+
+        if (player.hasGrace) {
+            if (Math.random() < 0.1) {
+                this.blessings.push({ x, y: y - 10, alpha: 1, startTime: Date.now(), offset: Math.random() * Math.PI * 2 });
+            }
+        }
       } else if (entity.type === 'obstacle') {
+        if ((entity as any).meteoriteStrike) {
+            this.meteoriteFlash = Date.now();
+        }
+
         if (entity.species === 'tree' || (!entity.species && entity.id.startsWith('tree'))) {
             this.visibleLandingSpots.push({ x, y });
         }
@@ -1251,6 +1313,8 @@ export class HexRenderer {
           this.drawRock(x, y);
         } else if (entity.species === 'burnt-tree') {
           this.drawBurntTree(x, y);
+        } else if (entity.species === 'meteorite') {
+          this.drawMeteorite(x, y);
         } else if (entity.species === 'scarecrow') {
           this.drawScarecrow(x, y);
           this.visibleLandingSpots.push({ x, y: y - 10 });
@@ -1332,7 +1396,73 @@ export class HexRenderer {
         }
         this.drawDecorativeEntities(timeOfDay);
         this.drawHearts();
+        this.drawBlessings();
+        this.drawBees();
     }
+  }
+
+  drawBees() {
+    const isNight = this.lastEnvironment?.timeOfDay! < 0.25 || this.lastEnvironment?.timeOfDay! > 0.75;
+    if (isNight) {
+        this.bees = [];
+        return;
+    }
+
+    if (this.bees.length === 0) {
+        const attractionPoints: {x: number, y: number}[] = [];
+        this.lastEntities.forEach(e => {
+            if (e.type === 'building' && e.species === 'beehive') {
+                const { x, y } = axialToPixel(e.pos.q, e.pos.r, HEX_SIZE);
+                attractionPoints.push({ x: x + this.container.x, y: y + this.container.y });
+            } else if (e.species === 'sunflower') {
+                const { x, y } = axialToPixel(e.pos.q, e.pos.r, HEX_SIZE);
+                attractionPoints.push({ x: x + this.container.x, y: y + this.container.y });
+            }
+        });
+
+        if (attractionPoints.length > 0) {
+            for (let i = 0; i < attractionPoints.length * 3; i++) {
+                const point = attractionPoints[Math.floor(Math.random() * attractionPoints.length)];
+                const bx = point.x + (Math.random() - 0.5) * 40;
+                const by = point.y + (Math.random() - 0.5) * 40;
+                this.bees.push({
+                    x: bx,
+                    y: by,
+                    originX: bx,
+                    originY: by,
+                    offset: Math.random() * Math.PI * 2,
+                    speed: 2 + Math.random() * 2
+                });
+            }
+        }
+    }
+
+    this.bees.forEach(bee => {
+        const time = Date.now() / 1000;
+        bee.x = bee.originX + Math.sin(time * bee.speed + bee.offset) * 5;
+        bee.y = bee.originY + Math.cos(time * bee.speed + bee.offset) * 5;
+
+        this.overlay.circle(bee.x, bee.y, 1.5);
+        this.overlay.fill({ color: 0xFFFF00, alpha: 1 });
+        this.overlay.circle(bee.x - 1, bee.y, 0.5);
+        this.overlay.fill({ color: 0x000000, alpha: 1 });
+    });
+  }
+
+  drawBlessings() {
+    const now = Date.now();
+    this.blessings = this.blessings.filter(b => now - b.startTime < 1500);
+
+    this.blessings.forEach(b => {
+        const elapsed = now - b.startTime;
+        const progress = elapsed / 1500;
+        const currentY = b.y - progress * 30;
+        const currentX = b.x + Math.sin(progress * 5 + b.offset) * 10;
+        const currentAlpha = 1 - progress;
+
+        this.overlay.circle(currentX + this.container.x, currentY + this.container.y, 2);
+        this.overlay.fill({ color: 0x00FF00, alpha: currentAlpha * 0.8 });
+    });
   }
 
   drawHearts() {
@@ -1631,6 +1761,18 @@ export class HexRenderer {
     if (now - this.lightningFlash < 100) {
         this.overlay.rect(0, 0, this.app.screen.width, this.app.screen.height);
         this.overlay.fill({ color: 0xFFFFFF, alpha: 0.8 });
+        return;
+    }
+
+    if (now - this.meteoriteFlash < 300) {
+        const progress = (now - this.meteoriteFlash) / 300;
+        this.overlay.rect(0, 0, this.app.screen.width, this.app.screen.height);
+        this.overlay.fill({ color: 0xFF8C00, alpha: 0.5 * (1 - progress) });
+
+        // Meteor streak
+        this.overlay.moveTo(this.app.screen.width * (1-progress), 0);
+        this.overlay.lineTo(this.app.screen.width * (1-progress) + 100, progress * this.app.screen.height);
+        this.overlay.stroke({ color: 0xFFFFFF, width: 4, alpha: 1 - progress });
         return;
     }
 

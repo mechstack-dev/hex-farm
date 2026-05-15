@@ -256,6 +256,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **UI Polish**: Added a visual Hotbar and a comprehensive Explorer's Journal (Key: J).
 - [x] **Expanded Cooking**: Added Peach Cobbler, Cherry Pie, and Fruit Medley recipes.
 - [x] **Birdhouse Building**: Added birdhouse for automated seed and rare item collection.
+- [x] **Nature Dynamics Polish:** Mature trees now occasionally drop Wood (sticks). Optimized Nature's Grace stamina boost.
+- [x] **Meteorite Event:** Rare meteorites can strike at night, spawning a new mineable obstacle with rich rewards.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

@@ -12,7 +12,7 @@ export function moveAnimal(animal: Animal, world: WorldManager): Animal {
 
     const entities = world.getEntitiesAt(pos.q, pos.r);
     return !entities.some(e =>
-      e.type === 'obstacle' ||
+      (e.type === 'obstacle' && (animal.species !== 'duck' || e.species !== 'water')) ||
       e.type === 'animal' ||
       e.type === 'player' ||
       e.type === 'fence' ||

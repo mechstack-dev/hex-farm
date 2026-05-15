@@ -32,6 +32,7 @@ function App() {
   const [showControls, setShowControls] = useState(true);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
+  const currentWeatherRef = useRef<string>('sunny');
   const [notifications, setNotifications] = useState<{id: number, message: string, type: string}[]>([]);
   const [chatMessages, setChatMessages] = useState<{id: number, sender: string, message: string}[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -110,6 +111,10 @@ function App() {
     });
 
     socket.on('environmentUpdate', (env: EnvironmentState) => {
+      if (env.weather !== currentWeatherRef.current) {
+          AudioManager.getInstance().ambient(env.weather);
+          currentWeatherRef.current = env.weather;
+      }
       setEnvironment(env);
     });
 
