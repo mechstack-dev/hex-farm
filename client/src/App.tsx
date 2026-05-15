@@ -330,6 +330,7 @@ function App() {
           break;
         case 'KeyB':
           if (altKey) socket.emit('build_building', 'greenhouse');
+          else if (shiftKey) socket.emit('build_building', 'birdhouse');
           else socket.emit('build_scarecrow');
           break;
         case 'KeyN':
@@ -412,7 +413,7 @@ function App() {
 
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'berry', 'mushroom', 'fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice'].includes(item)) categories.crops.items.push([item, count]);
+        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam'].includes(item)) categories.crops.items.push([item, count]);
         else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'compost-fertilizer', 'ancient-coin', 'geode', 'diamond'].includes(item)) categories.resources.items.push([item, count]);
         else if (['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg'].includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);

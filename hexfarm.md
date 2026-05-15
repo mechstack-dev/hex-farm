@@ -108,6 +108,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Fruit Trees**: New trees (Peach, Cherry) that provide specialized fruit and preferred seasons.
    - **M**: Barn (20 Wood, 10 Stone)
    - **Alt+KeyM**: Large Barn (40 Wood, 20 Stone)
+   - **Shift+KeyB**: Birdhouse (12 Wood, 6 Stone) - Produces seeds and rare items daily.
    - **Alt+KeyT**: Player Stall (15 Wood, 5 Stone)
    - **Q**: Shipping Bin (10 Wood, 10 Stone)
    - **T**: Seed Maker (15 Wood, 5 Stone)
@@ -250,10 +251,11 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Player Customization**: Ability to choose different player colors or simple skins.
 - [x] **New Winter Crop**: Added Kale as a specialized winter crop.
 - [x] **Lamps**: Added decorative lamps that glow at night.
-- [x] **Enhanced Bird Behavior**: Birds can now land on mature crops and ground objects.
+- [x] **Enhanced Bird Behavior**: Birds can now land on mature crops, birdhouses, and ground objects.
 - [x] **New Fruit Trees**: Added Peach and Cherry trees with specific growth and seasonal preferences.
 - [x] **UI Polish**: Added a visual Hotbar and a comprehensive Explorer's Journal (Key: J).
 - [x] **Expanded Cooking**: Added Peach Cobbler, Cherry Pie, and Fruit Medley recipes.
+- [x] **Birdhouse Building**: Added birdhouse for automated seed and rare item collection.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

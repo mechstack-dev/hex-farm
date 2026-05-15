@@ -639,7 +639,37 @@ export class HexRenderer {
         this.drawPreservesJar(x, y);
     } else if (entity.species === 'stall') {
         this.drawStall(entity as any, x, y);
+    } else if (entity.species === 'birdhouse') {
+        this.drawBirdhouse(x, y);
     }
+  }
+
+  drawBirdhouse(x: number, y: number) {
+    // Post
+    this.graphics.rect(x - 2, y, 4, 15);
+    this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+
+    // House
+    this.graphics.rect(x - 10, y - 10, 20, 15);
+    this.graphics.fill({ color: 0xDEB887, alpha: 1 });
+    this.graphics.stroke({ color: 0x8B4513, width: 1 });
+
+    // Roof
+    this.graphics.poly([
+        x - 12, y - 10,
+        x + 12, y - 10,
+        x, y - 20
+    ]);
+    this.graphics.fill({ color: 0xA52A2A, alpha: 1 });
+    this.graphics.stroke({ color: 0x8B4513, width: 1 });
+
+    // Hole
+    this.graphics.circle(x, y - 3, 3);
+    this.graphics.fill({ color: 0x000000, alpha: 1 });
+
+    // Perch
+    this.graphics.rect(x - 1, y + 2, 2, 4);
+    this.graphics.fill({ color: 0x8B4513, alpha: 1 });
   }
 
   drawStall(entity: any, x: number, y: number) {
@@ -1253,6 +1283,9 @@ export class HexRenderer {
         this.drawSprinkler(entity, x, y);
       } else if (entity.type === 'building') {
         this.drawBuilding(entity, x, y);
+        if (entity.species === 'birdhouse') {
+            this.visibleLandingSpots.push({ x, y: y - 15 });
+        }
 
         // Lamp glow effect
         if (entity.species === 'lamp') {
