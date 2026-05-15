@@ -117,6 +117,27 @@ export class GameEngine {
     });
 
     chunks.forEach(chunk => {
+      // Rare lightning strike during rain
+      if (environment.weather === 'rainy' && Math.random() < 0.0005) {
+          const trees = chunk.entities.filter(e =>
+              (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree')) ||
+              (e.type === 'obstacle' && e.species === 'tree')
+          );
+          if (trees.length > 0) {
+              const targetTree = trees[Math.floor(Math.random() * trees.length)];
+              const burntTree = {
+                  ...targetTree,
+                  species: 'burnt-tree',
+                  growthStage: 0 // Reset or use as indicator
+              };
+              this.world.updateEntity(burntTree);
+              updatedEntities.push(burntTree);
+              // We'll broadcast the lightning event via the updatedEntities returning to the main loop
+              // but we might need a specific event for the flash.
+              (burntTree as any).lightning = true;
+          }
+      }
+
       chunk.entities.forEach(entity => {
         let updated: any = entity;
         if (entity.type === 'player') {

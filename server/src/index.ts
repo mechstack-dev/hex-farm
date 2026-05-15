@@ -773,7 +773,7 @@ io.on('connection', (socket) => {
         if (obstacle) break;
 
         // Second pass for other clearable things like buildings/sprinklers if no high-priority obstacle found yet
-        obstacle = entities.find(e => e.type === 'building' || e.type === 'sprinkler' || (e.type === 'plant' && (e.species === 'berry-bush' || e.species === 'mushroom')));
+        obstacle = entities.find(e => e.type === 'building' || e.type === 'sprinkler' || e.type === 'plant');
         if (obstacle) break;
       }
 
@@ -782,7 +782,7 @@ io.on('connection', (socket) => {
       if (!hasStamina(player, sCost)) return;
 
       if (obstacle) {
-        if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || obstacle.species === 'orange-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
+        if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || obstacle.species === 'orange-tree' || obstacle.species === 'burnt-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
           const hasGoldAxe = (player.inventory['gold-axe'] || 0) > 0;
           const hasIronAxe = (player.inventory['iron-axe'] || 0) > 0;
           const hasCopperAxe = (player.inventory['copper-axe'] || 0) > 0;
@@ -802,7 +802,14 @@ io.on('connection', (socket) => {
 
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
-          player.inventory['wood'] = (player.inventory['wood'] || 0) + totalWood;
+
+          if (obstacle.species === 'burnt-tree') {
+              const coalAmount = 1 + Math.floor(Math.random() * 3);
+              player.inventory['coal'] = (player.inventory['coal'] || 0) + coalAmount;
+              notify(socket.id, `Cleared burnt tree. Gained ${coalAmount} coal!`, 'success');
+          } else {
+              player.inventory['wood'] = (player.inventory['wood'] || 0) + totalWood;
+          }
 
           // XP Gain
           const { leveledUp, newLevel } = addXP(player, 'foraging', 15);
@@ -932,12 +939,12 @@ io.on('connection', (socket) => {
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, "Removed fence.", 'success');
-        } else if (obstacle.species === 'berry-bush' || obstacle.species === 'mushroom') {
+        } else if (obstacle.type === 'plant') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
-          notify(socket.id, `Cleared ${obstacle.species}.`, 'info');
+          notify(socket.id, `Cleared ${obstacle.species || 'plant'}.`, 'info');
         } else if (obstacle.type === 'building' || obstacle.type === 'sprinkler') {
           const species = obstacle.species || (obstacle.type === 'sprinkler' ? 'sprinkler' : '');
 
@@ -1104,6 +1111,22 @@ io.on('connection', (socket) => {
           return;
       }
 
+      if (building && building.species === 'preserves-jar') {
+          const fruit = ['apple', 'orange', 'berry'];
+          const targetFruit = fruit.find(f => (player.inventory[f] || 0) > 0);
+
+          if (targetFruit) {
+              player.inventory[targetFruit]--;
+              const jamType = `${targetFruit}-jam`;
+              player.inventory[jamType] = (player.inventory[jamType] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, `Converted 1 ${targetFruit} into ${jamType.replace('-', ' ')}!`, 'success');
+          } else {
+              notify(socket.id, "No fruit to make jam.", 'info');
+          }
+          return;
+      }
+
       if (building && building.species === 'seed-maker') {
           const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
@@ -1163,7 +1186,7 @@ io.on('connection', (socket) => {
           return;
       }
 
-      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn')) {
+      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'shed')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
 

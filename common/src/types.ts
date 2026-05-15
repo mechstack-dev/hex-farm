@@ -20,11 +20,13 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'weather-station': { wood: 10, stone: 15 },
   'fountain': { wood: 0, stone: 20 },
   'lamp': { wood: 2, stone: 5 },
+  'preserves-jar': { wood: 8, stone: 4 },
 };
 
 export const ITEM_PRICES: Record<string, number> = {
   'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
   'winter-radish': 40, 'sunflower': 45, 'kale': 15, 'apple': 15, 'orange': 20, 'berry': 12, 'mushroom': 18,
+  'apple-jam': 50, 'orange-jam': 65, 'berry-jam': 45,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
   'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
@@ -83,7 +85,10 @@ export const FOOD_VALUES: Record<string, number> = {
   'berry-smoothie': 50,
   'pumpkin-pie': 85,
   'apple-cider': 60,
-  'orange-juice': 50
+  'orange-juice': 50,
+  'apple-jam': 35,
+  'orange-jam': 45,
+  'berry-jam': 30
 };
 
 export const BEST_FOODS = ['golden-hexfish', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
