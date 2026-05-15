@@ -5,6 +5,7 @@ import type { Entity, Position, EnvironmentState } from 'common'
 import { getChunkCoords, BEST_FOODS, ITEM_PRICES } from 'common'
 import { socket, movePlayer } from './network'
 import { useInput } from './hooks/useInput'
+import { AudioManager } from './AudioManager'
 import './App.css'
 
 function App() {
@@ -112,6 +113,7 @@ function App() {
     socket.on('notification', ({ message, type }: { message: string, type: string }) => {
       const id = Date.now();
       setNotifications(prev => [...prev, { id, message, type }]);
+      AudioManager.getInstance().play(type === 'error' ? 'error' : 'notification');
       setTimeout(() => {
         setNotifications(prev => prev.filter(n => n.id !== id));
       }, 5000);
@@ -123,6 +125,7 @@ function App() {
 
     socket.on('chat', (msg: {sender: string, message: string, timestamp: number}) => {
       setChatMessages(prev => [...prev, { id: msg.timestamp, sender: msg.sender, message: msg.message }].slice(-50));
+      AudioManager.getInstance().play('chat');
     });
 
     return () => {
@@ -246,19 +249,31 @@ function App() {
           break;
         case 'KeyF':
           if (altKey) socket.emit('cook', 'seafood-platter');
-          else socket.emit('build_fence');
+          else {
+            socket.emit('build_fence');
+            AudioManager.getInstance().play('build');
+          }
           break;
         case 'KeyG':
           if (altKey) socket.emit('cook', 'honey-glazed-carrots');
-          else socket.emit('fertilize');
+          else {
+            socket.emit('fertilize');
+            AudioManager.getInstance().play('fertilize');
+          }
           break;
         case 'KeyH':
           if (altKey) socket.emit('cook', 'goat-cheese-salad');
-          else socket.emit('harvest');
+          else {
+            socket.emit('harvest');
+            AudioManager.getInstance().play('harvest');
+          }
           break;
         case 'KeyJ':
           if (altKey) socket.emit('cook', 'duck-egg-mayo');
-          else socket.emit('fish');
+          else {
+            socket.emit('fish');
+            AudioManager.getInstance().play('fish');
+          }
           break;
         case 'KeyK':
           if (altKey) {
@@ -273,7 +288,10 @@ function App() {
           break;
         case 'KeyP':
           if (altKey) socket.emit('cook', 'apple-cider');
-          else socket.emit('plow');
+          else {
+            socket.emit('plow');
+            AudioManager.getInstance().play('plow');
+          }
           break;
         case 'KeyU':
           if (altKey) socket.emit('cook', 'orange-juice');
@@ -310,7 +328,8 @@ function App() {
           socket.emit('build_building', 'cooking-pot');
           break;
         case 'KeyM':
-          socket.emit('build_building', 'barn');
+          if (altKey) socket.emit('build_building', 'large-barn');
+          else socket.emit('build_building', 'barn');
           break;
         case 'KeyQ':
           if (altKey) socket.emit('build_building', 'recycling-machine');
@@ -318,7 +337,8 @@ function App() {
           else socket.emit('build_building', 'shipping-bin');
           break;
         case 'KeyT':
-          socket.emit('build_building', 'seed-maker');
+          if (altKey) socket.emit('build_building', 'stall');
+          else socket.emit('build_building', 'seed-maker');
           break;
         case 'KeyY':
           socket.emit('teleport_home');
