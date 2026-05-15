@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { HexRenderer } from './renderers/HexRenderer'
 import { CookingMenu } from './components/CookingMenu'
+import { Hotbar } from './components/Hotbar'
+import { Journal } from './components/Journal'
 import type { Entity, Position, EnvironmentState } from 'common'
 import { getChunkCoords, BEST_FOODS, ITEM_PRICES } from 'common'
 import { socket, movePlayer } from './network'
@@ -26,6 +28,7 @@ function App() {
   const [playerRelationships, setPlayerRelationships] = useState<Record<string, number>>({});
   const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
   const [showCookingMenu, setShowCookingMenu] = useState(false);
+  const [showJournal, setShowJournal] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
@@ -200,8 +203,8 @@ function App() {
           break;
         case 'Digit8':
           if (altKey) socket.emit('cook', 'miners-stew');
-          else if (shiftKey) socket.emit('buy_tool', 'fishing-rod');
-          else socket.emit('plant', 'sunflower');
+          else if (shiftKey) socket.emit('buy_seed', 'peach-tree');
+          else socket.emit('plant', 'peach-tree');
           break;
         case 'Minus':
           if (altKey) {
@@ -216,9 +219,9 @@ function App() {
           if (altKey) {
             socket.emit('cook', 'veggie-platter');
           } else if (shiftKey) {
-            socket.emit('buy_seed', 'orange-tree');
+            socket.emit('buy_seed', 'cherry-tree');
           } else {
-            socket.emit('plant', 'orange-tree');
+            socket.emit('plant', 'cherry-tree');
           }
           break;
         case 'Digit0':
@@ -233,6 +236,10 @@ function App() {
         case 'Equal':
           if (altKey) {
             socket.emit('cook', 'mushroom-risotto');
+          } else if (shiftKey) {
+            socket.emit('buy_seed', 'sunflower');
+          } else {
+            socket.emit('plant', 'sunflower');
           }
           break;
         case 'BracketLeft':
@@ -246,6 +253,23 @@ function App() {
           break;
         case 'KeyD':
           if (altKey) socket.emit('cook', 'hearty-stew');
+          break;
+        case 'KeyZ':
+          if (altKey) socket.emit('cook', 'peach-cobbler');
+          else socket.emit('use_dynamite');
+          break;
+        case 'KeyX':
+          if (altKey) socket.emit('cook', 'cherry-pie');
+          else if (shiftKey) socket.emit('sell_junk');
+          else socket.emit('clear_obstacle');
+          break;
+        case 'KeyC':
+          if (altKey) socket.emit('cook', 'fruit-medley');
+          else {
+            const toEat = BEST_FOODS.find(f => playerInventory[f] > 0);
+            if (toEat) socket.emit('consume', toEat);
+            else socket.emit('consume', 'apple');
+          }
           break;
         case 'KeyF':
           if (altKey) socket.emit('cook', 'seafood-platter');
@@ -270,9 +294,11 @@ function App() {
           break;
         case 'KeyJ':
           if (altKey) socket.emit('cook', 'duck-egg-mayo');
-          else {
+          else if (shiftKey) {
             socket.emit('fish');
             AudioManager.getInstance().play('fish');
+          } else {
+            setShowJournal(prev => !prev);
           }
           break;
         case 'KeyK':
@@ -320,10 +346,6 @@ function App() {
           if (altKey) socket.emit('build_building', 'weather-station');
           else socket.emit('build_building', 'beehive');
           break;
-        case 'KeyX':
-          if (shiftKey) socket.emit('sell_junk');
-          else socket.emit('clear_obstacle');
-          break;
         case 'KeyO':
           socket.emit('build_building', 'cooking-pot');
           break;
@@ -342,14 +364,6 @@ function App() {
           break;
         case 'KeyY':
           socket.emit('teleport_home');
-          break;
-        case 'KeyZ':
-          socket.emit('use_dynamite');
-          break;
-        case 'KeyC':
-          const toEat = BEST_FOODS.find(f => playerInventory[f] > 0);
-          if (toEat) socket.emit('consume', toEat);
-          else socket.emit('consume', 'apple');
           break;
       }
 
@@ -447,6 +461,15 @@ function App() {
   return (
     <div className="App">
       {showCookingMenu && <CookingMenu inventory={playerInventory} onClose={() => setShowCookingMenu(false)} />}
+      {showJournal && (
+        <Journal
+          skills={playerSkills}
+          relationships={playerRelationships}
+          achievements={playerAchievements}
+          onClose={() => setShowJournal(false)}
+        />
+      )}
+      <Hotbar inventory={playerInventory} />
       {!isJoined && (
         <div className="login-overlay" style={{
           position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',

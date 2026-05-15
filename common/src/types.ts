@@ -27,8 +27,8 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
 
 export const ITEM_PRICES: Record<string, number> = {
   'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
-  'winter-radish': 40, 'sunflower': 45, 'kale': 15, 'apple': 15, 'orange': 20, 'berry': 12, 'mushroom': 18,
-  'apple-jam': 50, 'orange-jam': 65, 'berry-jam': 45,
+  'winter-radish': 40, 'sunflower': 45, 'kale': 15, 'apple': 15, 'orange': 20, 'peach': 25, 'cherry': 22, 'berry': 12, 'mushroom': 18,
+  'apple-jam': 50, 'orange-jam': 65, 'berry-jam': 45, 'peach-jam': 60, 'cherry-jam': 55,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
   'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
@@ -37,12 +37,13 @@ export const ITEM_PRICES: Record<string, number> = {
   'fruit-salad': 45, 'mushroom-risotto': 95, 'corn-bread': 110, 'fish-stew': 110,
   'fruity-sorbet': 180, 'hearty-stew': 180, 'seafood-platter': 180,
   'honey-glazed-carrots': 120, 'goat-cheese-salad': 140, 'duck-egg-mayo': 80,
-  'berry-smoothie': 90, 'pumpkin-pie': 150, 'apple-cider': 110, 'orange-juice': 70
+  'berry-smoothie': 90, 'pumpkin-pie': 150, 'apple-cider': 110, 'orange-juice': 70,
+  'peach-cobbler': 160, 'cherry-pie': 150, 'fruit-medley': 140
 };
 
 export const SEED_PRICES: Record<string, number> = {
   'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20,
-  'winter-radish': 30, 'kale': 8, 'apple-tree': 50, 'orange-tree': 60, 'sunflower': 35
+  'winter-radish': 30, 'kale': 8, 'apple-tree': 50, 'orange-tree': 60, 'peach-tree': 70, 'cherry-tree': 65, 'sunflower': 35
 };
 
 export const TOOL_PRICES: Record<string, number> = {
@@ -58,6 +59,8 @@ export const FOOD_VALUES: Record<string, number> = {
   'golden-hexfish': 100,
   'apple': 20,
   'orange': 15,
+  'peach': 25,
+  'cherry': 15,
   'turnip': 5,
   'carrot': 8,
   'corn': 10,
@@ -90,10 +93,15 @@ export const FOOD_VALUES: Record<string, number> = {
   'orange-juice': 50,
   'apple-jam': 35,
   'orange-jam': 45,
-  'berry-jam': 30
+  'berry-jam': 30,
+  'peach-jam': 45,
+  'cherry-jam': 40,
+  'peach-cobbler': 90,
+  'cherry-pie': 85,
+  'fruit-medley': 80
 };
 
-export const BEST_FOODS = ['golden-hexfish', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['golden-hexfish', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'fish', 'corn', 'carrot', 'turnip'];
 
 export const RECIPES: Record<string, Record<string, number>> = {
   'salad': { 'turnip': 1, 'carrot': 1 },
@@ -119,7 +127,10 @@ export const RECIPES: Record<string, Record<string, number>> = {
   'berry-smoothie': { 'berry': 2, 'milk': 1 },
   'pumpkin-pie': { 'pumpkin': 1, 'wheat': 1, 'egg': 1 },
   'apple-cider': { 'apple': 3, 'honey': 1 },
-  'orange-juice': { 'orange': 3 }
+  'orange-juice': { 'orange': 3 },
+  'peach-cobbler': { 'peach': 3, 'wheat': 1 },
+  'cherry-pie': { 'cherry': 3, 'wheat': 1 },
+  'fruit-medley': { 'apple': 1, 'orange': 1, 'peach': 1, 'cherry': 1 }
 };
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';

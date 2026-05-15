@@ -20,7 +20,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Plants:** Have `growthStage`, `lastWatered`, and `plantedAt` properties. They grow in real-time.
 - **Animals:** Move randomly to neighboring hexes at set intervals (`nextMoveTime`).
 - **NPCs:** Merchant, Blacksmith, Fisherman, and Miner are specialized animals with fixed home positions. They move within a 3-hex radius of their home, making them feel more like active inhabitants of the world.
-- **Obstacles:** Static entities like trees and rocks that block movement. **Berry Bushes** also block movement for players and animals.
+- **Obstacles:** Static entities like trees and rocks that block movement. **Berry Bushes**, **Apple Trees**, **Orange Trees**, **Peach Trees**, and **Cherry Trees** also block movement for players and animals.
 
 ### Growth Mechanics
 - **Real-time Growth:** Plants progress through stages based on elapsed time. Different species (Turnips, Carrots, Pumpkins) have different growth rates.
@@ -37,6 +37,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Shipping Bin:** Sell all crops and products in your inventory at 80% value instantly.
 - **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
 - **Beehives:** Produce Honey over time. If a **Sunflower** is within a 2-hex radius, they produce premium **Sunflower Honey**, otherwise they produce standard **Wildflower Honey**. They also provide a 1.5x growth boost and a 5x natural propagation boost to plants within a 2-hex radius.
+- **UI Enhancements:** A visual **Hotbar** at the bottom of the screen displays seed icons and counts for quick planting. An **Explorer's Journal** (Key: J) displays Skills (with progress bars), Relationships (with heart meters), and Achievements.
 - **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`) or by simply chatting with them once per game day (+5 points). High friendship levels unlock new dialogue and rewards. At 750 friendship, NPCs give a significant one-time reward. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
 - **Natural Propagation:** Mature plants and trees have a small chance each tick to sprout new growth in adjacent empty hexes, allowing nature to reclaim the land and forests to expand naturally. Plants will not propagate onto player-built **Paths**.
 - **Ancient Shrines:** Rarely found in the wild. Interacting with a shrine grants a powerful random 10-minute buff once per day.
@@ -58,7 +59,7 @@ The world is theoretically infinite. The server generates entities for chunks on
 ### Slow-Paced Growth
 HexFarm is designed to be played over long periods.
 - **Crops:** Might take several real-world days to reach maturity. Growth is faster during preferred seasons (e.g., Turnips in Spring, Corn in Summer).
-- **Trees:** Now grow through stages like crops (7 game days per stage). Mature trees provide more wood (5 units) and sometimes fruit.
+- **Trees:** Now grow through stages like crops (7 game days per stage). Mature trees provide more wood (5 units) and sometimes fruit. Fruit trees include Apple, Orange, Peach, and Cherry.
 - **Low Pressure:** Neglecting plants won't kill them; it simply halts or slows their growth, encouraging a relaxed playstyle.
 
 ### Skill System
@@ -69,7 +70,7 @@ HexFarm is designed to be played over long periods.
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone. Mining rocks also has a chance to yield **Iron Ore**.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
-- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, **Fish Stew**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, and **Apple Cider**.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, **Fish Stew**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, **Apple Cider**, **Peach Cobbler**, **Cherry Pie**, and **Fruit Medley**.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
 - **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore/Gold Ore to upgrade tools to Copper, Iron, and Gold versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
@@ -87,7 +88,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
 
 ### Farming & Construction
 1. **Plowing:** Pressing **P** plows the current hex, creating tilled soil. Requires a **Hoe**.
-2. **Planting:** Press **1-6** to plant seeds on tilled soil.
+2. **Planting:** Press **1-9** to plant seeds on tilled soil.
 3. **Care:** Press **I** to water. Press **G** to use **Fertilizer** (consumes 1 Junk, boosts growth).
 4. **Watering Sources:** Standing near a **Well** or using a **Watering Can** allows watering. Wells provide a local infinite water source for the surrounding area.
 5. **Harvesting:** Press **E** (Interact) or **H** to harvest mature plants.
@@ -102,9 +103,9 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **U**: Well (5 Wood, 10 Stone)
    - **N**: Beehive (5 Wood, 5 Stone)
    - **O**: Cooking Pot (5 Wood, 10 Stone)
-   - **8**: Plant Sunflower
+   - **1-9**: Plant Seeds (1: Turnip, 2: Carrot, 3: Pumpkin, 4: Sunflower, 5: Kale, 6: Apple Tree, 7: Orange Tree, 8: Peach Tree, 9: Cherry Tree)
    - **Goats and Ducks**: New animals that provide **Goat Milk** and **Duck Eggs**.
-   - **Orange Trees**: New fruit trees that prefer Summer and provide **Oranges**.
+   - **Fruit Trees**: New trees (Peach, Cherry) that provide specialized fruit and preferred seasons.
    - **M**: Barn (20 Wood, 10 Stone)
    - **Alt+KeyM**: Large Barn (40 Wood, 20 Stone)
    - **Alt+KeyT**: Player Stall (15 Wood, 5 Stone)
@@ -116,14 +117,14 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
    - **Alt+E**: Lamp (2 Wood, 5 Stone) - Decorative building that glows at night and dusk.
    - **Alt+V**: Preserves Jar (8 Wood, 4 Stone) - Converts fruit into Jam for higher stamina and sale value.
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish.
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
    - **Scythe:** A tool that allows harvesting all mature crops in a 1-hex radius.
-   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook recipes (Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter). Additional recipes: **Alt+0** for Coal-Grilled Fish. New recipes: Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, **Fruity Sorbet**, **Hearty Stew**, **Seafood Platter**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, **Apple Cider**, and **Orange Juice** (Alt+U).
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook standard recipes. Additional recipes: **Alt+0** for Coal-Grilled Fish, **Alt+U** for Orange Juice, **Alt+Z** for Peach Cobbler, **Alt+X** for Cherry Pie, and **Alt+C** for Fruit Medley.
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Dynamite:** Press **Z** to use Dynamite. It clears everything in a 1-hex radius (excluding water) but does not refund resources.
@@ -249,6 +250,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **New Winter Crop**: Added Kale as a specialized winter crop.
 - [x] **Lamps**: Added decorative lamps that glow at night.
 - [x] **Enhanced Bird Behavior**: Birds can now land on mature crops and ground objects.
+- [x] **New Fruit Trees**: Added Peach and Cherry trees with specific growth and seasonal preferences.
+- [x] **UI Polish**: Added a visual Hotbar and a comprehensive Explorer's Journal (Key: J).
+- [x] **Expanded Cooking**: Added Peach Cobbler, Cherry Pie, and Fruit Medley recipes.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

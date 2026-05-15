@@ -161,7 +161,7 @@ io.on('connection', (socket) => {
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
         (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building' || e.type === 'animal') ||
-        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
+        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
       );
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
@@ -395,7 +395,7 @@ io.on('connection', (socket) => {
         const entities = world.getEntitiesAt(pos.q, pos.r);
         const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
         if (plant) {
-          if (plant.species === 'apple-tree' || plant.species === 'orange-tree') {
+          if (plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree') {
               if (!hasScythe) notify(socket.id, `Use 'E' to gather fruit from mature trees. Use an axe to cut them down.`, 'info');
               return;
           }
@@ -783,7 +783,7 @@ io.on('connection', (socket) => {
       if (!hasStamina(player, sCost)) return;
 
       if (obstacle) {
-        if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || obstacle.species === 'orange-tree' || obstacle.species === 'burnt-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
+        if (obstacle.species === 'tree' || obstacle.species === 'apple-tree' || obstacle.species === 'orange-tree' || obstacle.species === 'peach-tree' || obstacle.species === 'cherry-tree' || obstacle.species === 'burnt-tree' || (!obstacle.species && obstacle.id.startsWith('tree'))) {
           const hasGoldAxe = (player.inventory['gold-axe'] || 0) > 0;
           const hasIronAxe = (player.inventory['iron-axe'] || 0) > 0;
           const hasCopperAxe = (player.inventory['copper-axe'] || 0) > 0;
@@ -821,6 +821,8 @@ io.on('connection', (socket) => {
           let name = 'tree';
           if (obstacle.species === 'apple-tree') name = 'apple tree';
           if (obstacle.species === 'orange-tree') name = 'orange tree';
+          if (obstacle.species === 'peach-tree') name = 'peach tree';
+          if (obstacle.species === 'cherry-tree') name = 'cherry tree';
 
           // Discovery Reward
           const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
@@ -1199,7 +1201,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'preserves-jar') {
-          const fruit = ['apple', 'orange', 'berry'];
+          const fruit = ['apple', 'orange', 'berry', 'peach', 'cherry'];
           const targetFruit = fruit.find(f => (player.inventory[f] || 0) > 0);
 
           if (targetFruit) {
@@ -1215,7 +1217,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'seed-maker') {
-          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower'];
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'peach', 'cherry'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
 
           if (targetCrop) {
@@ -1232,7 +1234,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'compost-bin') {
-          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower'];
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'peach', 'cherry'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
 
           if (targetCrop) {
@@ -1371,10 +1373,14 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (plant && (plant.species === 'apple-tree' || plant.species === 'orange-tree') && plant.growthStage >= 5) {
+      if (plant && (plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree') && plant.growthStage >= 5) {
         const now = Date.now();
         if (now - (plant.lastProductTime || 0) >= GAME_DAY) {
-            const product = plant.species === 'apple-tree' ? 'apple' : 'orange';
+            let product = 'apple';
+            if (plant.species === 'orange-tree') product = 'orange';
+            else if (plant.species === 'peach-tree') product = 'peach';
+            else if (plant.species === 'cherry-tree') product = 'cherry';
+
             player.inventory[product] = (player.inventory[product] || 0) + 1;
             plant.lastProductTime = now;
 
