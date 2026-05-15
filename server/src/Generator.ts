@@ -15,6 +15,7 @@ export class Generator {
     const entities: Entity[] = [];
     const chunkSeed = `${cq},${cr}`;
     const chunkRng = seedrandom(chunkSeed);
+    let fishermanSpawned = false;
 
     for (let q = cq * chunkSize; q < (cq + 1) * chunkSize; q++) {
       for (let r = cr * chunkSize; r < (cr + 1) * chunkSize; r++) {
@@ -96,7 +97,7 @@ export class Generator {
         }
 
         // Spawn Fisherman near water
-        if (n < -0.4 && chunkRng() < 0.05) {
+        if (!fishermanSpawned && n < -0.4 && chunkRng() < 0.05) {
             // Find a neighbor that is NOT water
             const neighbors = [
                 { q: q + 1, r: r }, { q: q + 1, r: r - 1 }, { q: q, r: r - 1 },
@@ -118,6 +119,7 @@ export class Generator {
                         nextMoveTime: 0,
                         lastProductTime: 0
                     } as unknown as Entity);
+                    fishermanSpawned = true;
                 }
             }
         }

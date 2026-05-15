@@ -169,78 +169,68 @@ function App() {
         case 'Digit1':
           if (altKey) socket.emit('cook', 'salad');
           else if (shiftKey) socket.emit('buy_seed', 'turnip');
+          else if (ctrlKey) socket.emit('buy_tool', 'hoe');
           else socket.emit('plant', 'turnip');
           break;
         case 'Digit2':
           if (altKey) socket.emit('cook', 'apple-pie');
           else if (shiftKey) socket.emit('buy_seed', 'carrot');
+          else if (ctrlKey) socket.emit('buy_tool', 'watering-can');
           else socket.emit('plant', 'carrot');
           break;
         case 'Digit3':
           if (altKey) socket.emit('cook', 'pumpkin-soup');
           else if (shiftKey) socket.emit('buy_seed', 'pumpkin');
+          else if (ctrlKey) socket.emit('buy_tool', 'axe');
           else socket.emit('plant', 'pumpkin');
           break;
         case 'Digit4':
           if (altKey) socket.emit('cook', 'corn-chowder');
           else if (shiftKey) socket.emit('buy_seed', 'corn');
+          else if (ctrlKey) socket.emit('buy_tool', 'pickaxe');
           else socket.emit('plant', 'corn');
           break;
         case 'Digit5':
           if (altKey) socket.emit('cook', 'grilled-fish');
           else if (shiftKey) socket.emit('buy_seed', 'wheat');
+          else if (ctrlKey) socket.emit('buy_tool', 'scythe');
           else socket.emit('plant', 'wheat');
           break;
         case 'Digit6':
           if (altKey) socket.emit('cook', 'mushroom-soup');
-          else if (shiftKey) socket.emit('buy_seed', 'apple-tree');
-          else socket.emit('plant', 'apple-tree');
+          else if (shiftKey) socket.emit('buy_seed', 'winter-radish');
+          else if (ctrlKey) socket.emit('buy_tool', 'fishing-rod');
+          else socket.emit('plant', 'winter-radish');
           break;
         case 'Digit7':
           if (altKey) socket.emit('cook', 'berry-tart');
-          else if (shiftKey) socket.emit('buy_seed', 'winter-radish');
-          else socket.emit('plant', 'winter-radish');
+          else if (shiftKey) socket.emit('buy_seed', 'kale');
+          else socket.emit('plant', 'kale');
           break;
         case 'Digit8':
           if (altKey) socket.emit('cook', 'miners-stew');
+          else if (shiftKey) socket.emit('buy_seed', 'sunflower');
+          else socket.emit('plant', 'sunflower');
+          break;
+        case 'Digit9':
+          if (altKey) socket.emit('cook', 'veggie-platter');
+          else if (shiftKey) socket.emit('buy_seed', 'apple-tree');
+          else socket.emit('plant', 'apple-tree');
+          break;
+        case 'Digit0':
+          if (altKey) socket.emit('cook', 'coal-grilled-fish');
+          else if (shiftKey) socket.emit('buy_seed', 'orange-tree');
+          else socket.emit('plant', 'orange-tree');
+          break;
+        case 'Minus':
+          if (altKey) socket.emit('cook', 'fruit-salad');
           else if (shiftKey) socket.emit('buy_seed', 'peach-tree');
           else socket.emit('plant', 'peach-tree');
           break;
-        case 'Minus':
-          if (altKey) {
-            socket.emit('cook', 'fruit-salad');
-          } else if (shiftKey) {
-            socket.emit('buy_seed', 'kale');
-          } else {
-            socket.emit('plant', 'kale');
-          }
-          break;
-        case 'Digit9':
-          if (altKey) {
-            socket.emit('cook', 'veggie-platter');
-          } else if (shiftKey) {
-            socket.emit('buy_seed', 'cherry-tree');
-          } else {
-            socket.emit('plant', 'cherry-tree');
-          }
-          break;
-        case 'Digit0':
-          if (altKey) {
-            socket.emit('cook', 'coal-grilled-fish');
-          } else if (shiftKey) {
-            socket.emit('buy_seed', 'sunflower');
-          } else {
-            socket.emit('buy_tool', 'scythe');
-          }
-          break;
         case 'Equal':
-          if (altKey) {
-            socket.emit('cook', 'mushroom-risotto');
-          } else if (shiftKey) {
-            socket.emit('buy_seed', 'sunflower');
-          } else {
-            socket.emit('plant', 'sunflower');
-          }
+          if (altKey) socket.emit('cook', 'mushroom-risotto');
+          else if (shiftKey) socket.emit('buy_seed', 'cherry-tree');
+          else socket.emit('plant', 'cherry-tree');
           break;
         case 'BracketLeft':
           if (altKey) socket.emit('cook', 'corn-bread');
@@ -367,14 +357,6 @@ function App() {
           break;
       }
 
-      // Handle specific tool buy overlap with Ctrl or other modifiers if needed
-      // Currently, we'll use a clearer mapping in the switch or a separate check that doesn't overlap
-      if (ctrlKey) {
-        if (e.code === 'Digit9') socket.emit('buy_tool', 'hoe');
-        else if (e.code === 'Digit0') socket.emit('buy_tool', 'watering-can');
-        else if (e.code === 'Minus') socket.emit('buy_tool', 'axe');
-        else if (e.code === 'Equal') socket.emit('buy_tool', 'pickaxe');
-      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -618,14 +600,14 @@ function App() {
         {showControls && (
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
-            <p style={{ margin: '2px 0' }}>Press <b>1-9</b> to Plant (8: Sunflower, 9: Orange Tree), <b>Minus (-)</b> to Plant Kale, <b>Shift + 1-7, 9, 0, Minus</b> to Buy Seeds (Shift+8: Fishing Rod, Shift+9: Orange Tree, Shift+0: Sunflower, Shift+Minus: Kale)</p>
-            <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path (Alt+R: Fountain), <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence, <b>Alt+E</b> to build Lamp</p>
-            <p style={{ margin: '2px 0' }}>Press <b>K</b> for Sprinkler (Shift+K: Iron, Alt+K: Gold), <b>B</b> to Scarecrow (Alt+B: Greenhouse), <b>L</b> to Shed, <b>V</b> to Chest (Alt+V: Preserves Jar), <b>U</b> to Well, <b>N</b> to Beehive (Alt+N: Weather Station), <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin (Shift+Q: Compost Bin, Alt+Q: Recycling Machine), <b>T</b> to Seed Maker</p>
-            <p style={{ margin: '2px 0' }}>Press <b>E</b> to Interact / Harvest, <b>H</b> to Harvest Area, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
+            <p style={{ margin: '2px 0' }}>Press <b>1-9, 0, -, =</b> to Plant: 1:Turnip, 2:Carrot, 3:Pumpkin, 4:Corn, 5:Wheat, 6:Radish, 7:Kale, 8:Sunflower, 9:Apple, 0:Orange, -:Peach, =:Cherry</p>
+            <p style={{ margin: '2px 0' }}><b>Shift + (1-9, 0, -, =)</b> to Buy Seeds. <b>Ctrl + (1-6)</b> to Buy Tools (Hoe, Can, Axe, Pickaxe, Scythe, Rod)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>P</b>: Plow, <b>R</b>: Path (Alt+R: Fountain), <b>I</b>: Water, <b>G</b>: Fertilize, <b>F</b>: Fence, <b>Alt+E</b>: Lamp</p>
+            <p style={{ margin: '2px 0' }}>Press <b>K</b>: Sprinkler (Shift:Iron, Alt:Gold), <b>B</b>: Scarecrow (Alt:Greenhouse), <b>L</b>: Shed, <b>V</b>: Chest (Alt:Jar), <b>U</b>: Well, <b>N</b>: Beehive (Alt:Station), <b>O</b>: Pot, <b>M</b>: Barn (Alt:Large), <b>Q</b>: Shipping (Shift:Compost, Alt:Recycle), <b>T</b>: Seed Maker (Alt:Stall)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>E</b>: Interact / Harvest, <b>H</b>: Harvest Area, <b>Shift+J</b>: Fish, <b>X</b>: Clear, <b>C</b>: Eat Food, <b>Y</b>: Home, <b>Z</b>: Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift | Find Ancient Shrines for blessings!</p>
-            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F, G, H, J, K, L, P, U): Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter, Coal-Grilled Fish, Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, Fruity Sorbet, Hearty Stew, Seafood Platter, <b>Honey-Glazed Carrots, Goat-Cheese Salad, Duck-Egg Mayo, Berry Smoothie, Pumpkin Pie, Apple Cider, Orange Juice.</b></p>
-            <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant</p>
-            <p style={{ margin: '2px 0' }}>Press <b>Shift+8</b>: Fishing Rod | <b>0</b>: Buy Scythe | <b>Alt + 9, 0, -, =</b>: Basic Tools</p>
+            <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F, G, H, J, K, L, P, U): 29 recipes available. See Cooking Menu for details.</p>
+            <p style={{ margin: '2px 0' }}>Press <b>Shift+X</b> to Sell Resources near Merchant | <b>/color [hex]</b> to change your color.</p>
           </div>
         )}
 

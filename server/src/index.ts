@@ -132,6 +132,7 @@ io.on('connection', (socket) => {
           { id: 'fisherman', name: 'Fisherman', condition: (p: Player) => (p.stats['fish_caught'] || 0) >= 10 },
           { id: 'chef', name: 'Master Chef', condition: (p: Player) => (p.stats['meals_cooked'] || 0) >= 10 },
           { id: 'explorer', name: 'World Explorer', condition: (p: Player) => (Math.abs(p.pos.q) + Math.abs(p.pos.r)) >= 100 },
+          { id: 'naturalist', name: 'Master Naturalist', condition: (p: Player) => ((p.relationships['fisherman'] || 0) >= 500 && (p.relationships['miner'] || 0) >= 500) },
       ];
 
       achievementsList.forEach(ach => {
@@ -945,6 +946,10 @@ io.on('connection', (socket) => {
         } else if (obstacle.type === 'plant') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
           player.stamina -= sCost;
+
+          const { leveledUp, newLevel } = addXP(player, 'foraging', 5);
+          if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, `Cleared ${obstacle.species || 'plant'}.`, 'info');
