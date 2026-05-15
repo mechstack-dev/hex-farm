@@ -11,10 +11,13 @@ export const Hotbar: React.FC<HotbarProps> = ({ inventory }) => {
     { key: '3', species: 'pumpkin' },
     { key: '4', species: 'corn' },
     { key: '5', species: 'wheat' },
-    { key: '6', species: 'apple-tree' },
-    { key: '7', species: 'winter-radish' },
-    { key: '8', species: 'peach-tree' },
-    { key: '9', species: 'cherry-tree' },
+    { key: '6', species: 'winter-radish' },
+    { key: '7', species: 'kale' },
+    { key: '8', species: 'sunflower' },
+    { key: '9', species: 'apple-tree' },
+    { key: '0', species: 'orange-tree' },
+    { key: '-', species: 'peach-tree' },
+    { key: '=', species: 'cherry-tree' },
   ];
 
   return (

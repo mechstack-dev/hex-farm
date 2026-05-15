@@ -103,7 +103,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **U**: Well (5 Wood, 10 Stone)
    - **N**: Beehive (5 Wood, 5 Stone)
    - **O**: Cooking Pot (5 Wood, 10 Stone)
-   - **1-9**: Plant Seeds (1: Turnip, 2: Carrot, 3: Pumpkin, 4: Sunflower, 5: Kale, 6: Apple Tree, 7: Orange Tree, 8: Peach Tree, 9: Cherry Tree)
+   - **1-0, -, =**: Plant Seeds (1: Turnip, 2: Carrot, 3: Pumpkin, 4: Corn, 5: Wheat, 6: Winter Radish, 7: Kale, 8: Sunflower, 9: Apple Tree, 0: Orange Tree, -: Peach Tree, =: Cherry Tree)
    - **Goats and Ducks**: New animals that provide **Goat Milk** and **Duck Eggs**.
    - **Fruit Trees**: New trees (Peach, Cherry) that provide specialized fruit and preferred seasons.
    - **M**: Barn (20 Wood, 10 Stone)
@@ -117,7 +117,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
    - **Alt+E**: Lamp (2 Wood, 5 Stone) - Decorative building that glows at night and dusk.
    - **Alt+V**: Preserves Jar (8 Wood, 4 Stone) - Converts fruit into Jam for higher stamina and sale value.
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish.
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (Hoe, Watering Can, Axe, Pickaxe, Scythe, Fishing Rod).
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
@@ -175,6 +175,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Skill System:** XP and levels for various activities.
 - [x] **Achievement System:** Milestones and global announcements.
 - [x] Simplify what actions the user can take, and make the game a lot more about what the interactions and growth of nature, natual plant propagation, and the effects of simple player actions have on a world. It should be an enjoyable game for someone to show up and only walk around and explore, if they so desire.
+- [x] **Nature's Evolution:** Implement soil reversion, natural sowing from mature trees, and localized "Nature's Grace" buffs to make the world feel more alive and responsive to natural growth.
 
 ### Medium Priority
 - [x] **Automation:** Tiered Sprinklers and Barns.

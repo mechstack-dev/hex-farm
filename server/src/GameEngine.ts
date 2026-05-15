@@ -188,6 +188,27 @@ export class GameEngine {
               staminaRegen += 1.0;
           }
 
+          // Nature's Grace Aura boost (if near 3+ mature trees or flowers)
+          const range = 2;
+          let natureCount = 0;
+          for (let dq = -range; dq <= range; dq++) {
+            for (let dr = -range; dr <= range; dr++) {
+                if (Math.abs(dq + dr) > range) continue;
+                const posKey = `${player.pos.q + dq},${player.pos.r + dr}`;
+                if (sunflowerPositions.has(posKey)) {
+                    natureCount++;
+                } else {
+                    const ents = this.world.getEntitiesAt(player.pos.q + dq, player.pos.r + dr);
+                    if (ents.some(e => (e.type === 'plant' || e.type === 'obstacle') && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree') && ((e as any).growthStage >= 5 || e.type === 'obstacle'))) {
+                        natureCount++;
+                    }
+                }
+            }
+          }
+          if (natureCount >= 3) {
+              staminaRegen += 0.5;
+          }
+
           if (player.stamina < player.maxStamina) {
             player.stamina = Math.min(player.maxStamina, player.stamina + staminaRegen);
             updated = { ...player };
@@ -212,6 +233,33 @@ export class GameEngine {
           updated = updatePlant(plant, now, environment.weather, environment.season, isProtected);
           // Restore original lastUpdate to prevent double-dipping or jumping
           updated.lastUpdate = now;
+
+          // Natural Sowing logic: Mature fruit trees drop seeds on adjacent empty tilled soil
+          if (updated.growthStage >= 5 && Math.random() < 0.0005) {
+              const fruitTrees = ['apple-tree', 'orange-tree', 'peach-tree', 'cherry-tree'];
+              if (fruitTrees.includes(updated.species)) {
+                  const neighbors = getNeighbors(updated.pos);
+                  const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
+                  const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
+                  const hasTilled = targetEntities.some(e => e.type === 'floor' && e.species === 'tilled');
+                  const isOccupied = targetEntities.some(e => e.type !== 'floor' && e.type !== 'player');
+
+                  if (hasTilled && !isOccupied) {
+                      const newPlant: Plant = {
+                          id: `plant-${targetPos.q}-${targetPos.r}-${now}`,
+                          type: 'plant',
+                          species: updated.species, // Correct species (e.g. apple-tree)
+                          pos: targetPos,
+                          growthStage: 0,
+                          plantedAt: now,
+                          lastWatered: 0,
+                          lastUpdate: now
+                      };
+                      this.world.addEntity(newPlant);
+                      updatedEntities.push(newPlant);
+                  }
+              }
+          }
 
           // Pest logic
           if (updated.growthStage >= 5 && !scarecrowPositions.has(posKey)) {
@@ -248,6 +296,20 @@ export class GameEngine {
                   updatedEntities.push(newPlant);
               }
           }
+        } else if (entity.type === 'floor' && entity.species === 'tilled') {
+            // Soil Reversion logic: Unwatered empty tilled soil reverts to grass
+            const isOccupied = this.world.getEntitiesAt(entity.pos.q, entity.pos.r).some(e => e.type !== 'floor' && e.type !== 'player');
+            if (!isOccupied && environment.weather !== 'rainy' && Math.random() < 0.0001) {
+                const floor = entity as any;
+                // We check if any plant was recently watered here? Floor doesn't have lastWatered.
+                // Let's assume if it's not raining, there's a chance.
+                const grass = {
+                    ...floor,
+                    species: 'grass'
+                };
+                this.world.updateEntity(grass);
+                updatedEntities.push(grass);
+            }
         } else if (entity.type === 'floor' && entity.species === 'grass') {
             // Mushroom spawning during rain
             if (environment.weather === 'rainy' && Math.random() < 0.0001) {
