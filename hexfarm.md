@@ -106,6 +106,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Goats and Ducks**: New animals that provide **Goat Milk** and **Duck Eggs**.
    - **Orange Trees**: New fruit trees that prefer Summer and provide **Oranges**.
    - **M**: Barn (20 Wood, 10 Stone)
+   - **Alt+KeyM**: Large Barn (40 Wood, 20 Stone)
+   - **Alt+KeyT**: Player Stall (15 Wood, 5 Stone)
    - **Q**: Shipping Bin (10 Wood, 10 Stone)
    - **T**: Seed Maker (15 Wood, 5 Stone)
    - **Shift+Q**: Compost Bin (10 Wood, 2 Stone)
@@ -238,9 +240,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Lightning Mechanic:** Added lightning strikes during rain and burnt trees.
 - [x] **Nature Polish:** Birds can now land on scarecrows; added treasure sparkles to grass.
 - [x] **UX Improvements:** Allowed clearing of immature plants and added Shed storage.
-- [ ] **Sound & Music:** Add relaxing ambient sounds.
-- [ ] **Building Upgrades:** Allow players to upgrade buildings (e.g., larger Barns or Chests).
-- [ ] **Player Stalls:** Allow players to set up stalls to sell items to others.
+- [x] **Sound & Music:** Added AudioManager framework for game events.
+- [x] **Building Upgrades:** Implemented Large Barn with increased collection radius.
+- [x] **Player Stalls:** Implemented trading stalls for player-to-player commerce.
 - [x] **NPC Gift Requests**: NPCs occasionally ask for specific items via global chat.
 - [x] **Pet Friendship**: Ability to build relationship with dogs and cats through interaction.
 - [x] **Player Customization**: Ability to choose different player colors or simple skins.

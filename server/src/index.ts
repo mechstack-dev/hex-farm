@@ -161,7 +161,7 @@ io.on('connection', (socket) => {
       const entities = world.getEntitiesAt(pos.q, pos.r);
       const isBlocked = entities.some(e =>
         (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building' || e.type === 'animal') ||
-        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'berry-bush'))
+        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
       );
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
@@ -742,8 +742,9 @@ io.on('connection', (socket) => {
           type: 'building' as const,
           species,
           pos: { ...player.pos },
-          inventory: (species === 'chest' || species === 'beehive' || species === 'barn') ? {} : undefined,
-          lastProductTime: species === 'beehive' ? Date.now() : undefined
+          inventory: (species === 'chest' || species === 'beehive' || species === 'barn' || species === 'large-barn' || species === 'stall') ? {} : undefined,
+          lastProductTime: species === 'beehive' ? Date.now() : undefined,
+          ownerId: species === 'stall' ? player.id : undefined
         };
         world.addEntity(building);
         io.emit('entityUpdate', building);
@@ -1056,6 +1057,92 @@ io.on('connection', (socket) => {
           return;
       }
 
+      if (building && building.species === 'stall') {
+          const isOwner = building.ownerId === player.id;
+          const buildingInv = building.inventory || {};
+          const items = Object.entries(buildingInv).filter(([_, count]) => count > 0);
+
+          if (isOwner) {
+              if (items.length > 0) {
+                  // Withdraw item
+                  const [item, count] = items[0];
+                  player.inventory[item] = (player.inventory[item] || 0) + count;
+                  building.inventory = {};
+                  building.price = undefined;
+                  world.updateEntity(building);
+                  io.emit('entityUpdate', building);
+                  socket.emit('entityUpdate', player);
+                  notify(socket.id, `Withdrew ${count} ${item} from your stall.`, 'success');
+              } else {
+                  // Try to put something up for sale
+                  // Find first non-tool item in inventory
+                  const toolBases = ['hoe', 'watering-can', 'axe', 'pickaxe', 'fishing-rod', 'dynamite', 'scythe'];
+                  const isTool = (item: string) => {
+                      if (toolBases.includes(item)) return true;
+                      if (item.startsWith('copper-') || item.startsWith('iron-') || item.startsWith('gold-')) {
+                          const base = item.split('-').slice(1).join('-');
+                          return toolBases.includes(base);
+                      }
+                      return false;
+                  };
+
+                  const sellableItem = Object.entries(player.inventory).find(([item, count]) => count > 0 && !isTool(item));
+                  if (sellableItem) {
+                      const [item, count] = sellableItem;
+                      player.inventory[item] = 0;
+                      building.inventory = { [item]: count };
+                      const basePrice = ITEM_PRICES[item] || 10;
+                      building.price = Math.ceil(basePrice * 1.5); // Fixed 1.5x markup for player stalls
+                      world.updateEntity(building);
+                      io.emit('entityUpdate', building);
+                      socket.emit('entityUpdate', player);
+                      notify(socket.id, `Put ${count} ${item} up for sale at ${building.price} coins each.`, 'success');
+                  } else {
+                      notify(socket.id, "You don't have any sellable items in your inventory.", 'info');
+                  }
+              }
+          } else {
+              // Buyer logic
+              if (items.length > 0) {
+                  const [item, count] = items[0];
+                  const totalPrice = (building.price || 0) * count;
+                  if (player.coins >= totalPrice) {
+                      player.coins -= totalPrice;
+                      player.inventory[item] = (player.inventory[item] || 0) + count;
+                      building.inventory = {};
+
+                      // Give coins to owner (even if offline, persistence handles it)
+                      const owner = Array.from(players.values()).find(p => p.id === building.ownerId);
+                      if (owner) {
+                          owner.coins += totalPrice;
+                          const ownerSocketId = Array.from(players.entries()).find(([sid, p]) => p.id === owner.id)?.[0];
+                          if (ownerSocketId) {
+                              io.to(ownerSocketId).emit('entityUpdate', owner);
+                              notify(ownerSocketId, `Someone bought your ${item} for ${totalPrice} coins!`, 'success');
+                          }
+                      } else {
+                          // Offline owner - update world manager persistent state
+                          const persistentOwner = world.getPersistentEntity(building.ownerId!) as Player;
+                          if (persistentOwner) {
+                              persistentOwner.coins += totalPrice;
+                              world.updateEntity(persistentOwner);
+                          }
+                      }
+
+                      world.updateEntity(building);
+                      io.emit('entityUpdate', building);
+                      socket.emit('entityUpdate', player);
+                      notify(socket.id, `Bought ${count} ${item} for ${totalPrice} coins!`, 'success');
+                  } else {
+                      notify(socket.id, `Not enough coins! Need ${totalPrice}.`, 'error');
+                  }
+              } else {
+                  notify(socket.id, "This stall is empty.", 'info');
+              }
+          }
+          return;
+      }
+
       if (building && building.species === 'weather-station') {
           const nextWeather = engine.getNextWeather();
           notify(socket.id, `Weather Station: Tomorrow's forecast is ${nextWeather}.`, 'info');
@@ -1186,7 +1273,7 @@ io.on('connection', (socket) => {
           return;
       }
 
-      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'shed')) {
+      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'large-barn' || building.species === 'shed')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
 
@@ -1213,7 +1300,7 @@ io.on('connection', (socket) => {
           return;
         }
 
-        if (building.species === 'barn') {
+        if (building.species === 'barn' || building.species === 'large-barn') {
             let hasAnythingToTake = false;
             Object.entries(buildingInv).forEach(([item, count]) => {
                 if (count > 0) {

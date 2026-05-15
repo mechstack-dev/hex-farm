@@ -21,6 +21,8 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'fountain': { wood: 0, stone: 20 },
   'lamp': { wood: 2, stone: 5 },
   'preserves-jar': { wood: 8, stone: 4 },
+  'large-barn': { wood: 40, stone: 20 },
+  'stall': { wood: 15, stone: 5 },
 };
 
 export const ITEM_PRICES: Record<string, number> = {
@@ -138,6 +140,8 @@ export interface Building extends Entity {
   type: 'building';
   inventory?: Record<string, number>;
   lastProductTime?: number;
+  ownerId?: string;
+  price?: number;
 }
 
 export interface Plant extends Entity {

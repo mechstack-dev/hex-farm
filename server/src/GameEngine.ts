@@ -89,14 +89,32 @@ export class GameEngine {
                     fountainPositions.add(`${n2.q},${n2.r}`);
                 });
             });
-        } else if (entity.type === 'building' && entity.species === 'barn') {
+        } else if (entity.type === 'building' && (entity.species === 'barn' || entity.species === 'large-barn')) {
             const barn = entity as any;
-            barnPositions.set(`${entity.pos.q},${entity.pos.r}`, barn);
-            getNeighbors(entity.pos).forEach(n1 => {
-                barnPositions.set(`${n1.q},${n1.r}`, barn);
-                getNeighbors(n1).forEach(n2 => {
-                    barnPositions.set(`${n2.q},${n2.r}`, barn);
-                });
+            const radius = entity.species === 'large-barn' ? 3 : 2;
+
+            const getRecursiveNeighbors = (pos: any, r: number): string[] => {
+                let results = new Set<string>();
+                results.add(`${pos.q},${pos.r}`);
+                let currentRing = [pos];
+                for (let i = 0; i < r; i++) {
+                    let nextRing: any[] = [];
+                    currentRing.forEach(p => {
+                        getNeighbors(p).forEach(n => {
+                            const key = `${n.q},${n.r}`;
+                            if (!results.has(key)) {
+                                results.add(key);
+                                nextRing.push(n);
+                            }
+                        });
+                    });
+                    currentRing = nextRing;
+                }
+                return Array.from(results);
+            };
+
+            getRecursiveNeighbors(entity.pos, radius).forEach(key => {
+                barnPositions.set(key, barn);
             });
         }
       });

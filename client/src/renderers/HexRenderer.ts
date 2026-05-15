@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 import type { Entity, Position, Plant, Animal, EnvironmentState } from 'common';
 import { axialToPixel, GAME_DAY } from 'common';
 import { socket } from '../network';
+import { AudioManager } from '../AudioManager';
 
 socket.on('init', ({ playerId: _playerId }: { playerId: string }) => {
     // We can use _playerId if we need to identify the local player specifically in the renderer later
@@ -610,6 +611,8 @@ export class HexRenderer {
         }
     } else if (entity.species === 'barn') {
         this.drawBarn(x, y);
+    } else if (entity.species === 'large-barn') {
+        this.drawLargeBarn(x, y);
     } else if (entity.species === 'shipping-bin') {
         this.drawShippingBin(x, y);
     } else if (entity.species === 'seed-maker') {
@@ -628,6 +631,44 @@ export class HexRenderer {
         this.drawLamp(x, y);
     } else if (entity.species === 'preserves-jar') {
         this.drawPreservesJar(x, y);
+    } else if (entity.species === 'stall') {
+        this.drawStall(entity as any, x, y);
+    }
+  }
+
+  drawStall(entity: any, x: number, y: number) {
+    // Stall base/counter
+    this.graphics.rect(x - 18, y, 36, 10);
+    this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+    this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+    // Supports
+    this.graphics.rect(x - 16, y - 20, 4, 20);
+    this.graphics.rect(x + 12, y - 20, 4, 20);
+    this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+
+    // Canopy (striped)
+    for (let i = 0; i < 4; i++) {
+        const cx = x - 20 + i * 10;
+        this.graphics.rect(cx, y - 25, 10, 8);
+        this.graphics.fill({ color: i % 2 === 0 ? 0xFF0000 : 0xFFFFFF, alpha: 1 });
+    }
+    this.graphics.stroke({ color: 0x000000, width: 1, alpha: 0.5 });
+
+    // Displayed item
+    const items = Object.entries(entity.inventory || {}).filter(([_, count]) => (count as number) > 0);
+    if (items.length > 0) {
+        // Draw a small circle/square representing the item on the counter
+        this.graphics.circle(x, y - 5, 6);
+        this.graphics.fill({ color: 0xFFFF00, alpha: 0.8 }); // Generic item color
+        this.graphics.stroke({ color: 0x000000, width: 1 });
+
+        // Show price
+        if (entity.price) {
+            this.updateNPCLabel(entity, x, y, `${entity.price}c`);
+        }
+    } else {
+        this.updateNPCLabel(entity, x, y, 'Empty Stall');
     }
   }
 
@@ -915,6 +956,50 @@ export class HexRenderer {
     this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
   }
 
+  drawLargeBarn(x: number, y: number) {
+    // Even larger structure
+    this.graphics.rect(x - 25, y - 15, 50, 35);
+    this.graphics.fill({ color: 0xA52A2A, alpha: 1 }); // Brownish Red
+    this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+    // Second floor/loft
+    this.graphics.rect(x - 15, y - 25, 30, 10);
+    this.graphics.fill({ color: 0xA52A2A, alpha: 1 });
+    this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+    // Large Gambrel Roof
+    this.graphics.poly([
+        x - 28, y - 15,
+        x + 28, y - 15,
+        x + 20, y - 30,
+        x + 10, y - 40,
+        x - 10, y - 40,
+        x - 20, y - 30
+    ]);
+    this.graphics.fill({ color: 0x333333, alpha: 1 });
+    this.graphics.stroke({ color: 0x000000, width: 2 });
+
+    // Double Doors
+    for (let i = -1; i <= 1; i += 2) {
+        const dx = x + i * 11 - 10;
+        this.graphics.rect(dx, y + 5, 20, 15);
+        this.graphics.fill({ color: 0x5D3A1A, alpha: 1 });
+        this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
+
+        // Cross-bars
+        this.graphics.moveTo(dx, y + 5);
+        this.graphics.lineTo(dx + 20, y + 20);
+        this.graphics.moveTo(dx + 20, y + 5);
+        this.graphics.lineTo(dx, y + 20);
+        this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.5 });
+    }
+
+    // Loft window
+    this.graphics.rect(x - 5, y - 22, 10, 7);
+    this.graphics.fill({ color: 0xADD8E6, alpha: 0.8 });
+    this.graphics.stroke({ color: 0xFFFFFF, width: 1 });
+  }
+
   drawFloor(entity: Entity, x: number, y: number) {
     const season = this.lastEnvironment?.season || 'spring';
     if (entity.species === 'cave-entrance') {
@@ -1112,6 +1197,10 @@ export class HexRenderer {
 
       if (entity.type === 'player') {
         const player = entity as any;
+        const oldPos = this.interpolatedPositions.get(player.id);
+        if (oldPos && (Math.abs(oldPos.x - x) > 1 || Math.abs(oldPos.y - y) > 1)) {
+            AudioManager.getInstance().play('walk');
+        }
         this.drawPlayer(x, y, player.color || 0x0000FF);
         this.updatePlayerLabel(player, x, y);
       } else if (entity.type === 'obstacle') {

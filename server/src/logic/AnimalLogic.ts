@@ -17,7 +17,7 @@ export function moveAnimal(animal: Animal, world: WorldManager): Animal {
       e.type === 'player' ||
       e.type === 'fence' ||
       e.type === 'building' ||
-      (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'berry-bush'))
+      (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
     );
   });
 
