@@ -22,6 +22,7 @@ export class HexRenderer {
   private lastEnvironment: EnvironmentState | null = null;
   private rainDrops: { x: number, y: number, speed: number, length: number }[] = [];
   private snowFlakes: { x: number, y: number, speed: number, size: number, drift: number }[] = [];
+  private lightningFlash: number = 0;
   private birds: { x: number, y: number, vx: number, vy: number, size: number, state: 'flying' | 'landed', timer: number }[] = [];
   private decorativeEntities: { x: number, y: number, type: 'firefly' | 'butterfly', offset: number, speed: number }[] = [];
   private interpolatedPositions: Map<string, { x: number, y: number }> = new Map();
@@ -76,6 +77,30 @@ export class HexRenderer {
     this.graphics.circle(x, y, HEX_SIZE * 0.6);
     this.graphics.fill({ color, alpha: 1 });
     this.graphics.stroke({ color: 0x000000, width: 2 });
+  }
+
+  drawBurntTree(x: number, y: number) {
+    const scale = 1.0;
+    // Charred Trunk
+    this.graphics.rect(x - 4 * scale, y, 8 * scale, 15 * scale);
+    this.graphics.fill({ color: 0x1A1A1A, alpha: 1 });
+
+    // Jagged remains
+    this.graphics.moveTo(x - 4, y);
+    this.graphics.lineTo(x - 8, y - 10);
+    this.graphics.lineTo(x, y - 5);
+    this.graphics.lineTo(x + 6, y - 12);
+    this.graphics.lineTo(x + 4, y);
+    this.graphics.fill({ color: 0x333333, alpha: 1 });
+
+    // Smoke particles
+    const time = Date.now() / 1000;
+    for (let i = 0; i < 2; i++) {
+        const sx = x + Math.sin(time + i) * 5;
+        const sy = y - 10 - (time * 10 % 20) + i * 10;
+        this.graphics.circle(sx, sy, 2);
+        this.graphics.fill({ color: 0x888888, alpha: 0.4 });
+    }
   }
 
   drawTree(x: number, y: number) {
@@ -601,7 +626,31 @@ export class HexRenderer {
         this.drawFountain(x, y);
     } else if (entity.species === 'lamp') {
         this.drawLamp(x, y);
+    } else if (entity.species === 'preserves-jar') {
+        this.drawPreservesJar(x, y);
     }
+  }
+
+  drawPreservesJar(x: number, y: number) {
+    // Jar body
+    this.graphics.rect(x - 8, y - 8, 16, 18);
+    this.graphics.fill({ color: 0xADD8E6, alpha: 0.6 });
+    this.graphics.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.8 });
+
+    // Lid
+    this.graphics.rect(x - 10, y - 10, 20, 4);
+    this.graphics.fill({ color: 0x808080, alpha: 1 });
+
+    // Label
+    this.graphics.rect(x - 6, y, 12, 6);
+    this.graphics.fill({ color: 0xFFFFFF, alpha: 0.9 });
+
+    // Inside content (colored circles for fruit)
+    const time = Date.now() / 500;
+    const colors = [0xFF0000, 0xFFA500, 0x800080]; // Apple, Orange, Berry
+    const color = colors[Math.floor(time) % colors.length];
+    this.graphics.circle(x, y + 2, 4);
+    this.graphics.fill({ color, alpha: 0.5 });
   }
 
   drawLamp(x: number, y: number) {
@@ -1042,6 +1091,10 @@ export class HexRenderer {
     const sortedEntities = [...this.lastEntities].sort((a, b) => (TYPE_ORDER[a.type] || 0) - (TYPE_ORDER[b.type] || 0));
 
     sortedEntities.forEach(entity => {
+      if ((entity as any).lightning) {
+          this.lightningFlash = Date.now();
+      }
+
       // Interpolate entity position
       const target = axialToPixel(entity.pos.q, entity.pos.r, HEX_SIZE);
       const current = this.interpolatedPositions.get(entity.id) || target;
@@ -1071,8 +1124,11 @@ export class HexRenderer {
           this.drawTree(x, y);
         } else if (entity.species === 'rock' || (!entity.species && entity.id.startsWith('rock'))) {
           this.drawRock(x, y);
+        } else if (entity.species === 'burnt-tree') {
+          this.drawBurntTree(x, y);
         } else if (entity.species === 'scarecrow') {
           this.drawScarecrow(x, y);
+          this.visibleLandingSpots.push({ x, y: y - 10 });
         }
       } else if (entity.type === 'plant') {
         this.drawPlant(entity as any, x, y);
@@ -1119,6 +1175,18 @@ export class HexRenderer {
         this.drawFloor(entity, x, y);
         if (entity.species === 'grass') {
             this.visibleLandingSpots.push({ x, y });
+        }
+        // Treasure sparkle
+        const seed = Math.abs(Math.sin(entity.pos.q * 12.9898 + entity.pos.r * 78.233) * 43758.5453);
+        if (seed % 1 < 0.01 && entity.species === 'grass') {
+            const time = Date.now() / 300;
+            const sparkleX = x + Math.sin(time) * 5;
+            const sparkleY = y + Math.cos(time) * 5;
+            this.graphics.moveTo(sparkleX - 2, sparkleY);
+            this.graphics.lineTo(sparkleX + 2, sparkleY);
+            this.graphics.moveTo(sparkleX, sparkleY - 2);
+            this.graphics.lineTo(sparkleX, sparkleY + 2);
+            this.graphics.stroke({ color: 0xFFFF00, width: 1, alpha: 0.8 });
         }
       }
     });
@@ -1430,6 +1498,13 @@ export class HexRenderer {
 
   drawDayNightOverlay(timeOfDay: number, weather: string) {
     this.overlay.clear();
+
+    const now = Date.now();
+    if (now - this.lightningFlash < 100) {
+        this.overlay.rect(0, 0, this.app.screen.width, this.app.screen.height);
+        this.overlay.fill({ color: 0xFFFFFF, alpha: 0.8 });
+        return;
+    }
 
     // Calculate alpha and color based on time of day
     // 0.0 is midnight, 0.5 is noon

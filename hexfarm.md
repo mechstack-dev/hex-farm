@@ -43,6 +43,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
+- **Lightning:** During rainy weather, there's a small chance of lightning strikes. Struck trees become **Burnt Trees**, which can be cleared with an axe to obtain **Coal**.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 - **Fountains:** Decorative buildings that provide a +1.0 stamina regeneration boost to players within a 2-hex radius.
 - **Discovery & Geodes:** Clearing obstacles and plowing has a chance to yield rare items like **Ancient Coins**, **Geodes**, and **Diamonds**. Geodes can be processed by the Blacksmith for a small fee.
@@ -112,6 +113,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+N**: Weather Station (10 Wood, 15 Stone) - Provides a forecast for tomorrow's weather.
    - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
    - **Alt+E**: Lamp (2 Wood, 5 Stone) - Decorative building that glows at night and dusk.
+   - **Alt+V**: Preserves Jar (8 Wood, 4 Stone) - Converts fruit into Jam for higher stamina and sale value.
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves.
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
@@ -232,9 +234,13 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Rare Discoveries:** Added Ancient Coins, Geodes, and Diamonds as rare discovery rewards.
 - [x] **Geode Processing:** Blacksmith can now crack geodes for coins.
 - [x] **Input Polish:** Prevented character movement when using hotkey combinations.
+- [x] **Preserves Jar:** Added new building to convert fruit into Jam.
+- [x] **Lightning Mechanic:** Added lightning strikes during rain and burnt trees.
+- [x] **Nature Polish:** Birds can now land on scarecrows; added treasure sparkles to grass.
+- [x] **UX Improvements:** Allowed clearing of immature plants and added Shed storage.
 - [ ] **Sound & Music:** Add relaxing ambient sounds.
 - [ ] **Building Upgrades:** Allow players to upgrade buildings (e.g., larger Barns or Chests).
-- [ ] **More Decorative Furniture:** Rugs, lamps, and other items for house decoration.
+- [ ] **Player Stalls:** Allow players to set up stalls to sell items to others.
 - [x] **NPC Gift Requests**: NPCs occasionally ask for specific items via global chat.
 - [x] **Pet Friendship**: Ability to build relationship with dogs and cats through interaction.
 - [x] **Player Customization**: Ability to choose different player colors or simple skins.

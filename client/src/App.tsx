@@ -286,6 +286,10 @@ function App() {
           if (altKey) socket.emit('build_building', 'lamp');
           else socket.emit('interact');
           break;
+        case 'KeyV':
+          if (altKey) socket.emit('build_building', 'preserves-jar');
+          else socket.emit('build_building', 'chest');
+          break;
         case 'KeyR':
           if (altKey) socket.emit('build_building', 'fountain');
           else socket.emit('build_path');
@@ -301,9 +305,6 @@ function App() {
         case 'KeyX':
           if (shiftKey) socket.emit('sell_junk');
           else socket.emit('clear_obstacle');
-          break;
-        case 'KeyV':
-          socket.emit('build_building', 'chest');
           break;
         case 'KeyO':
           socket.emit('build_building', 'cooking-pot');
@@ -576,7 +577,7 @@ function App() {
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
             <p style={{ margin: '2px 0' }}>Press <b>1-9</b> to Plant (8: Sunflower, 9: Orange Tree), <b>Minus (-)</b> to Plant Kale, <b>Shift + 1-7, 9, 0, Minus</b> to Buy Seeds (Shift+8: Fishing Rod, Shift+9: Orange Tree, Shift+0: Sunflower, Shift+Minus: Kale)</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b> to Plow, <b>R</b> to Path (Alt+R: Fountain), <b>I</b> to Water, <b>G</b> to Fertilize, <b>F</b> to Fence, <b>Alt+E</b> to build Lamp</p>
-            <p style={{ margin: '2px 0' }}>Press <b>K</b> for Sprinkler (Shift+K: Iron, Alt+K: Gold), <b>B</b> to Scarecrow (Alt+B: Greenhouse), <b>L</b> to Shed, <b>V</b> to Chest, <b>U</b> to Well, <b>N</b> to Beehive (Alt+N: Weather Station), <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin (Shift+Q: Compost Bin, Alt+Q: Recycling Machine), <b>T</b> to Seed Maker</p>
+            <p style={{ margin: '2px 0' }}>Press <b>K</b> for Sprinkler (Shift+K: Iron, Alt+K: Gold), <b>B</b> to Scarecrow (Alt+B: Greenhouse), <b>L</b> to Shed, <b>V</b> to Chest (Alt+V: Preserves Jar), <b>U</b> to Well, <b>N</b> to Beehive (Alt+N: Weather Station), <b>O</b> to Cooking Pot, <b>M</b> to Barn, <b>Q</b> to Shipping Bin (Shift+Q: Compost Bin, Alt+Q: Recycling Machine), <b>T</b> to Seed Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>E</b> to Interact / Harvest, <b>H</b> to Harvest Area, <b>J</b> to Fish, <b>X</b> to Clear, <b>C</b> to Eat Food, <b>Y</b> to Home, <b>Z</b> to Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift | Find Ancient Shrines for blessings!</p>
             <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F, G, H, J, K, L, P, U): Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter, Coal-Grilled Fish, Fruit Salad, Mushroom Risotto, Corn Bread, Fish Stew, Fruity Sorbet, Hearty Stew, Seafood Platter, <b>Honey-Glazed Carrots, Goat-Cheese Salad, Duck-Egg Mayo, Berry Smoothie, Pumpkin Pie, Apple Cider, Orange Juice.</b></p>
