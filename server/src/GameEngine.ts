@@ -3,7 +3,7 @@ import { updatePlant } from './logic/PlantLogic.js';
 import { moveAnimal } from './logic/AnimalLogic.js';
 import { SeasonManager } from './logic/SeasonManager.js';
 import type { Animal, Plant, EnvironmentState } from 'common';
-import { getChunkCoords, getNeighbors, GAME_DAY } from 'common';
+import { getChunkCoords, getNeighbors, GAME_DAY, SEED_PRICES } from 'common';
 
 export class GameEngine {
   private seasonManager: SeasonManager;
@@ -138,7 +138,7 @@ export class GameEngine {
       // Rare lightning strike during rain
       if (environment.weather === 'rainy' && Math.random() < 0.0005) {
           const trees = chunk.entities.filter(e =>
-              (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree')) ||
+              (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush')) ||
               (e.type === 'obstacle' && e.species === 'tree')
           );
           if (trees.length > 0) {
@@ -199,7 +199,7 @@ export class GameEngine {
                     natureCount++;
                 } else {
                     const ents = this.world.getEntitiesAt(player.pos.q + dq, player.pos.r + dr);
-                    if (ents.some(e => (e.type === 'plant' || e.type === 'obstacle') && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree') && ((e as any).growthStage >= 5 || e.type === 'obstacle'))) {
+                    if (ents.some(e => (e.type === 'plant' || e.type === 'obstacle') && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush') && ((e as any).growthStage >= 5 || e.type === 'obstacle'))) {
                         natureCount++;
                     }
                 }
@@ -354,17 +354,25 @@ export class GameEngine {
                     building.inventory = building.inventory || {};
 
                     // Check for sunflowers in 2-hex radius
-                    let hasSunflower = sunflowerPositions.has(`${building.pos.q},${building.pos.r}`);
+                    let hasSunflower = false;
+                    const posKey = `${building.pos.q},${building.pos.r}`;
+                    const sunflowerEnts = this.world.getEntitiesAt(building.pos.q, building.pos.r);
+                    if (sunflowerEnts.some(e => e.species === 'sunflower')) {
+                        hasSunflower = true;
+                    }
+
                     if (!hasSunflower) {
                         const neighbors1 = getNeighbors(building.pos);
                         for (const n1 of neighbors1) {
-                            if (sunflowerPositions.has(`${n1.q},${n1.r}`)) {
+                            const n1Ents = this.world.getEntitiesAt(n1.q, n1.r);
+                            if (n1Ents.some(e => e.species === 'sunflower')) {
                                 hasSunflower = true;
                                 break;
                             }
                             const neighbors2 = getNeighbors(n1);
                             for (const n2 of neighbors2) {
-                                if (sunflowerPositions.has(`${n2.q},${n2.r}`)) {
+                                const n2Ents = this.world.getEntitiesAt(n2.q, n2.r);
+                                if (n2Ents.some(e => e.species === 'sunflower')) {
                                     hasSunflower = true;
                                     break;
                                 }
@@ -375,6 +383,21 @@ export class GameEngine {
 
                     const honeyType = hasSunflower ? 'sunflower-honey' : 'wildflower-honey';
                     building.inventory[honeyType] = (building.inventory[honeyType] || 0) + 1;
+                    building.lastProductTime = now;
+                    updated = { ...building };
+                }
+            } else if (building.species === 'birdhouse') {
+                if (now - (building.lastProductTime || 0) >= GAME_DAY) {
+                    building.inventory = building.inventory || {};
+                    const rand = Math.random();
+                    let item = 'turnip-seed';
+                    if (rand < 0.05) item = 'ancient-coin';
+                    else if (rand < 0.1) item = 'geode';
+                    else {
+                        const seeds = Object.keys(SEED_PRICES);
+                        item = seeds[Math.floor(Math.random() * seeds.length)] + '-seed';
+                    }
+                    building.inventory[item] = (building.inventory[item] || 0) + 1;
                     building.lastProductTime = now;
                     updated = { ...building };
                 }

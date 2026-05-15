@@ -1280,7 +1280,7 @@ io.on('connection', (socket) => {
           return;
       }
 
-      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'large-barn' || building.species === 'shed')) {
+      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'large-barn' || building.species === 'shed' || building.species === 'birdhouse')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
 
@@ -1307,6 +1307,28 @@ io.on('connection', (socket) => {
           return;
         }
 
+        if (building.species === 'birdhouse') {
+            let collectedAny = false;
+            Object.entries(buildingInv).forEach(([item, count]) => {
+                if (count > 0) {
+                    playerInv[item] = (playerInv[item] || 0) + count;
+                    buildingInv[item] = 0;
+                    collectedAny = true;
+                }
+            });
+
+            if (collectedAny) {
+                building.inventory = buildingInv;
+                world.updateEntity(building);
+                socket.emit('entityUpdate', player);
+                io.emit('entityUpdate', building);
+                notify(socket.id, `Collected items from the birdhouse!`, 'success');
+            } else {
+                notify(socket.id, "The birdhouse is currently empty.", 'info');
+            }
+            return;
+        }
+
         if (building.species === 'barn' || building.species === 'large-barn') {
             let hasAnythingToTake = false;
             Object.entries(buildingInv).forEach(([item, count]) => {
@@ -1329,7 +1351,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const toolBases = ['hoe', 'watering-can', 'axe', 'pickaxe', 'fishing-rod', 'dynamite'];
+        const toolBases = ['hoe', 'watering-can', 'axe', 'pickaxe', 'fishing-rod', 'dynamite', 'scythe'];
         const isTool = (item: string) => {
             if (toolBases.includes(item)) return true;
             if (item.startsWith('copper-') || item.startsWith('iron-') || item.startsWith('gold-')) {
