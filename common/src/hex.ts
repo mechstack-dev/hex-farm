@@ -14,6 +14,26 @@ export function distance(a: Position, b: Position): number {
           + Math.abs(a.r - b.r)) / 2;
 }
 
+export function getRecursiveNeighbors(pos: Position, r: number): Position[] {
+    const results = new Map<string, Position>();
+    results.set(`${pos.q},${pos.r}`, pos);
+    let currentRing = [pos];
+    for (let i = 0; i < r; i++) {
+        let nextRing: Position[] = [];
+        currentRing.forEach(p => {
+            getNeighbors(p).forEach(n => {
+                const key = `${n.q},${n.r}`;
+                if (!results.has(key)) {
+                    results.set(key, n);
+                    nextRing.push(n);
+                }
+            });
+        });
+        currentRing = nextRing;
+    }
+    return Array.from(results.values());
+}
+
 export function axialToPixel(q: number, r: number, size: number): { x: number, y: number } {
   const x = size * (3/2 * q);
   const y = size * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);

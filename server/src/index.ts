@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import { distance, GAME_DAY, getNeighbors, BUILDING_COSTS, ITEM_PRICES, SEED_PRICES, TOOL_PRICES, KIT_PRICES, FOOD_VALUES, RECIPES } from 'common';
+import { distance, GAME_DAY, getNeighbors, getRecursiveNeighbors, BUILDING_COSTS, ITEM_PRICES, SEED_PRICES, TOOL_PRICES, KIT_PRICES, FOOD_VALUES, RECIPES } from 'common';
 import type { Player, Position, Plant, Building } from 'common';
 import { addXP, getStaminaCost } from './logic/SkillLogic.js';
 
@@ -395,8 +395,23 @@ io.on('connection', (socket) => {
   socket.on('harvest', () => {
     const player = players.get(socket.id);
     if (player) {
-      const hasScythe = (player.inventory['scythe'] || 0) > 0;
-      const targets = [player.pos, ...getNeighbors(player.pos)];
+      const hasGoldScythe = (player.inventory['gold-scythe'] || 0) > 0;
+      const hasIronScythe = (player.inventory['iron-scythe'] || 0) > 0;
+      const hasCopperScythe = (player.inventory['copper-scythe'] || 0) > 0;
+      const hasScythe = hasGoldScythe || hasIronScythe || hasCopperScythe || (player.inventory['scythe'] || 0) > 0;
+
+      let targets = [player.pos];
+      if (hasScythe) {
+        let radius = 1;
+        if (hasGoldScythe) radius = 4;
+        else if (hasIronScythe) radius = 3;
+        else if (hasCopperScythe) radius = 2;
+
+        targets = getRecursiveNeighbors(player.pos, radius);
+      } else {
+          targets = [player.pos, ...getNeighbors(player.pos)];
+      }
+
       let harvestedCount = 0;
       const sCost = getStaminaCost(player, 'farming', hasScythe ? 10 : 20);
 
@@ -1636,14 +1651,20 @@ io.on('connection', (socket) => {
             { base: 'watering-can', upgrade: 'copper-watering-can', price: Math.floor(200 * upgradeMultiplier), ore: null, oreCount: 0 },
             { base: 'axe', upgrade: 'copper-axe', price: Math.floor(200 * upgradeMultiplier), ore: null, oreCount: 0 },
             { base: 'pickaxe', upgrade: 'copper-pickaxe', price: Math.floor(200 * upgradeMultiplier), ore: null, oreCount: 0 },
+          { base: 'scythe', upgrade: 'copper-scythe', price: Math.floor(300 * upgradeMultiplier), ore: null, oreCount: 0 },
+          { base: 'fishing-rod', upgrade: 'copper-fishing-rod', price: Math.floor(250 * upgradeMultiplier), ore: null, oreCount: 0 },
             { base: 'copper-hoe', upgrade: 'iron-hoe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
             { base: 'copper-watering-can', upgrade: 'iron-watering-can', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
             { base: 'copper-axe', upgrade: 'iron-axe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
             { base: 'copper-pickaxe', upgrade: 'iron-pickaxe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
+          { base: 'copper-scythe', upgrade: 'iron-scythe', price: Math.floor(600 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
+          { base: 'copper-fishing-rod', upgrade: 'iron-fishing-rod', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
             { base: 'iron-hoe', upgrade: 'gold-hoe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
             { base: 'iron-watering-can', upgrade: 'gold-watering-can', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
             { base: 'iron-axe', upgrade: 'gold-axe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
             { base: 'iron-pickaxe', upgrade: 'gold-pickaxe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
+          { base: 'iron-scythe', upgrade: 'gold-scythe', price: Math.floor(1200 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
+          { base: 'iron-fishing-rod', upgrade: 'gold-fishing-rod', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
           ];
 
           const availableUpgrade = upgrades.find(u =>
@@ -1789,14 +1810,19 @@ io.on('connection', (socket) => {
         }
 
         const now = Date.now();
-        if (now - animal.lastProductTime >= GAME_DAY) {
+        const isFarmAnimal = ['cow', 'sheep', 'chicken', 'pig', 'goat', 'duck'].includes(animal.species);
+
+        if (isFarmAnimal && now - animal.lastProductTime >= GAME_DAY) {
           let product = '';
-          if (animal.species === 'cow') product = 'milk';
-          else if (animal.species === 'sheep') product = 'wool';
-          else if (animal.species === 'chicken') product = 'egg';
+          const friendship = animal.friendship || 0;
+          const isHighQuality = friendship > 500 && Math.random() < 0.2;
+
+          if (animal.species === 'cow') product = isHighQuality ? 'large-milk' : 'milk';
+          else if (animal.species === 'sheep') product = isHighQuality ? 'golden-wool' : 'wool';
+          else if (animal.species === 'chicken') product = isHighQuality ? 'golden-egg' : 'egg';
           else if (animal.species === 'pig') product = 'truffle';
-          else if (animal.species === 'goat') product = 'goat-milk';
-          else if (animal.species === 'duck') product = 'duck-egg';
+          else if (animal.species === 'goat') product = isHighQuality ? 'large-goat-milk' : 'goat-milk';
+          else if (animal.species === 'duck') product = isHighQuality ? 'golden-duck-egg' : 'duck-egg';
 
           if (product) {
             player.inventory[product] = (player.inventory[product] || 0) + 1;
@@ -1804,29 +1830,37 @@ io.on('connection', (socket) => {
             world.updateEntity(animal);
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', animal);
-            notify(socket.id, `Collected ${product}!`, 'success');
-          } else if (animal.species === 'dog' || animal.species === 'cat') {
-              const isDog = animal.species === 'dog';
-              notify(socket.id, isDog ? "Woof! The dog wags its tail." : "Meow! The cat purrs.", 'info');
-
-              // Pet friendship
-              const npcName = animal.id; // Use unique ID for specific pets
-              const oldPoints = player.relationships[npcName] || 0;
-              player.relationships[npcName] = Math.min(1000, oldPoints + 10);
-
-              // Reward at 500+ points
-              if (player.relationships[npcName] >= 500 && Math.random() < 0.2) {
-                  const rewards = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'junk'];
-                  const reward = rewards[Math.floor(Math.random() * rewards.length)];
-                  player.inventory[reward] = (player.inventory[reward] || 0) + 1;
-                  notify(socket.id, `${isDog ? 'The dog' : 'The cat'} brought you a ${reward.replace('-seed', '')}!`, 'success');
-              }
-
-              animal.lastProductTime = now;
+            const qualityMsg = isHighQuality ? " (High Quality!)" : "";
+            notify(socket.id, `Collected ${product.replace('-', ' ')}${qualityMsg}!`, 'success');
+          }
+        } else if (isFarmAnimal || animal.species === 'dog' || animal.species === 'cat') {
+          // Petting logic
+          if (now - (animal.lastPetTime || 0) >= GAME_DAY) {
+              animal.friendship = Math.min(1000, (animal.friendship || 0) + 10);
+              animal.lastPetTime = now;
               world.updateEntity(animal);
               io.emit('entityUpdate', animal);
               socket.emit('entityUpdate', player);
               io.emit('pet_interact', { pos: animal.pos });
+
+              if (animal.species === 'dog' || animal.species === 'cat') {
+                  const isDog = animal.species === 'dog';
+                  notify(socket.id, isDog ? "Woof! The dog wags its tail. friendship increased!" : "Meow! The cat purrs. friendship increased!", 'success');
+
+                  // Reward at 500+ points
+                  if (animal.friendship >= 500 && Math.random() < 0.2) {
+                      const rewards = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'junk'];
+                      const reward = rewards[Math.floor(Math.random() * rewards.length)];
+                      player.inventory[reward] = (player.inventory[reward] || 0) + 1;
+                      notify(socket.id, `${isDog ? 'The dog' : 'The cat'} brought you a ${reward.replace('-seed', '')}!`, 'success');
+                  }
+              } else {
+                  notify(socket.id, `You petted the ${animal.species}. friendship increased!`, 'success');
+              }
+          } else {
+              if (animal.species === 'dog') notify(socket.id, "The dog is napping.", 'info');
+              else if (animal.species === 'cat') notify(socket.id, "The cat is busy grooming.", 'info');
+              else notify(socket.id, `The ${animal.species} is content.`, 'info');
           }
         } else {
             if (animal.species === 'dog') notify(socket.id, "The dog is napping.", 'info');
@@ -2015,7 +2049,13 @@ io.on('connection', (socket) => {
       player.stamina -= sCost;
       const fishingLuck = player.buffs.find(b => b.type === 'fishing_luck');
       const isExpert = player.perks.includes('perk-fisherman');
-      const catchChance = 0.3 + (fishingLuck ? 0.2 : 0);
+
+      const hasGoldRod = (player.inventory['gold-fishing-rod'] || 0) > 0;
+      const hasIronRod = (player.inventory['iron-fishing-rod'] || 0) > 0;
+      const hasCopperRod = (player.inventory['copper-fishing-rod'] || 0) > 0;
+      const rodBonus = hasGoldRod ? 0.15 : (hasIronRod ? 0.10 : (hasCopperRod ? 0.05 : 0));
+
+      const catchChance = 0.3 + (fishingLuck ? 0.2 : 0) + rodBonus;
       const rand = Math.random();
       if (rand < catchChance) {
         player.inventory['fish'] = (player.inventory['fish'] || 0) + 1;

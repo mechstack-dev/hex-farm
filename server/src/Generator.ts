@@ -165,17 +165,17 @@ export class Generator {
             species,
             pos: { q, r }
           });
-        } else if (chunkRng() < 0.015) {
+        } else if (chunkRng() < 0.02) {
           // Spawn animal
           const rand = chunkRng();
           let species = 'cow';
-          if (rand < 0.15) species = 'cow';
+          if (rand < 0.1) species = 'cow';
           else if (rand < 0.3) species = 'sheep';
-          else if (rand < 0.45) species = 'chicken';
-          else if (rand < 0.6) species = 'pig';
-          else if (rand < 0.7) species = 'goat';
-          else if (rand < 0.8) species = 'duck';
-          else if (rand < 0.9) species = 'dog';
+          else if (rand < 0.4) species = 'chicken';
+          else if (rand < 0.5) species = 'pig';
+          else if (rand < 0.65) species = 'goat';
+          else if (rand < 0.85) species = 'duck';
+          else if (rand < 0.92) species = 'dog';
           else species = 'cat';
 
           entities.push({
@@ -186,12 +186,12 @@ export class Generator {
             nextMoveTime: 0, // Will move on first engine tick
             lastProductTime: 0
           } as unknown as Entity);
-        } else if (chunkRng() < 0.015) {
+        } else if (chunkRng() < 0.02) {
           // Spawn foraging items
           const rand = chunkRng();
           let species = 'mushroom';
-          if (rand < 0.3) species = 'mushroom';
-          else if (rand < 0.5) species = 'berry-bush';
+          if (rand < 0.25) species = 'mushroom';
+          else if (rand < 0.55) species = 'berry-bush';
           else if (rand < 0.7) species = 'apple-tree';
           else if (rand < 0.8) species = 'orange-tree';
           else if (rand < 0.9) species = 'peach-tree';
