@@ -25,6 +25,13 @@ const engine = new GameEngine(world);
 
 const players: Map<string, Player> = new Map();
 
+let currentGlobalRequest: {
+  npc: string;
+  item: string;
+  count: number;
+  day: number;
+} | null = null;
+
 io.on('connection', (socket) => {
   console.log('a user connected', socket.id);
 
@@ -114,6 +121,9 @@ io.on('connection', (socket) => {
     const { environment } = engine.tick(); // Just to get current state
     socket.emit('init', { playerId: player.id, worldSeed: "mmo-seed" });
     socket.emit('environmentUpdate', environment);
+    if (currentGlobalRequest && currentGlobalRequest.day === environment.dayCount) {
+        socket.emit('globalRequestUpdate', currentGlobalRequest);
+    }
     io.emit('entityUpdate', player);
     socket.emit('notification', { message: `Welcome to HexFarm, ${name}!`, type: 'info' });
   });
@@ -1514,6 +1524,28 @@ io.on('connection', (socket) => {
             // Removed 'return' to allow primary interaction logic to continue
         }
 
+        if (animal.species === 'miner' || animal.species === 'blacksmith' || animal.species === 'fisherman' || animal.species === 'merchant') {
+            const npcKey = animal.species.charAt(0).toUpperCase() + animal.species.slice(1);
+            if (currentGlobalRequest && currentGlobalRequest.npc === npcKey) {
+                const item = currentGlobalRequest.item;
+                const inInventory = player.inventory[item] || 0;
+                if (inInventory >= currentGlobalRequest.count) {
+                    const price = ITEM_PRICES[item] || 10;
+                    const reward = Math.floor(price * currentGlobalRequest.count * 2.0); // 2x bonus
+                    player.inventory[item] -= currentGlobalRequest.count;
+                    player.coins += reward;
+
+                    const oldPoints = player.relationships[animal.species] || 0;
+                    player.relationships[animal.species] = Math.min(1000, oldPoints + 20);
+
+                    socket.emit('entityUpdate', player);
+                    notify(socket.id, `${npcKey}: "Exactly what I needed! Here's ${reward} coins for your trouble." (+20 friendship)`, 'success');
+                    checkAchievements(player);
+                    return; // Don't proceed to normal trade/interaction
+                }
+            }
+        }
+
         if (animal.species === 'miner') {
           const ores = { 'gold-ore': 500, 'iron-ore': 100, 'stone': 10 };
           let earned = 0;
@@ -1896,15 +1928,9 @@ io.on('connection', (socket) => {
             player.buffs.push({ type: 'mining_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 }); // 5 mins
             notify(socket.id, "You feel lucky! Iron ore is easier to find.", 'success');
         } else if (item === 'veggie-platter') {
-            const existingBuffs = player.buffs.filter(b => b.type === 'max_stamina');
-            existingBuffs.forEach(b => {
-                player.maxStamina -= b.amount;
-            });
-            player.buffs = player.buffs.filter(b => b.type !== 'max_stamina');
-
-            player.buffs.push({ type: 'max_stamina', amount: 50, expiresAt: Date.now() + 10 * 60 * 1000 }); // 10 mins
-            player.maxStamina += 50;
-            notify(socket.id, "A healthy meal! Max stamina increased temporarily.", 'success');
+            player.buffs = player.buffs.filter(b => b.type !== 'stamina_efficiency');
+            player.buffs.push({ type: 'stamina_efficiency', amount: 0.25, expiresAt: Date.now() + 10 * 60 * 1000 }); // 10 mins
+            notify(socket.id, "A healthy meal! You feel efficient. Stamina costs reduced.", 'success');
         } else if (item === 'fruity-sorbet') {
             player.buffs = player.buffs.filter(b => b.type !== 'farming_luck');
             player.buffs.push({ type: 'farming_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 });
@@ -2307,11 +2333,19 @@ setInterval(() => {
     if (environment.dayCount !== lastDayCount && environment.timeOfDay < 0.1) {
         lastDayCount = environment.dayCount;
         const npcs = ['Merchant', 'Blacksmith', 'Fisherman', 'Miner'];
-        const items = Object.keys(ITEM_PRICES);
+        const items = Object.keys(ITEM_PRICES).filter(i => !i.endsWith('-jam') && !RECIPES[i]); // Prefer raw items
         const randomNPC = npcs[Math.floor(Math.random() * npcs.length)];
         const randomItem = items[Math.floor(Math.random() * items.length)];
         const count = 3 + Math.floor(Math.random() * 5);
 
+        currentGlobalRequest = {
+            npc: randomNPC,
+            item: randomItem,
+            count: count,
+            day: environment.dayCount
+        };
+
+        io.emit('globalRequestUpdate', currentGlobalRequest);
         io.emit('chat', {
             sender: randomNPC,
             senderId: 'npc-request',
