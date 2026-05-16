@@ -27,6 +27,7 @@ function App() {
   const [playerAchievements, setPlayerAchievements] = useState<string[]>([]);
   const [playerRelationships, setPlayerRelationships] = useState<Record<string, number>>({});
   const [playerActiveQuest, setPlayerActiveQuest] = useState<any>(null);
+  const [globalRequest, setGlobalRequest] = useState<any>(null);
   const [showCookingMenu, setShowCookingMenu] = useState(false);
   const [showJournal, setShowJournal] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -129,6 +130,10 @@ function App() {
 
     socket.on('show_cooking_menu', () => {
       setShowCookingMenu(true);
+    });
+
+    socket.on('globalRequestUpdate', (req: any) => {
+        setGlobalRequest(req);
     });
 
     socket.on('chat', (msg: {sender: string, message: string, timestamp: number}) => {
@@ -516,10 +521,17 @@ function App() {
         </div>
         {playerActiveQuest && (
           <div className="quest-info" style={{ background: 'rgba(0,128,0,0.6)', padding: '10px', borderRadius: '5px', marginBottom: '10px', border: '1px solid #00ff00', width: '200px' }}>
-            <h3 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Active Quest</h3>
+            <h3 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Personal Quest</h3>
             <p style={{ margin: 0, fontSize: '12px' }}>{playerActiveQuest.count} <span style={{ textTransform: 'capitalize' }}>{playerActiveQuest.species}</span></p>
             <p style={{ margin: '2px 0 0 0', fontSize: '12px', fontWeight: 'bold' }}>Progress: {playerActiveQuest.collected}/{playerActiveQuest.count}</p>
           </div>
+        )}
+        {globalRequest && globalRequest.day === environment.dayCount && (
+            <div className="global-request-info" style={{ background: 'rgba(255,215,0,0.4)', padding: '10px', borderRadius: '5px', marginBottom: '10px', border: '1px solid gold', width: '200px' }}>
+                <h3 style={{ margin: '0 0 5px 0', fontSize: '14px', color: 'gold' }}>Daily Request</h3>
+                <p style={{ margin: 0, fontSize: '12px' }}>{globalRequest.npc} is looking for:</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '12px', fontWeight: 'bold' }}>{globalRequest.count} <span style={{ textTransform: 'capitalize' }}>{globalRequest.item.replace('-', ' ')}</span></p>
+            </div>
         )}
         <p>Position: {playerPos.q}, {playerPos.r} | <b>Coins: {playerCoins}</b></p>
         <div className="stamina-container" style={{ width: '200px', height: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '10px', overflow: 'hidden', border: '1px solid white', margin: '10px 0', position: 'relative' }}>
@@ -607,9 +619,9 @@ function App() {
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
             <p style={{ margin: '2px 0' }}>Press <b>1-9, 0, -, =</b> to Plant: 1:Turnip, 2:Carrot, 3:Pumpkin, 4:Corn, 5:Wheat, 6:Radish, 7:Kale, 8:Sunflower, 9:Apple, 0:Orange, -:Peach, =:Cherry</p>
-            <p style={{ margin: '2px 0' }}><b>Shift + (1-9, 0, -, =)</b> to Buy Seeds. <b>Ctrl + (1-6)</b> to Buy Tools (Hoe, Can, Axe, Pickaxe, Scythe, Rod)</p>
+            <p style={{ margin: '2px 0' }}><b>Shift + (1-9, 0, -, =)</b> to Buy Seeds. <b>Ctrl + (1-6)</b> to Buy Tools (1:Hoe, 2:Can, 3:Axe, 4:Pickaxe, 5:Scythe, 6:Rod)</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b>: Plow, <b>R</b>: Path (Alt+R: Fountain), <b>I</b>: Water, <b>G</b>: Fertilize, <b>F</b>: Fence, <b>Alt+E</b>: Lamp</p>
-            <p style={{ margin: '2px 0' }}>Press <b>K</b>: Sprinkler (Shift:Iron, Alt:Gold), <b>B</b>: Scarecrow (Alt:Greenhouse), <b>L</b>: Shed, <b>V</b>: Chest (Alt:Jar), <b>U</b>: Well, <b>N</b>: Beehive (Alt:Station), <b>O</b>: Pot, <b>M</b>: Barn (Alt:Large), <b>Q</b>: Shipping (Shift:Compost, Alt:Recycle), <b>T</b>: Seed Maker (Alt:Stall)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>K</b>: Sprinkler (Shift:Iron, Alt:Gold), <b>B</b>: Scarecrow (Alt:Greenhouse, Shift:Birdhouse), <b>L</b>: Shed, <b>V</b>: Chest (Alt:Jar), <b>U</b>: Well, <b>N</b>: Beehive (Alt:Station), <b>O</b>: Pot, <b>M</b>: Barn (Alt:Large), <b>Q</b>: Shipping (Shift:Compost, Alt:Recycle), <b>T</b>: Seed Maker (Alt:Stall)</p>
             <p style={{ margin: '2px 0' }}>Press <b>E</b>: Interact / Harvest, <b>H</b>: Harvest Area, <b>Shift+J</b>: Fish, <b>X</b>: Clear, <b>C</b>: Eat Food, <b>Y</b>: Home, <b>Z</b>: Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift | Find Ancient Shrines for blessings!</p>
             <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F, G, H, J, K, L, P, U): 29 recipes available. See Cooking Menu for details.</p>

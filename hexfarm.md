@@ -113,19 +113,20 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Q**: Shipping Bin (10 Wood, 10 Stone)
    - **T**: Seed Maker (15 Wood, 5 Stone)
    - **Shift+Q**: Compost Bin (10 Wood, 2 Stone)
+   - **Alt+Q**: Recycling Machine (10 Stone) - Converts junk into useful resources.
    - **Alt+B**: Greenhouse (30 Wood, 20 Stone) - Protects plants from seasonal growth penalties.
    - **Alt+N**: Weather Station (10 Wood, 15 Stone) - Provides a forecast for tomorrow's weather.
    - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
    - **Alt+E**: Lamp (2 Wood, 5 Stone) - Decorative building that glows at night and dusk.
    - **Alt+V**: Preserves Jar (8 Wood, 4 Stone) - Converts fruit into Jam for higher stamina and sale value.
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (Hoe, Watering Can, Axe, Pickaxe, Scythe, Fishing Rod).
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
    - **Scythe:** A tool that allows harvesting all mature crops in a 1-hex radius.
-   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook standard recipes. Additional recipes: **Alt+0** for Coal-Grilled Fish, **Alt+U** for Orange Juice, **Alt+Z** for Peach Cobbler, **Alt+X** for Cherry Pie, and **Alt+C** for Fruit Medley.
+   - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook standard recipes. Additional recipes: **Alt+0** for Coal-Grilled Fish, **Alt+U** for Orange Juice, **Alt+G** for Honey-Glazed Carrots, **Alt+H** for Goat Cheese Salad, **Alt+J** for Duck-Egg Mayo, **Alt+K (+Shift)** for Berry Smoothie, **Alt+L** for Pumpkin Pie, **Alt+P** for Apple Cider, **Alt+Z** for Peach Cobbler, **Alt+X** for Cherry Pie, and **Alt+C** for Fruit Medley.
 9. **Consuming:** Press **C** to eat the best food in your inventory to restore stamina.
 10. **Teleport Home:** Press **Y** to teleport back to the origin (0,0). Costs 20 stamina.
 11. **Dynamite:** Press **Z** to use Dynamite. It clears everything in a 1-hex radius (excluding water) but does not refund resources.
@@ -258,6 +259,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Birdhouse Building**: Added birdhouse for automated seed and rare item collection.
 - [x] **Nature Dynamics Polish:** Mature trees now occasionally drop Wood (sticks). Optimized Nature's Grace stamina boost.
 - [x] **Meteorite Event:** Rare meteorites can strike at night, spawning a new mineable obstacle with rich rewards.
+- [x] **Global Daily Quests:** Implement a system where NPCs request specific items globally, rewarding contributors with bonus coins and friendship.
+- [x] **Stamina Efficiency Buff:** Add a new buff that reduces stamina consumption for all actions.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
