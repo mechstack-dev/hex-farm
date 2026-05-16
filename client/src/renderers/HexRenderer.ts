@@ -35,6 +35,7 @@ export class HexRenderer {
   private bees: { x: number, y: number, originX: number, originY: number, offset: number, speed: number }[] = [];
   private visibleLandingSpots: { x: number, y: number }[] = [];
   private meteoriteFlash: number = 0;
+  private levelUpLabels: { label: PIXI.Text, startTime: number, startY: number }[] = [];
 
   constructor(element: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -57,9 +58,35 @@ export class HexRenderer {
 
         this.app.ticker.add(() => this.update());
 
+        socket.off('pet_interact');
         socket.on('pet_interact', ({ pos }: { pos: Position }) => {
             const { x, y } = axialToPixel(pos.q, pos.r, HEX_SIZE);
             this.hearts.push({ x, y: y - 20, alpha: 1, startTime: Date.now() });
+        });
+
+        socket.off('notification');
+        socket.on('notification', ({ message, type }: { message: string, type: string }) => {
+            if (type === 'success' && message.includes('leveled up to')) {
+                // message format: "Your farming skill leveled up to 2!"
+                const parts = message.split(' ');
+                const skill = parts[1]; // "farming"
+                const label = new PIXI.Text({
+                    text: `LEVEL UP: ${skill.toUpperCase()}`,
+                    style: {
+                        fontFamily: 'Arial',
+                        fontSize: 28,
+                        fontWeight: 'bold',
+                        fill: 0xFFFF00,
+                        stroke: { color: 0x000000, width: 4 },
+                        align: 'center'
+                    }
+                });
+                label.anchor.set(0.5);
+                label.x = this.app.screen.width / 2;
+                label.y = this.app.screen.height / 2 - 60;
+                this.app.stage.addChild(label);
+                this.levelUpLabels.push({ label, startTime: Date.now(), startY: label.y });
+            }
         });
     });
   }
@@ -1398,6 +1425,25 @@ export class HexRenderer {
         this.drawHearts();
         this.drawBlessings();
         this.drawBees();
+        this.updateLevelUps();
+    }
+  }
+
+  updateLevelUps() {
+    const now = Date.now();
+    for (let i = this.levelUpLabels.length - 1; i >= 0; i--) {
+        const item = this.levelUpLabels[i];
+        const elapsed = now - item.startTime;
+        const progress = elapsed / 2500; // 2.5 seconds duration
+
+        if (progress >= 1) {
+            item.label.destroy();
+            this.levelUpLabels.splice(i, 1);
+        } else {
+            item.label.y = item.startY - progress * 120;
+            item.label.alpha = Math.min(1, (1 - progress) * 3);
+            item.label.scale.set(1 + progress * 0.2);
+        }
     }
   }
 

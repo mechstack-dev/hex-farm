@@ -33,13 +33,15 @@ export const ITEM_PRICES: Record<string, number> = {
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
   'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
+  'large-milk': 40, 'golden-egg': 50, 'golden-wool': 75, 'large-goat-milk': 50, 'golden-duck-egg': 60,
   'salad': 60, 'apple-pie': 80, 'pumpkin-soup': 100, 'corn-chowder': 80, 'grilled-fish': 60,
   'mushroom-soup': 85, 'berry-tart': 90, 'miners-stew': 150, 'veggie-platter': 200, 'coal-grilled-fish': 120,
   'fruit-salad': 45, 'mushroom-risotto': 95, 'corn-bread': 110, 'fish-stew': 110,
   'fruity-sorbet': 180, 'hearty-stew': 180, 'seafood-platter': 180,
   'honey-glazed-carrots': 120, 'goat-cheese-salad': 140, 'duck-egg-mayo': 80,
   'berry-smoothie': 90, 'pumpkin-pie': 150, 'apple-cider': 110, 'orange-juice': 70,
-  'peach-cobbler': 160, 'cherry-pie': 150, 'fruit-medley': 140
+  'peach-cobbler': 160, 'cherry-pie': 150, 'fruit-medley': 140,
+  'royal-breakfast': 300, 'golden-omelette': 250
 };
 
 export const SEED_PRICES: Record<string, number> = {
@@ -49,7 +51,10 @@ export const SEED_PRICES: Record<string, number> = {
 
 export const TOOL_PRICES: Record<string, number> = {
   'hoe': 50, 'watering-can': 50, 'axe': 50, 'pickaxe': 50,
-  'fishing-rod': 150, 'scythe': 250
+  'fishing-rod': 150, 'scythe': 250,
+  'copper-hoe': 200, 'copper-watering-can': 200, 'copper-axe': 200, 'copper-pickaxe': 200, 'copper-scythe': 300, 'copper-fishing-rod': 250,
+  'iron-hoe': 500, 'iron-watering-can': 500, 'iron-axe': 500, 'iron-pickaxe': 500, 'iron-scythe': 600, 'iron-fishing-rod': 500,
+  'gold-hoe': 1000, 'gold-watering-can': 1000, 'gold-axe': 1000, 'gold-pickaxe': 1000, 'gold-scythe': 1200, 'gold-fishing-rod': 1000
 };
 
 export const KIT_PRICES: Record<string, number> = {
@@ -97,12 +102,19 @@ export const FOOD_VALUES: Record<string, number> = {
   'berry-jam': 30,
   'peach-jam': 45,
   'cherry-jam': 40,
+  'large-milk': 30,
+  'golden-egg': 35,
+  'golden-wool': 40,
+  'large-goat-milk': 45,
+  'golden-duck-egg': 50,
   'peach-cobbler': 90,
   'cherry-pie': 85,
-  'fruit-medley': 80
+  'fruit-medley': 80,
+  'royal-breakfast': 150,
+  'golden-omelette': 120
 };
 
-export const BEST_FOODS = ['golden-hexfish', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['golden-hexfish', 'royal-breakfast', 'golden-omelette', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'fish', 'corn', 'carrot', 'turnip'];
 
 export const RECIPES: Record<string, Record<string, number>> = {
   'salad': { 'turnip': 1, 'carrot': 1 },
@@ -131,7 +143,9 @@ export const RECIPES: Record<string, Record<string, number>> = {
   'orange-juice': { 'orange': 3 },
   'peach-cobbler': { 'peach': 3, 'wheat': 1 },
   'cherry-pie': { 'cherry': 3, 'wheat': 1 },
-  'fruit-medley': { 'apple': 1, 'orange': 1, 'peach': 1, 'cherry': 1 }
+  'fruit-medley': { 'apple': 1, 'orange': 1, 'peach': 1, 'cherry': 1 },
+  'royal-breakfast': { 'golden-egg': 1, 'large-milk': 1, 'wheat': 1 },
+  'golden-omelette': { 'golden-duck-egg': 1, 'large-goat-milk': 1 }
 };
 
 export type EntityType = 'player' | 'plant' | 'animal' | 'obstacle' | 'fence' | 'floor' | 'sprinkler' | 'building';
@@ -173,6 +187,8 @@ export interface Animal extends Entity {
   lastProductTime: number;
   lastBredTime?: number;
   homePos?: Position;
+  friendship?: number;
+  lastPetTime?: number;
 }
 
 export interface SkillData {

@@ -48,6 +48,8 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 - **Fountains:** Decorative buildings that provide a +1.0 stamina regeneration boost to players within a 2-hex radius.
 - **Discovery & Geodes:** Clearing obstacles and plowing has a chance to yield rare items like **Ancient Coins**, **Geodes**, and **Diamonds**. Geodes can be processed by the Blacksmith for a small fee.
+- **Animal Friendship:** Interact with animals ('E') to pet them and increase friendship (+10 per day). High friendship (>500) unlocks a 20% chance to produce **High Quality** products like **Large Milk**, **Golden Eggs**, and **Golden Wool**.
+- **Tiered Scythes & Rods:** Tools like the Scythe and Fishing Rod can now be upgraded at the Blacksmith. Higher-tier scythes have a larger harvesting radius, and higher-tier rods improve catch rates.
 
 ---
 
@@ -70,7 +72,7 @@ HexFarm is designed to be played over long periods.
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone. Mining rocks also has a chance to yield **Iron Ore**.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
-- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, **Fish Stew**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, **Apple Cider**, **Peach Cobbler**, **Cherry Pie**, and **Fruit Medley**.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, **Fish Stew**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, **Apple Cider**, **Peach Cobbler**, **Cherry Pie**, **Fruit Medley**, **Royal Breakfast** (uses high-quality products), and **Golden Omelette**.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
 - **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore/Gold Ore to upgrade tools to Copper, Iron, and Gold versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
@@ -261,6 +263,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Meteorite Event:** Rare meteorites can strike at night, spawning a new mineable obstacle with rich rewards.
 - [x] **Global Daily Quests:** Implement a system where NPCs request specific items globally, rewarding contributors with bonus coins and friendship.
 - [x] **Stamina Efficiency Buff:** Add a new buff that reduces stamina consumption for all actions.
+- [x] **Animal Husbandry Expansion:** Friendship system and high-quality animal products.
+- [x] **Tool Tier Expansion:** Added tiers for Scythe and Fishing Rod.
+- [x] **Visual Polish:** Level-up animations and improved world density.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
