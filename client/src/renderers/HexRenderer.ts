@@ -720,7 +720,41 @@ export class HexRenderer {
         this.drawStall(entity as any, x, y);
     } else if (entity.species === 'birdhouse') {
         this.drawBirdhouse(x, y);
+    } else if (entity.species === 'furnace') {
+        this.drawFurnace(x, y);
     }
+  }
+
+  drawFurnace(x: number, y: number) {
+      // Furnace body (Stone chimney style)
+      this.graphics.rect(x - 12, y - 10, 24, 25);
+      this.graphics.fill({ color: 0x696969, alpha: 1 });
+      this.graphics.stroke({ color: 0x333333, width: 2 });
+
+      // Opening/Grill
+      this.graphics.rect(x - 8, y + 5, 16, 10);
+      this.graphics.fill({ color: 0x1A1A1A, alpha: 1 });
+
+      // Fire/Glow inside
+      const time = Date.now() / 150;
+      const glow = (Math.sin(time) + 1) / 2;
+      this.graphics.rect(x - 6, y + 7, 12, 6);
+      this.graphics.fill({ color: 0xFF4500, alpha: 0.4 + glow * 0.6 });
+
+      // Top chimney part
+      this.graphics.rect(x - 8, y - 18, 16, 8);
+      this.graphics.fill({ color: 0x555555, alpha: 1 });
+      this.graphics.stroke({ color: 0x333333, width: 1 });
+
+      // Smoke particles
+      for (let i = 0; i < 2; i++) {
+          const sx = x + Math.sin(time * 0.5 + i) * 6;
+          const sy = y - 20 - (time * 15 % 30) + i * 15;
+          if (sy < y - 15) {
+              this.graphics.circle(sx, sy, 3);
+              this.graphics.fill({ color: 0x888888, alpha: 0.3 });
+          }
+      }
   }
 
   drawBirdhouse(x: number, y: number) {

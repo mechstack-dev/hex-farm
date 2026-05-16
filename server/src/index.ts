@@ -323,6 +323,11 @@ io.on('connection', (socket) => {
               } else if (rand < 0.11) {
                   player.inventory['ancient-coin'] = (player.inventory['ancient-coin'] || 0) + 1;
                   notify(socket.id, "You found a dusty Ancient Coin!", 'success');
+              } else if (rand < 0.12) {
+                  const artifacts = ['rusty-cog', 'old-tablet'];
+                  const art = artifacts[Math.floor(Math.random() * artifacts.length)];
+                  player.inventory[art] = (player.inventory[art] || 0) + 1;
+                  notify(socket.id, `You unearthed a ${art.replace('-', ' ')}!`, 'success');
               }
             }
             const tilled = {
@@ -858,6 +863,10 @@ io.on('connection', (socket) => {
             if (rand < 0.05) {
                 player.inventory['ancient-coin'] = (player.inventory['ancient-coin'] || 0) + 1;
                 notify(socket.id, `You found an Ancient Coin stuck in the ${name}!`, 'success');
+            } else if (rand < 0.15) {
+                const art = 'ancient-statue';
+                player.inventory[art] = (player.inventory[art] || 0) + 1;
+                notify(socket.id, `You found a ${art.replace('-', ' ')} inside the ${name}!`, 'success');
             } else {
                 const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'apple-tree-seed', 'orange-tree-seed', 'winter-radish-seed'];
                 const seed = seeds[Math.floor(Math.random() * seeds.length)];
@@ -953,9 +962,14 @@ io.on('connection', (socket) => {
             if (rand < 0.2) {
                 player.inventory['geode'] = (player.inventory['geode'] || 0) + 1;
                 notify(socket.id, "You found a Geode!", 'success');
-            } else if (rand < 0.3) {
+            } else if (rand < 0.35) {
                 player.inventory['ancient-coin'] = (player.inventory['ancient-coin'] || 0) + 1;
                 notify(socket.id, "You found an Ancient Coin under the rock!", 'success');
+            } else if (rand < 0.55) {
+                const artifacts = ['rusty-cog', 'old-tablet', 'ancient-statue'];
+                const art = artifacts[Math.floor(Math.random() * artifacts.length)];
+                player.inventory[art] = (player.inventory[art] || 0) + 1;
+                notify(socket.id, `You found a ${art.replace('-', ' ')} under the rock!`, 'success');
             } else {
                 const coins = 5 + Math.floor(Math.random() * 10);
                 player.coins += coins;
@@ -1080,6 +1094,19 @@ io.on('connection', (socket) => {
       const building = entities.find(e => e.type === 'building') as Building | undefined;
       const floor = entities.find(e => e.type === 'floor');
 
+      if (floor && (floor.species === 'flower' || floor.species === 'sunflower')) {
+          player.inventory['flower'] = (player.inventory['flower'] || 0) + 1;
+          const grass = {
+              ...floor,
+              species: 'grass'
+          };
+          world.updateEntity(grass);
+          io.emit('entityUpdate', grass);
+          socket.emit('entityUpdate', player);
+          notify(socket.id, `Picked a ${floor.species}!`, 'success');
+          return;
+      }
+
       if (floor && floor.species === 'cave-entrance') {
           const isCave = player.pos.q >= 10000;
           const targetQ = isCave ? player.pos.q - 10000 : player.pos.q + 10000;
@@ -1194,6 +1221,34 @@ io.on('connection', (socket) => {
               } else {
                   notify(socket.id, "This stall is empty.", 'info');
               }
+          }
+          return;
+      }
+
+      if (building && building.species === 'furnace') {
+          const hasCoal = (player.inventory['coal'] || 0) > 0;
+          if (!hasCoal) {
+              notify(socket.id, "You need 1 coal to power the furnace!", 'error');
+              return;
+          }
+
+          const ironOre = player.inventory['iron-ore'] || 0;
+          const goldOre = player.inventory['gold-ore'] || 0;
+
+          if (goldOre >= 5) {
+              player.inventory['gold-ore'] -= 5;
+              player.inventory['coal']--;
+              player.inventory['gold-bar'] = (player.inventory['gold-bar'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Smelted 1 Gold Bar!", 'success');
+          } else if (ironOre >= 5) {
+              player.inventory['iron-ore'] -= 5;
+              player.inventory['coal']--;
+              player.inventory['iron-bar'] = (player.inventory['iron-bar'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Smelted 1 Iron Bar!", 'success');
+          } else {
+              notify(socket.id, "You need 5 ores to smelt a bar!", 'error');
           }
           return;
       }
@@ -1653,18 +1708,18 @@ io.on('connection', (socket) => {
             { base: 'pickaxe', upgrade: 'copper-pickaxe', price: Math.floor(200 * upgradeMultiplier), ore: null, oreCount: 0 },
           { base: 'scythe', upgrade: 'copper-scythe', price: Math.floor(300 * upgradeMultiplier), ore: null, oreCount: 0 },
           { base: 'fishing-rod', upgrade: 'copper-fishing-rod', price: Math.floor(250 * upgradeMultiplier), ore: null, oreCount: 0 },
-            { base: 'copper-hoe', upgrade: 'iron-hoe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
-            { base: 'copper-watering-can', upgrade: 'iron-watering-can', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
-            { base: 'copper-axe', upgrade: 'iron-axe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
-            { base: 'copper-pickaxe', upgrade: 'iron-pickaxe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
-          { base: 'copper-scythe', upgrade: 'iron-scythe', price: Math.floor(600 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
-          { base: 'copper-fishing-rod', upgrade: 'iron-fishing-rod', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-ore', oreCount: 5 },
-            { base: 'iron-hoe', upgrade: 'gold-hoe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
-            { base: 'iron-watering-can', upgrade: 'gold-watering-can', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
-            { base: 'iron-axe', upgrade: 'gold-axe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
-            { base: 'iron-pickaxe', upgrade: 'gold-pickaxe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
-          { base: 'iron-scythe', upgrade: 'gold-scythe', price: Math.floor(1200 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
-          { base: 'iron-fishing-rod', upgrade: 'gold-fishing-rod', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-ore', oreCount: 5 },
+            { base: 'copper-hoe', upgrade: 'iron-hoe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-bar', oreCount: 3 },
+            { base: 'copper-watering-can', upgrade: 'iron-watering-can', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-bar', oreCount: 3 },
+            { base: 'copper-axe', upgrade: 'iron-axe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-bar', oreCount: 3 },
+            { base: 'copper-pickaxe', upgrade: 'iron-pickaxe', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-bar', oreCount: 3 },
+            { base: 'copper-scythe', upgrade: 'iron-scythe', price: Math.floor(600 * upgradeMultiplier), ore: 'iron-bar', oreCount: 3 },
+            { base: 'copper-fishing-rod', upgrade: 'iron-fishing-rod', price: Math.floor(500 * upgradeMultiplier), ore: 'iron-bar', oreCount: 3 },
+            { base: 'iron-hoe', upgrade: 'gold-hoe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-bar', oreCount: 3 },
+            { base: 'iron-watering-can', upgrade: 'gold-watering-can', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-bar', oreCount: 3 },
+            { base: 'iron-axe', upgrade: 'gold-axe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-bar', oreCount: 3 },
+            { base: 'iron-pickaxe', upgrade: 'gold-pickaxe', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-bar', oreCount: 3 },
+            { base: 'iron-scythe', upgrade: 'gold-scythe', price: Math.floor(1200 * upgradeMultiplier), ore: 'gold-bar', oreCount: 3 },
+            { base: 'iron-fishing-rod', upgrade: 'gold-fishing-rod', price: Math.floor(1000 * upgradeMultiplier), ore: 'gold-bar', oreCount: 3 },
           ];
 
           const availableUpgrade = upgrades.find(u =>
@@ -1706,8 +1761,8 @@ io.on('connection', (socket) => {
               "Hot enough for ye? The forge is always roaring.",
               "Bring me some coins and ore, and I'll show you what real craftsmanship looks like.",
               "I can crack open those geodes for ye, only 20 coins a pop.",
-              "For Iron upgrades, I need 500 coins and 5 Iron Ore.",
-              "For Gold upgrades, I need 1000 coins and 5 Gold Ore."
+              "For Iron upgrades, I need 500 coins and 3 Iron Bars.",
+              "For Gold upgrades, I need 1000 coins and 3 Gold Bars."
             ];
             if (heartLevel >= 5) {
                 dialogues = [
