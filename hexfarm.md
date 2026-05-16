@@ -47,7 +47,9 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Lightning:** During rainy weather, there's a small chance of lightning strikes. Struck trees become **Burnt Trees**, which can be cleared with an axe to obtain **Coal**.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 - **Fountains:** Decorative buildings that provide a +1.0 stamina regeneration boost to players within a 2-hex radius.
-- **Discovery & Geodes:** Clearing obstacles and plowing has a chance to yield rare items like **Ancient Coins**, **Geodes**, and **Diamonds**. Geodes can be processed by the Blacksmith for a small fee.
+- **Smelting:** Using a **Furnace**, players can smelt raw ores (Iron, Gold) into **Bars** (Iron Bar, Gold Bar) using Coal as fuel (5 ore + 1 coal = 1 bar). Bars are required for high-tier tool upgrades at the Blacksmith.
+- **Discovery & Artifacts:** Clearing obstacles and plowing has a chance to yield rare items like **Ancient Coins**, **Geodes**, **Diamonds**, and new **Artifacts** (Rusty Cog, Ancient Statue, Old Tablet). Geodes can be processed by the Blacksmith for a small fee.
+- **Wild Flowers:** Players can interact with wild flowers and sunflowers to pick them, obtaining a **Flower** item.
 - **Animal Friendship:** Interact with animals ('E') to pet them and increase friendship (+10 per day). High friendship (>500) unlocks a 20% chance to produce **High Quality** products like **Large Milk**, **Golden Eggs**, and **Golden Wool**.
 - **Tiered Scythes & Rods:** Tools like the Scythe and Fishing Rod can now be upgraded at the Blacksmith. Higher-tier scythes have a larger harvesting radius, and higher-tier rods improve catch rates.
 
@@ -121,7 +123,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+R**: Fountain (20 Stone) - Provides a localized stamina regeneration boost.
    - **Alt+E**: Lamp (2 Wood, 5 Stone) - Decorative building that glows at night and dusk.
    - **Alt+V**: Preserves Jar (8 Wood, 4 Stone) - Converts fruit into Jam for higher stamina and sale value.
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
+   - **Alt+W**: Furnace (25 Stone) - Smelts ores into bars.
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
@@ -266,6 +269,10 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Animal Husbandry Expansion:** Friendship system and high-quality animal products.
 - [x] **Tool Tier Expansion:** Added tiers for Scythe and Fishing Rod.
 - [x] **Visual Polish:** Level-up animations and improved world density.
+- [x] **Smelting System:** Added Furnace building and metal bars for tool upgrades.
+- [x] **Artifact Collection:** New rare artifacts found while mining and farming.
+- [x] **Flower Picking:** Interact with wild flowers to collect them.
+- [x] **Code Quality:** Refactored duplicate logic for neighborhood calculations.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

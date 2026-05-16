@@ -3,7 +3,7 @@ import { updatePlant } from './logic/PlantLogic.js';
 import { moveAnimal } from './logic/AnimalLogic.js';
 import { SeasonManager } from './logic/SeasonManager.js';
 import type { Animal, Plant, EnvironmentState } from 'common';
-import { getChunkCoords, getNeighbors, GAME_DAY, SEED_PRICES, CHUNK_SIZE } from 'common';
+import { getChunkCoords, getNeighbors, getRecursiveNeighbors, GAME_DAY, SEED_PRICES, CHUNK_SIZE } from 'common';
 
 export class GameEngine {
   private seasonManager: SeasonManager;
@@ -39,28 +39,8 @@ export class GameEngine {
         if (entity.type === 'sprinkler') {
           const radius = entity.species === 'gold-sprinkler' ? 3 : (entity.species === 'iron-sprinkler' ? 2 : 1);
 
-          const getRecursiveNeighbors = (pos: any, r: number): string[] => {
-              let results = new Set<string>();
-              results.add(`${pos.q},${pos.r}`);
-              let currentRing = [pos];
-              for (let i = 0; i < r; i++) {
-                  let nextRing: any[] = [];
-                  currentRing.forEach(p => {
-                      getNeighbors(p).forEach(n => {
-                          const key = `${n.q},${n.r}`;
-                          if (!results.has(key)) {
-                              results.add(key);
-                              nextRing.push(n);
-                          }
-                      });
-                  });
-                  currentRing = nextRing;
-              }
-              return Array.from(results);
-          };
-
-          getRecursiveNeighbors(entity.pos, radius).forEach(key => {
-              sprinklerPositions.add(key);
+          getRecursiveNeighbors(entity.pos, radius).forEach(n => {
+              sprinklerPositions.add(`${n.q},${n.r}`);
           });
         } else if (entity.type === 'obstacle' && entity.species === 'scarecrow') {
             scarecrowPositions.add(`${entity.pos.q},${entity.pos.r}`);
@@ -98,28 +78,8 @@ export class GameEngine {
             const barn = entity as any;
             const radius = entity.species === 'large-barn' ? 3 : 2;
 
-            const getRecursiveNeighbors = (pos: any, r: number): string[] => {
-                let results = new Set<string>();
-                results.add(`${pos.q},${pos.r}`);
-                let currentRing = [pos];
-                for (let i = 0; i < r; i++) {
-                    let nextRing: any[] = [];
-                    currentRing.forEach(p => {
-                        getNeighbors(p).forEach(n => {
-                            const key = `${n.q},${n.r}`;
-                            if (!results.has(key)) {
-                                results.add(key);
-                                nextRing.push(n);
-                            }
-                        });
-                    });
-                    currentRing = nextRing;
-                }
-                return Array.from(results);
-            };
-
-            getRecursiveNeighbors(entity.pos, radius).forEach(key => {
-                barnPositions.set(key, barn);
+            getRecursiveNeighbors(entity.pos, radius).forEach(n => {
+                barnPositions.set(`${n.q},${n.r}`, barn);
             });
         }
 
