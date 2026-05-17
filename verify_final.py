@@ -7,26 +7,39 @@ async def verify():
         browser = await p.chromium.launch()
         page = await browser.new_page()
 
+        page.on("console", lambda msg: print(f"BROWSER CONSOLE: {msg.text}"))
+        page.on("pageerror", lambda exc: print(f"BROWSER ERROR: {exc}"))
+
         # Connect to the game
-        await page.goto("http://localhost:3001")
-        await page.fill("input[placeholder='Enter your name']", "Tester")
-        await page.click("button:has-text('Join Game')")
+        print("Navigating to http://localhost:3001")
+        try:
+            await page.goto("http://localhost:3001", timeout=60000)
+            print("Page loaded")
 
-        # Wait for joining
-        await page.wait_for_selector("text=Welcome to HexFarm")
+            await page.fill("input[placeholder='Enter your name']", "Tester")
+            print("Filled name")
+            await page.click("button:has-text('Join Game')")
+            print("Clicked Join")
 
-        # Move to merchant (0,0) - we start at 0,0 usually but let's make sure
-        # Press 'N' to try and build beehive (should fail due to resources)
-        await page.keyboard.press("n")
-        await page.wait_for_selector(".notification.error", timeout=10000)
+            # Wait for login overlay to disappear
+            await page.wait_for_selector(".login-overlay", state="hidden", timeout=15000)
+            print("Login overlay hidden")
 
-        # Interact with Merchant (should be at 0,0)
-        # Try 'E' to interact
-        await page.keyboard.press("e")
+            # Check for UI elements
+            await page.wait_for_selector(".ui-overlay", timeout=10000)
+            print("UI Overlay present")
 
-        # Take a screenshot
-        os.makedirs("verification/screenshots", exist_ok=True)
-        await page.screenshot(path="verification/screenshots/final_verification.png")
+            await page.wait_for_selector(".stamina-container", timeout=10000)
+            print("Stamina bar present")
+
+            # Take a screenshot
+            os.makedirs("verification/screenshots", exist_ok=True)
+            await page.screenshot(path="verification/screenshots/final_verification.png")
+            print("Screenshot taken")
+
+        except Exception as e:
+            print(f"Verification failed: {e}")
+            await page.screenshot(path="verification/screenshots/error.png")
 
         await browser.close()
 

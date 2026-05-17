@@ -236,6 +236,7 @@ export interface Player extends Entity {
   lastTalkTime: Record<string, number>;
   perks: string[];
   color: number;
+  hasGrace?: boolean;
 }
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
