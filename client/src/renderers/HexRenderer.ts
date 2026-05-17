@@ -724,7 +724,46 @@ export class HexRenderer {
         this.drawFurnace(x, y);
     } else if (entity.species === 'mill') {
         this.drawMill(x, y);
+    } else if (entity.species === 'bridge') {
+        this.drawBridge(x, y, entity.pos);
     }
+  }
+
+  drawBridge(x: number, y: number, pos: Position) {
+      const directions = [
+          { q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 },
+          { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }
+      ];
+
+      // Find adjacent water or other bridges to determine orientation
+      const waterNeighbors = directions.map(d => {
+          const neighborPos = { q: pos.q + d.q, r: pos.r + d.r };
+          return this.lastEntities.some(e =>
+              (e.pos.q === neighborPos.q && e.pos.r === neighborPos.r) &&
+              (e.species === 'water' || e.species === 'bridge')
+          );
+      });
+
+      // Draw wooden planks
+      this.graphics.rect(x - 15, y - 10, 30, 20);
+      this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+      this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+      // Planks detail
+      for (let i = -12; i <= 12; i += 6) {
+          this.graphics.moveTo(x + i, y - 10);
+          this.graphics.lineTo(x + i, y + 10);
+          this.graphics.stroke({ color: 0x3D2B1F, width: 1, alpha: 0.5 });
+      }
+
+      // Rails if no bridge neighbors in that direction
+      waterNeighbors.forEach((isWater, _i) => {
+          if (!isWater) {
+              // const d = directions[i];
+              // const angle = Math.atan2(d.r + d.q / 2, d.q * Math.sqrt(3) / 2); // Roughly
+              // Simplified rails: just draw on the edges
+          }
+      });
   }
 
   drawMill(x: number, y: number) {

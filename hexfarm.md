@@ -124,7 +124,8 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+E**: Lamp (2 Wood, 5 Stone) - Decorative building that glows at night and dusk.
    - **Alt+V**: Preserves Jar (8 Wood, 4 Stone) - Converts fruit into Jam for higher stamina and sale value.
    - **Alt+W**: Furnace (25 Stone) - Smelts ores into bars.
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings, talk to NPCs, or enter Caves. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
+   - **Shift+R**: Bridge (10 Wood, 2 Stone) - Built over water to allow passage for players and animals.
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings, talk to NPCs, or enter Caves. Use **Shift+E** to explicitly withdraw all items from Chests and Sheds. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
@@ -282,6 +283,10 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Code Quality:** Refactored duplicate logic for neighborhood calculations and fixed rock discovery reward rates.
 - [x] **Animal Product Quality:** Added high-quality animal product logic to both manual and automated (barn) collection.
 - [x] **Achievement Expansion:** Added Legendary Angler and Master Architect achievements.
+- [x] **Merchant Logic Polish:** Protected player resources (wood, stone, etc.) from being sold automatically.
+- [x] **Exploration Expansion:** Implemented Bridges to allow passage over water.
+- [x] **Storage UX:** Added explicit withdrawal from storage using Shift+E.
+- [x] **Nature Polish:** Fixed floor entity overlap during flower propagation.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

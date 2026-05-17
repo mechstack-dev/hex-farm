@@ -374,6 +374,12 @@ export class GameEngine {
                     const sourceEntities = this.world.getEntitiesAt(sourceFlower.q, sourceFlower.r);
                     const flowerEntity = sourceEntities.find(e => (e.type === 'floor' || e.type === 'plant') && (e.species === 'flower' || e.species === 'sunflower'));
                     if (flowerEntity) {
+                        // Remove existing floor first to prevent overlap
+                        const existingFloors = this.world.getEntitiesAt(entity.pos.q, entity.pos.r).filter(e => e.type === 'floor');
+                        existingFloors.forEach(ef => {
+                            this.world.removeEntity(ef.id, ef.pos.q, ef.pos.r);
+                        });
+
                         const newFlower = {
                             id: `floor-${entity.pos.q}-${entity.pos.r}-${now}`,
                             type: 'floor' as const,
