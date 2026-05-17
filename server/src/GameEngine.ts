@@ -218,14 +218,15 @@ export class GameEngine {
           }
 
           // Nature's Grace Aura boost (if near 3+ mature trees or flowers)
+          const hadGrace = player.hasGrace;
           if (natureGracePositions.has(`${player.pos.q},${player.pos.r}`)) {
               staminaRegen += 0.5;
-              (player as any).hasGrace = true;
+              player.hasGrace = true;
           } else {
-              (player as any).hasGrace = false;
+              player.hasGrace = false;
           }
 
-          if (player.stamina < player.maxStamina) {
+          if (player.stamina < player.maxStamina || player.hasGrace !== hadGrace) {
             player.stamina = Math.min(player.maxStamina, player.stamina + staminaRegen);
             updated = { ...player };
           }
@@ -491,12 +492,15 @@ export class GameEngine {
                       const barn = barnPositions.get(`${animal.pos.q},${animal.pos.r}`);
                       if (barn && now - animal.lastProductTime >= GAME_DAY) {
                           let product = '';
-                          if (animal.species === 'cow') product = 'milk';
-                          else if (animal.species === 'sheep') product = 'wool';
-                          else if (animal.species === 'chicken') product = 'egg';
+                          const friendship = animal.friendship || 0;
+                          const isHighQuality = friendship > 500 && Math.random() < 0.2;
+
+                          if (animal.species === 'cow') product = isHighQuality ? 'large-milk' : 'milk';
+                          else if (animal.species === 'sheep') product = isHighQuality ? 'golden-wool' : 'wool';
+                          else if (animal.species === 'chicken') product = isHighQuality ? 'golden-egg' : 'egg';
                           else if (animal.species === 'pig') product = 'truffle';
-                          else if (animal.species === 'goat') product = 'goat-milk';
-                          else if (animal.species === 'duck') product = 'duck-egg';
+                          else if (animal.species === 'goat') product = isHighQuality ? 'large-goat-milk' : 'goat-milk';
+                          else if (animal.species === 'duck') product = isHighQuality ? 'golden-duck-egg' : 'duck-egg';
 
                           if (product) {
                               barn.inventory = barn.inventory || {};

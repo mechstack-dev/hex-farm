@@ -184,7 +184,8 @@ export class Generator {
             species,
             pos: { q, r },
             nextMoveTime: 0, // Will move on first engine tick
-            lastProductTime: 0
+            lastProductTime: 0,
+            friendship: 0
           } as unknown as Entity);
         } else if (chunkRng() < 0.02) {
           // Spawn foraging items

@@ -183,6 +183,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Achievement System:** Milestones and global announcements.
 - [x] Simplify what actions the user can take, and make the game a lot more about what the interactions and growth of nature, natual plant propagation, and the effects of simple player actions have on a world. It should be an enjoyable game for someone to show up and only walk around and explore, if they so desire.
 - [x] **Nature's Evolution:** Implement soil reversion, natural sowing from mature trees, and localized "Nature's Grace" buffs to make the world feel more alive and responsive to natural growth.
+- [x] **Advanced Progression:** Unified NPC milestone system with unique rewards and perks, expanded food buffs for advanced recipes, and implemented the Nature's Grace stamina-bypass mechanic.
 
 ### Medium Priority
 - [x] **Automation:** Tiered Sprinklers and Barns.
@@ -277,6 +278,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **NPC Schedules:** Implemented simple NPC schedules where they return to their home positions at night.
 - [x] **Improved Trading:** Enhanced `/give` command to support player names with spaces.
 - [x] **Code Quality:** Refactored duplicate logic for neighborhood calculations and fixed rock discovery reward rates.
+- [x] **Animal Product Quality:** Added high-quality animal product logic to both manual and automated (barn) collection.
+- [x] **Achievement Expansion:** Added Legendary Angler and Master Architect achievements.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

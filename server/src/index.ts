@@ -132,6 +132,76 @@ io.on('connection', (socket) => {
     io.to(socketId).emit('notification', { message, type });
   };
 
+  const checkNPCMilestones = (player: Player, npcName: string, oldPoints: number, newPoints: number) => {
+    // Milestone rewards at 750
+    if (oldPoints < 750 && newPoints >= 750) {
+        if (npcName === 'merchant') {
+            const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'sunflower-seed', 'winter-radish-seed'];
+            seeds.forEach(s => player.inventory[s] = (player.inventory[s] || 0) + 10);
+            notify(socket.id, `Merchant: "You've been a great partner. Here's a bulk supply of seeds!"`, 'success');
+        } else if (npcName === 'blacksmith') {
+            player.inventory['gold-ore'] = (player.inventory['gold-ore'] || 0) + 5;
+            notify(socket.id, `Blacksmith: "Take some of my private stock. You've earned it."`, 'success');
+        } else if (npcName === 'fisherman') {
+            player.inventory['golden-hexfish'] = (player.inventory['golden-hexfish'] || 0) + 1;
+            notify(socket.id, `Fisherman: "The legendary Golden Hexfish! It's yours, friend."`, 'success');
+        } else if (npcName === 'miner') {
+            player.inventory['dynamite'] = (player.inventory['dynamite'] || 0) + 10;
+            notify(socket.id, `Miner: "A gift for a fellow deep-delver. Don't blow yourself up!"`, 'success');
+        }
+    }
+
+    // Milestone dialogue
+    const milestones = [250, 500, 750, 1000];
+    const reached = milestones.find(m => oldPoints < m && newPoints >= m);
+    if (reached) {
+        const dialogues: Record<string, Record<number, string>> = {
+            'merchant': {
+                250: "Merchant: \"You're becoming a regular around here! I appreciate the business.\"",
+                500: "Merchant: \"I've seen many farmers come and go, but you've got real staying power.\"",
+                750: "Merchant: \"It's rare to find someone so dedicated. You're more than just a customer now.\"",
+                1000: "Merchant: \"You're practically family. Welcome to the Merchant's Guild!\""
+            },
+            'blacksmith': {
+                250: "Blacksmith: \"Not bad, farmer. You're starting to understand the value of good materials.\"",
+                500: "Blacksmith: \"Your tools tell a story of hard work. I respect that.\"",
+                750: "Blacksmith: \"Few have the patience for the forge... or for me. Thanks for stickin' around.\"",
+                1000: "Blacksmith: \"You've got the heart of a smith. I'd be proud to call you my apprentice.\""
+            },
+            'fisherman': {
+                250: "Fisherman: \"The ripples are changing... you're starting to fit in here.\"",
+                500: "Fisherman: \"Patience is a virtue, and you've got it in spades.\"",
+                750: "Fisherman: \"I can almost hear the water calling your name. You're a true angler.\"",
+                1000: "Fisherman: \"The legendary catch is within your reach. You're a master of the waves.\""
+            },
+            'miner': {
+                250: "Miner: \"Still got all your fingers? Good. You're tougher than you look.\"",
+                500: "Miner: \"The stones are starting to talk to you, eh? Just don't let 'em talk back.\"",
+                750: "Miner: \"Deep delvin' is in your blood. I can see the dust in your eyes.\"",
+                1000: "Miner: \"You've reached the bottom and come back up. You're a true Deep Delver.\""
+            }
+        };
+        if (dialogues[npcName] && dialogues[npcName][reached]) {
+            notify(socket.id, dialogues[npcName][reached], 'success');
+        }
+    }
+
+    // Perk logic
+    if (newPoints >= 1000) {
+        const perkId = `perk-${npcName}`;
+        if (!player.perks.includes(perkId)) {
+            player.perks.push(perkId);
+            const perkNames: Record<string, string> = {
+                'merchant': "Merchant's Guild Member",
+                'blacksmith': "Smith's Apprentice",
+                'fisherman': "Expert Angler",
+                'miner': "Deep Delver"
+            };
+            notify(socket.id, `New Perk Unlocked: ${perkNames[npcName]}!`, 'success');
+        }
+    }
+  };
+
   const checkAchievements = (player: Player) => {
       const achievementsList = [
           { id: 'first_harvest', name: 'First Harvest', condition: (p: Player) => (p.stats['harvested_total'] || 0) >= 1 },
@@ -143,6 +213,8 @@ io.on('connection', (socket) => {
           { id: 'chef', name: 'Master Chef', condition: (p: Player) => (p.stats['meals_cooked'] || 0) >= 10 },
           { id: 'explorer', name: 'World Explorer', condition: (p: Player) => (Math.abs(p.pos.q) + Math.abs(p.pos.r)) >= 100 },
           { id: 'naturalist', name: 'Master Naturalist', condition: (p: Player) => ((p.relationships['fisherman'] || 0) >= 500 && (p.relationships['miner'] || 0) >= 500) },
+          { id: 'legendary_angler', name: 'Legendary Angler', condition: (p: Player) => (p.inventory['golden-hexfish'] || 0) > 0 },
+          { id: 'master_architect', name: 'Master Architect', condition: (p: Player) => (p.stats['buildings_built'] || 0) >= 10 },
       ];
 
       achievementsList.forEach(ach => {
@@ -194,6 +266,14 @@ io.on('connection', (socket) => {
     return true;
   };
 
+  const getEffectiveStaminaCost = (player: Player, amount: number): number => {
+    if (player.hasGrace && Math.random() < 0.2) {
+      notify(socket.id, "Nature's Grace: Action consumed no stamina!", 'success');
+      return 0;
+    }
+    return amount;
+  };
+
   socket.on('buy_tool', (tool: string) => {
     const player = players.get(socket.id);
     if (player) {
@@ -238,19 +318,20 @@ io.on('connection', (socket) => {
           return;
         }
         player.inventory['wood'] -= 2;
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
         const fence = {
           id: `fence-${player.pos.q}-${player.pos.r}`,
           type: 'fence' as const,
           pos: { ...player.pos }
         };
+        player.stats['buildings_built'] = (player.stats['buildings_built'] || 0) + 1;
         world.addEntity(fence);
         io.emit('entityUpdate', fence);
         socket.emit('entityUpdate', player);
       } else {
         const fence = entities.find(e => e.type === 'fence');
         if (fence) {
-          player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
           world.removeEntity(fence.id, fence.pos.q, fence.pos.r);
           player.inventory['wood'] = (player.inventory['wood'] || 0) + 2;
           io.emit('entityRemove', { id: fence.id, pos: fence.pos });
@@ -355,7 +436,7 @@ io.on('connection', (socket) => {
       });
 
       if (success) {
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
         socket.emit('entityUpdate', player);
       }
     }
@@ -376,7 +457,7 @@ io.on('connection', (socket) => {
             return;
           }
           player.inventory['stone'] -= 1;
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
           const path = {
             id: `floor-${player.pos.q}-${player.pos.r}`,
             type: 'floor' as const,
@@ -388,7 +469,7 @@ io.on('connection', (socket) => {
           socket.emit('entityUpdate', player);
         }
       } else if (floor.species === 'path') {
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
         world.removeEntity(floor.id, floor.pos.q, floor.pos.r);
         player.inventory['stone'] = (player.inventory['stone'] || 0) + 1;
         io.emit('entityRemove', { id: floor.id, pos: floor.pos });
@@ -478,7 +559,7 @@ io.on('connection', (socket) => {
       });
 
       if (harvestedCount > 0) {
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
         socket.emit('entityUpdate', player);
         checkAchievements(player);
         const toolMsg = hasScythe ? ' with scythe' : '';
@@ -628,7 +709,7 @@ io.on('connection', (socket) => {
       });
 
       if (success) {
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
         socket.emit('entityUpdate', player);
       }
     }
@@ -698,13 +779,14 @@ io.on('connection', (socket) => {
       const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
       if (!isOccupied) {
         player.inventory['wood'] -= cost.wood;
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
         const scarecrow = {
           id: `scarecrow-${player.pos.q}-${player.pos.r}`,
           type: 'obstacle' as const,
           species: 'scarecrow',
           pos: { ...player.pos }
         };
+        player.stats['buildings_built'] = (player.stats['buildings_built'] || 0) + 1;
         world.addEntity(scarecrow);
         io.emit('entityUpdate', scarecrow);
         socket.emit('entityUpdate', player);
@@ -731,13 +813,14 @@ io.on('connection', (socket) => {
       const isOccupied = entities.some(e => e.type !== 'player' && e.type !== 'floor');
       if (!isOccupied) {
         player.inventory['stone'] -= cost.stone;
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
         const sprinkler = {
           id: `sprinkler-${player.pos.q}-${player.pos.r}`,
           type: 'sprinkler' as const,
           species: species,
           pos: { ...player.pos }
         };
+        player.stats['buildings_built'] = (player.stats['buildings_built'] || 0) + 1;
         world.addEntity(sprinkler);
         io.emit('entityUpdate', sprinkler);
         socket.emit('entityUpdate', player);
@@ -766,7 +849,7 @@ io.on('connection', (socket) => {
       if (!isOccupied) {
         player.inventory['wood'] -= cost.wood;
         player.inventory['stone'] -= cost.stone;
-        player.stamina -= sCost;
+        player.stamina -= getEffectiveStaminaCost(player, sCost);
 
         const building: Building = {
           id: `${species}-${player.pos.q}-${player.pos.r}`,
@@ -777,6 +860,7 @@ io.on('connection', (socket) => {
           lastProductTime: species === 'beehive' ? Date.now() : undefined,
           ownerId: species === 'stall' ? player.id : undefined
         };
+        player.stats['buildings_built'] = (player.stats['buildings_built'] || 0) + 1;
         world.addEntity(building);
         io.emit('entityUpdate', building);
         socket.emit('entityUpdate', player);
@@ -833,7 +917,7 @@ io.on('connection', (socket) => {
           const totalWood = woodYield * toolMultiplier;
 
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
 
           if (obstacle.species === 'burnt-tree') {
               const coalAmount = 1 + Math.floor(Math.random() * 3);
@@ -898,7 +982,7 @@ io.on('connection', (socket) => {
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
 
           // High value rewards
           player.inventory['stone'] = (player.inventory['stone'] || 0) + 10;
@@ -921,7 +1005,7 @@ io.on('connection', (socket) => {
             return;
           }
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
           const amount = hasGoldPickaxe ? 5 : (hasIronPickaxe ? 3 : (hasCopperPickaxe ? 2 : 1));
           player.inventory['stone'] = (player.inventory['stone'] || 0) + amount;
 
@@ -993,21 +1077,21 @@ io.on('connection', (socket) => {
           }
         } else if (obstacle && obstacle.species === 'scarecrow') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
           player.inventory['wood'] = (player.inventory['wood'] || 0) + 2;
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, "Removed scarecrow.", 'success');
         } else if (obstacle.type === 'fence') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
           player.inventory['wood'] = (player.inventory['wood'] || 0) + 2;
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
           notify(socket.id, "Removed fence.", 'success');
         } else if (obstacle.type === 'plant') {
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
 
           const { leveledUp, newLevel } = addXP(player, 'foraging', 5);
           if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
@@ -1028,7 +1112,7 @@ io.on('connection', (socket) => {
 
           const refund = BUILDING_COSTS[species];
           world.removeEntity(obstacle.id, obstacle.pos.q, obstacle.pos.r);
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
           if (refund) {
             player.inventory['wood'] = (player.inventory['wood'] || 0) + refund.wood;
             player.inventory['stone'] = (player.inventory['stone'] || 0) + refund.stone;
@@ -1579,8 +1663,10 @@ io.on('connection', (socket) => {
               if (currentTime - (player.lastTalkTime[npcName] || 0) >= GAME_DAY) {
                   player.lastTalkTime[npcName] = currentTime;
                   const oldPoints = player.relationships[npcName] || 0;
-                  player.relationships[npcName] = Math.min(1000, oldPoints + 5);
+                  const newPoints = Math.min(1000, oldPoints + 5);
+                  player.relationships[npcName] = newPoints;
                   notify(socket.id, `You chatted with the ${npcName}. Relationship improved! (+5)`, 'success');
+                  checkNPCMilestones(player, npcName, oldPoints, newPoints);
                   socket.emit('entityUpdate', player);
               }
           }
@@ -1626,8 +1712,10 @@ io.on('connection', (socket) => {
                     player.coins += reward;
 
                     const oldPoints = player.relationships[animal.species] || 0;
-                    player.relationships[animal.species] = Math.min(1000, oldPoints + 20);
+                    const newPoints = Math.min(1000, oldPoints + 20);
+                    player.relationships[animal.species] = newPoints;
 
+                    checkNPCMilestones(player, animal.species, oldPoints, newPoints);
                     socket.emit('entityUpdate', player);
                     notify(socket.id, `${npcKey}: "Exactly what I needed! Here's ${reward} coins for your trouble." (+20 friendship)`, 'success');
                     checkAchievements(player);
@@ -1979,7 +2067,7 @@ io.on('connection', (socket) => {
           const sCost = getStaminaCost(player, skill, 5);
           if (!hasStamina(player, sCost)) return;
 
-          player.stamina -= sCost;
+          player.stamina -= getEffectiveStaminaCost(player, sCost);
           const { leveledUp, newLevel } = addXP(player, skill, xpGained);
           if (leveledUp) {
               notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
@@ -2052,6 +2140,36 @@ io.on('connection', (socket) => {
             player.buffs = player.buffs.filter(b => b.type !== 'fishing_luck');
             player.buffs.push({ type: 'fishing_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 });
             notify(socket.id, "Seafood platter! Fish are biting more often.", 'success');
+        } else if (item === 'royal-breakfast') {
+            const oldMaxBuff = player.buffs.find(b => b.type === 'max_stamina');
+            if (oldMaxBuff) {
+                player.maxStamina -= oldMaxBuff.amount;
+            }
+            player.buffs = player.buffs.filter(b => b.type !== 'max_stamina');
+            player.buffs.push({ type: 'max_stamina', amount: 50, expiresAt: Date.now() + 10 * 60 * 1000 });
+            player.maxStamina += 50;
+            player.stamina = Math.min(player.maxStamina, player.stamina + 50); // Immediate boost
+            notify(socket.id, "A Royal Breakfast! Your maximum stamina has increased.", 'success');
+        } else if (item === 'golden-omelette') {
+            player.buffs = player.buffs.filter(b => b.type !== 'stamina_efficiency');
+            player.buffs.push({ type: 'stamina_efficiency', amount: 0.25, expiresAt: Date.now() + 10 * 60 * 1000 });
+            notify(socket.id, "Golden Omelette! You feel incredibly efficient.", 'success');
+        } else if (item === 'honey-glazed-carrots') {
+            player.buffs = player.buffs.filter(b => b.type !== 'farming_luck');
+            player.buffs.push({ type: 'farming_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 });
+            notify(socket.id, "Sweet carrots! Farming seems luckier.", 'success');
+        } else if (item === 'berry-smoothie') {
+            player.buffs = player.buffs.filter(b => b.type !== 'stamina_regen');
+            player.buffs.push({ type: 'stamina_regen', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 });
+            notify(socket.id, "Berry smoothie! You feel refreshed.", 'success');
+        } else if (item === 'duck-egg-mayo') {
+            player.buffs = player.buffs.filter(b => b.type !== 'fishing_luck');
+            player.buffs.push({ type: 'fishing_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 });
+            notify(socket.id, "Duck egg mayo! Ready to catch some fish.", 'success');
+        } else if (item === 'fruit-medley') {
+            player.buffs = player.buffs.filter(b => b.type !== 'foraging_luck');
+            player.buffs.push({ type: 'foraging_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 });
+            notify(socket.id, "Fruit medley! Nature seems to hold more secrets.", 'success');
         }
 
         socket.emit('entityUpdate', player);
@@ -2121,7 +2239,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      player.stamina -= sCost;
+      player.stamina -= getEffectiveStaminaCost(player, sCost);
       const fishingLuck = player.buffs.find(b => b.type === 'fishing_luck');
       const isExpert = player.perks.includes('perk-fisherman');
 
@@ -2135,6 +2253,7 @@ io.on('connection', (socket) => {
       if (rand < catchChance) {
         player.inventory['fish'] = (player.inventory['fish'] || 0) + 1;
         player.stats['fish_caught'] = (player.stats['fish_caught'] || 0) + 1;
+        checkAchievements(player);
 
         // XP Gain
         const { leveledUp, newLevel } = addXP(player, 'fishing', 15);
@@ -2164,7 +2283,7 @@ io.on('connection', (socket) => {
     if (player) {
       if (!hasStamina(player, 20)) return;
 
-      player.stamina -= 20;
+      player.stamina -= getEffectiveStaminaCost(player, 20);
       world.removeEntity(player.id, player.pos.q, player.pos.r);
       player.pos = { q: 0, r: 0 };
       world.addEntity(player);
@@ -2276,76 +2395,10 @@ io.on('connection', (socket) => {
           }
 
           const oldPoints = player.relationships[npcName] || 0;
-          player.relationships[npcName] = Math.min(1000, Math.max(0, oldPoints + points));
-          const newPoints = player.relationships[npcName];
+          const newPoints = Math.min(1000, Math.max(0, oldPoints + points));
+          player.relationships[npcName] = newPoints;
 
-          // Milestone rewards at 750
-          if (oldPoints < 750 && newPoints >= 750) {
-              if (npcName === 'merchant') {
-                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'sunflower-seed', 'winter-radish-seed'];
-                  seeds.forEach(s => player.inventory[s] = (player.inventory[s] || 0) + 10);
-                  notify(socket.id, `Merchant: "You've been a great partner. Here's a bulk supply of seeds!"`, 'success');
-              } else if (npcName === 'blacksmith') {
-                  player.inventory['gold-ore'] = (player.inventory['gold-ore'] || 0) + 5;
-                  notify(socket.id, `Blacksmith: "Take some of my private stock. You've earned it."`, 'success');
-              } else if (npcName === 'fisherman') {
-                  player.inventory['golden-hexfish'] = (player.inventory['golden-hexfish'] || 0) + 1;
-                  notify(socket.id, `Fisherman: "The legendary Golden Hexfish! It's yours, friend."`, 'success');
-              } else if (npcName === 'miner') {
-                  player.inventory['dynamite'] = (player.inventory['dynamite'] || 0) + 10;
-                  notify(socket.id, `Miner: "A gift for a fellow deep-delver. Don't blow yourself up!"`, 'success');
-              }
-          }
-
-          // Milestone dialogue
-          const milestones = [250, 500, 750, 1000];
-          const reached = milestones.find(m => oldPoints < m && newPoints >= m);
-          if (reached) {
-              const dialogues: Record<string, Record<number, string>> = {
-                  'merchant': {
-                      250: "Merchant: \"You're becoming a regular around here! I appreciate the business.\"",
-                      500: "Merchant: \"I've seen many farmers come and go, but you've got real staying power.\"",
-                      750: "Merchant: \"It's rare to find someone so dedicated. You're more than just a customer now.\"",
-                      1000: "Merchant: \"You're practically family. Welcome to the Merchant's Guild!\""
-                  },
-                  'blacksmith': {
-                      250: "Blacksmith: \"Not bad, farmer. You're starting to understand the value of good materials.\"",
-                      500: "Blacksmith: \"Your tools tell a story of hard work. I respect that.\"",
-                      750: "Blacksmith: \"Few have the patience for the forge... or for me. Thanks for stickin' around.\"",
-                      1000: "Blacksmith: \"You've got the heart of a smith. I'd be proud to call you my apprentice.\""
-                  },
-                  'fisherman': {
-                      250: "Fisherman: \"The ripples are changing... you're starting to fit in here.\"",
-                      500: "Fisherman: \"Patience is a virtue, and you've got it in spades.\"",
-                      750: "Fisherman: \"I can almost hear the water calling your name. You're a true angler.\"",
-                      1000: "Fisherman: \"The legendary catch is within your reach. You're a master of the waves.\""
-                  },
-                  'miner': {
-                      250: "Miner: \"Still got all your fingers? Good. You're tougher than you look.\"",
-                      500: "Miner: \"The stones are starting to talk to you, eh? Just don't let 'em talk back.\"",
-                      750: "Miner: \"Deep delvin' is in your blood. I can see the dust in your eyes.\"",
-                      1000: "Miner: \"You've reached the bottom and come back up. You're a true Deep Delver.\""
-                  }
-              };
-              if (dialogues[npcName] && dialogues[npcName][reached]) {
-                  notify(socket.id, dialogues[npcName][reached], 'success');
-              }
-          }
-
-          // Perk logic
-          if (player.relationships[npcName] >= 1000) {
-              const perkId = `perk-${npcName}`;
-              if (!player.perks.includes(perkId)) {
-                  player.perks.push(perkId);
-                  const perkNames: Record<string, string> = {
-                      'merchant': "Merchant's Guild Member",
-                      'blacksmith': "Smith's Apprentice",
-                      'fisherman': "Expert Angler",
-                      'miner': "Deep Delver"
-                  };
-                  notify(socket.id, `New Perk Unlocked: ${perkNames[npcName]}!`, 'success');
-              }
-          }
+          checkNPCMilestones(player, npcName, oldPoints, newPoints);
 
           socket.emit('entityUpdate', player);
           return;
