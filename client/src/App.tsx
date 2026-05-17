@@ -427,12 +427,17 @@ function App() {
         tools: { name: 'Tools/Kits', items: [] }
     };
 
+    const cropsItems = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'flower', 'fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'salmon-dinner', 'ghost-pasta', 'trout-soup', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla'];
+    const resourcesItems = ['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
+    const processedItems = ['flour', 'cornmeal'];
+    const productsItems = ['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg', 'large-milk', 'golden-egg', 'golden-wool', 'large-goat-milk', 'golden-duck-egg'];
+
     Object.entries(playerInventory).forEach(([item, count]) => {
         if (item.endsWith('-seed')) categories.seeds.items.push([item, count]);
-        else if (['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'flower', 'fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla'].includes(item)) categories.crops.items.push([item, count]);
-        else if (['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'iron-bar', 'gold-bar', 'compost-fertilizer', 'ancient-coin', 'geode', 'diamond', 'rusty-cog', 'ancient-statue', 'old-tablet'].includes(item)) categories.resources.items.push([item, count]);
-        else if (['flour', 'cornmeal'].includes(item)) categories.processed.items.push([item, count]);
-        else if (['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg'].includes(item)) categories.products.items.push([item, count]);
+        else if (cropsItems.includes(item)) categories.crops.items.push([item, count]);
+        else if (resourcesItems.includes(item)) categories.resources.items.push([item, count]);
+        else if (processedItems.includes(item)) categories.processed.items.push([item, count]);
+        else if (productsItems.includes(item)) categories.products.items.push([item, count]);
         else categories.tools.items.push([item, count]);
     });
 
