@@ -956,7 +956,7 @@ io.on('connection', (socket) => {
 
           // Discovery Reward
           const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
-          const discoveryChance = 0.05 + (discoveryLuck ? 0.05 : 0);
+          const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0);
           if (Math.random() < discoveryChance) {
             const rand = Math.random();
             if (rand < 0.2) {
@@ -1136,6 +1136,26 @@ io.on('connection', (socket) => {
 
       if (building && building.species === 'cooking-pot') {
           socket.emit('show_cooking_menu');
+          return;
+      }
+
+      if (building && building.species === 'mill') {
+          const wheat = player.inventory['wheat'] || 0;
+          const corn = player.inventory['corn'] || 0;
+
+          if (wheat > 0) {
+              player.inventory['wheat']--;
+              player.inventory['flour'] = (player.inventory['flour'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Milled 1 wheat into flour!", 'success');
+          } else if (corn > 0) {
+              player.inventory['corn']--;
+              player.inventory['cornmeal'] = (player.inventory['cornmeal'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Milled 1 corn into cornmeal!", 'success');
+          } else {
+              notify(socket.id, "You need wheat or corn to use the mill!", 'info');
+          }
           return;
       }
 
@@ -2333,11 +2353,11 @@ io.on('connection', (socket) => {
       }
 
       if (sanitized.startsWith('/give ')) {
-          const parts = sanitized.split(' ');
-          if (parts.length >= 3) {
-              const targetName = parts[1];
-              const itemName = parts[2];
-              const count = parseInt(parts[3] || '1');
+          const match = sanitized.match(/^\/give\s+"([^"]+)"\s+(\S+)\s*(\d*)$/) || sanitized.match(/^\/give\s+(\S+)\s+(\S+)\s*(\d*)$/);
+          if (match) {
+              const targetName = match[1];
+              const itemName = match[2];
+              const count = parseInt(match[3] || '1');
 
               if (isNaN(count) || count <= 0) {
                   notify(socket.id, "Invalid amount!", 'error');

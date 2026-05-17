@@ -272,7 +272,11 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Smelting System:** Added Furnace building and metal bars for tool upgrades.
 - [x] **Artifact Collection:** New rare artifacts found while mining and farming.
 - [x] **Flower Picking:** Interact with wild flowers to collect them.
-- [x] **Code Quality:** Refactored duplicate logic for neighborhood calculations.
+- [x] **Mill Building:** Added Mill building to process Wheat into Flour and Corn into Cornmeal.
+- [x] **New Recipes:** Added Bread, Pancakes, and Tortilla recipes using Mill products.
+- [x] **NPC Schedules:** Implemented simple NPC schedules where they return to their home positions at night.
+- [x] **Improved Trading:** Enhanced `/give` command to support player names with spaces.
+- [x] **Code Quality:** Refactored duplicate logic for neighborhood calculations and fixed rock discovery reward rates.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

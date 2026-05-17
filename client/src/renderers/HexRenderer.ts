@@ -722,7 +722,41 @@ export class HexRenderer {
         this.drawBirdhouse(x, y);
     } else if (entity.species === 'furnace') {
         this.drawFurnace(x, y);
+    } else if (entity.species === 'mill') {
+        this.drawMill(x, y);
     }
+  }
+
+  drawMill(x: number, y: number) {
+      // Mill building base
+      this.graphics.rect(x - 15, y - 5, 30, 20);
+      this.graphics.fill({ color: 0xDEB887, alpha: 1 });
+      this.graphics.stroke({ color: 0x8B4513, width: 2 });
+
+      // Roof
+      this.graphics.poly([
+          x - 18, y - 5,
+          x + 18, y - 5,
+          x, y - 20
+      ]);
+      this.graphics.fill({ color: 0x8B0000, alpha: 1 });
+      this.graphics.stroke({ color: 0x3D2B1F, width: 1 });
+
+      // Rotating Sail
+      const angle = Date.now() / 800;
+      this.graphics.moveTo(x, y - 10);
+      for (let i = 0; i < 4; i++) {
+          const sailAngle = angle + (i * Math.PI / 2);
+          const sx = x + Math.cos(sailAngle) * 20;
+          const sy = y - 10 + Math.sin(sailAngle) * 20;
+          this.graphics.lineTo(sx, sy);
+          this.graphics.moveTo(x, y - 10);
+      }
+      this.graphics.stroke({ color: 0xFFFFFF, width: 3, alpha: 0.8 });
+
+      // Sail center
+      this.graphics.circle(x, y - 10, 3);
+      this.graphics.fill({ color: 0x333333, alpha: 1 });
   }
 
   drawFurnace(x: number, y: number) {
