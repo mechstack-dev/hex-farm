@@ -510,12 +510,12 @@ io.on('connection', (socket) => {
         const entities = world.getEntitiesAt(pos.q, pos.r);
         const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
         if (plant) {
-          if (plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree') {
+          if (plant.species === 'tree' || plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree') {
               if (!hasScythe) notify(socket.id, `Use 'E' to gather fruit from mature trees. Use an axe to cut them down.`, 'info');
               return;
           }
-          if (plant.species === 'berry-bush') {
-            if (!hasScythe) notify(socket.id, "Use 'E' to gather berries from mature bushes. Use an axe to clear it.", 'info');
+          if (plant.species === 'berry-bush' || plant.species === 'wood-stick') {
+            if (!hasScythe && plant.species === 'berry-bush') notify(socket.id, "Use 'E' to gather berries from mature bushes. Use an axe to clear it.", 'info');
             return;
           }
 
@@ -1266,6 +1266,82 @@ io.on('connection', (socket) => {
           return;
       }
 
+      if (building && building.species === 'oil-maker') {
+          if ((player.inventory['truffle'] || 0) > 0) {
+              player.inventory['truffle']--;
+              player.inventory['oil'] = (player.inventory['oil'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Processed truffle into oil!", 'success');
+          } else {
+              notify(socket.id, "You need a truffle to make oil!", 'info');
+          }
+          return;
+      }
+
+      if (building && building.species === 'cheese-press') {
+          const milk = player.inventory['milk'] || 0;
+          const largeMilk = player.inventory['large-milk'] || 0;
+          const goatMilk = player.inventory['goat-milk'] || 0;
+          const largeGoatMilk = player.inventory['large-goat-milk'] || 0;
+
+          if (largeGoatMilk > 0) {
+              player.inventory['large-goat-milk']--;
+              player.inventory['goat-cheese'] = (player.inventory['goat-cheese'] || 0) + 2;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Pressed large goat milk into 2 goat cheese!", 'success');
+          } else if (goatMilk > 0) {
+              player.inventory['goat-milk']--;
+              player.inventory['goat-cheese'] = (player.inventory['goat-cheese'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Pressed goat milk into goat cheese!", 'success');
+          } else if (largeMilk > 0) {
+              player.inventory['large-milk']--;
+              player.inventory['cheese'] = (player.inventory['cheese'] || 0) + 2;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Pressed large milk into 2 cheese!", 'success');
+          } else if (milk > 0) {
+              player.inventory['milk']--;
+              player.inventory['cheese'] = (player.inventory['cheese'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Pressed milk into cheese!", 'success');
+          } else {
+              notify(socket.id, "You need milk or goat milk to make cheese!", 'info');
+          }
+          return;
+      }
+
+      if (building && building.species === 'mayonnaise-machine') {
+          const egg = player.inventory['egg'] || 0;
+          const goldenEgg = player.inventory['golden-egg'] || 0;
+          const duckEgg = player.inventory['duck-egg'] || 0;
+          const goldenDuckEgg = player.inventory['golden-duck-egg'] || 0;
+
+          if (goldenDuckEgg > 0) {
+              player.inventory['golden-duck-egg']--;
+              player.inventory['duck-mayonnaise'] = (player.inventory['duck-mayonnaise'] || 0) + 2;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Processed golden duck egg into 2 duck mayonnaise!", 'success');
+          } else if (duckEgg > 0) {
+              player.inventory['duck-egg']--;
+              player.inventory['duck-mayonnaise'] = (player.inventory['duck-mayonnaise'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Processed duck egg into duck mayonnaise!", 'success');
+          } else if (goldenEgg > 0) {
+              player.inventory['golden-egg']--;
+              player.inventory['mayonnaise'] = (player.inventory['mayonnaise'] || 0) + 2;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Processed golden egg into 2 mayonnaise!", 'success');
+          } else if (egg > 0) {
+              player.inventory['egg']--;
+              player.inventory['mayonnaise'] = (player.inventory['mayonnaise'] || 0) + 1;
+              socket.emit('entityUpdate', player);
+              notify(socket.id, "Processed egg into mayonnaise!", 'success');
+          } else {
+              notify(socket.id, "You need eggs to make mayonnaise!", 'info');
+          }
+          return;
+      }
+
       if (building && building.species === 'stall') {
           const isOwner = building.ownerId === player.id;
           const buildingInv = building.inventory || {};
@@ -1416,7 +1492,9 @@ io.on('connection', (socket) => {
 
       if (building && building.species === 'shipping-bin') {
           let earned = 0;
+          const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
           Object.entries(ITEM_PRICES).forEach(([item, price]) => {
+              if (resourceItems.includes(item)) return;
               const count = player.inventory[item] || 0;
               if (count > 0) {
                   earned += Math.floor(count * price * 0.8);

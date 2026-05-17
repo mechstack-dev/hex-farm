@@ -125,7 +125,10 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+V**: Preserves Jar (8 Wood, 4 Stone) - Converts fruit into Jam for higher stamina and sale value.
    - **Alt+W**: Furnace (25 Stone) - Smelts ores into bars.
    - **Shift+R**: Bridge (10 Wood, 2 Stone) - Built over water to allow passage for players and animals.
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings, talk to NPCs, or enter Caves. Use **Shift+E** to explicitly withdraw all items from Chests and Sheds. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
+   - **Alt+I**: Oil Maker (20 Wood, 10 Stone) - Processes truffles into oil.
+   - **Alt+Shift+U**: Cheese Press (15 Wood, 15 Stone) - Processes milk and goat milk into cheese.
+   - **Alt+O**: Mayonnaise Machine (10 Wood, 20 Stone) - Processes eggs and duck eggs into mayonnaise.
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings (including Artisan Machines), talk to NPCs, or enter Caves. Use **Shift+E** to explicitly withdraw all items from Chests and Sheds. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
@@ -287,6 +290,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Exploration Expansion:** Implemented Bridges to allow passage over water.
 - [x] **Storage UX:** Added explicit withdrawal from storage using Shift+E.
 - [x] **Nature Polish:** Fixed floor entity overlap during flower propagation.
+- [x] **Artisan Machines:** Added Oil Maker, Cheese Press, and Mayonnaise Machine for advanced product processing.
+- [x] **Economy Polish:** Fixed `shipping-bin` to prevent accidental resource sales and prevented `scythe` area harvesting of trees.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

@@ -320,14 +320,17 @@ function App() {
           }
           break;
         case 'KeyU':
-          if (altKey) socket.emit('cook', 'orange-juice');
-          else socket.emit('build_building', 'well');
+          if (altKey) {
+            if (shiftKey) socket.emit('build_building', 'cheese-press');
+            else socket.emit('cook', 'orange-juice');
+          } else socket.emit('build_building', 'well');
           break;
         case 'KeyW':
           if (altKey) socket.emit('build_building', 'furnace');
           break;
         case 'KeyI':
-          socket.emit('water');
+          if (altKey) socket.emit('build_building', 'oil-maker');
+          else socket.emit('water');
           break;
         case 'KeyE':
           if (altKey) socket.emit('build_building', 'lamp');
@@ -352,7 +355,8 @@ function App() {
           else socket.emit('build_building', 'beehive');
           break;
         case 'KeyO':
-          socket.emit('build_building', 'cooking-pot');
+          if (altKey) socket.emit('build_building', 'mayonnaise-machine');
+          else socket.emit('build_building', 'cooking-pot');
           break;
         case 'KeyM':
           if (altKey) socket.emit('build_building', 'large-barn');
@@ -428,7 +432,7 @@ function App() {
         tools: { name: 'Tools/Kits', items: [] }
     };
 
-    const cropsItems = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'flower', 'fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'salmon-dinner', 'ghost-pasta', 'trout-soup', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla'];
+    const cropsItems = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'flower', 'fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'salmon-dinner', 'ghost-pasta', 'trout-soup', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla', 'oil', 'cheese', 'mayonnaise', 'goat-cheese', 'duck-mayonnaise'];
     const resourcesItems = ['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
     const processedItems = ['flour', 'cornmeal'];
     const productsItems = ['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg', 'large-milk', 'golden-egg', 'golden-wool', 'large-goat-milk', 'golden-duck-egg'];
@@ -634,7 +638,7 @@ function App() {
             <p style={{ margin: '2px 0' }}>Press <b>1-9, 0, -, =</b> to Plant: 1:Turnip, 2:Carrot, 3:Pumpkin, 4:Corn, 5:Wheat, 6:Radish, 7:Kale, 8:Sunflower, 9:Apple, 0:Orange, -:Peach, =:Cherry</p>
             <p style={{ margin: '2px 0' }}><b>Shift + (1-9, 0, -, =)</b> to Buy Seeds. <b>Ctrl + (1-6)</b> to Buy Tools (1:Hoe, 2:Can, 3:Axe, 4:Pickaxe, 5:Scythe, 6:Rod)</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b>: Plow, <b>R</b>: Path (Alt+R: Fountain, Shift+R: Bridge), <b>I</b>: Water, <b>G</b>: Fertilize, <b>F</b>: Fence, <b>Alt+E</b>: Lamp</p>
-            <p style={{ margin: '2px 0' }}>Press <b>K</b>: Sprinkler (Shift:Iron, Alt:Gold), <b>B</b>: Scarecrow (Alt:Greenhouse, Shift:Birdhouse), <b>L</b>: Shed, <b>V</b>: Chest (Alt:Jar), <b>U</b>: Well, <b>N</b>: Beehive (Alt:Station), <b>O</b>: Pot, <b>M</b>: Barn (Alt:Large), <b>Q</b>: Shipping (Shift:Compost, Alt:Recycle), <b>T</b>: Seed Maker (Alt:Stall, Shift:Mill), <b>Alt+W</b>: Furnace, <b>Alt+Y</b>: Mill</p>
+            <p style={{ margin: '2px 0' }}>Press <b>K</b>: Sprinkler (Shift:Iron, Alt:Gold), <b>B</b>: Scarecrow (Alt:Greenhouse, Shift:Birdhouse), <b>L</b>: Shed, <b>V</b>: Chest (Alt:Jar), <b>U</b>: Well (Alt:Orange Juice, Alt+Shift+U: Cheese Press), <b>N</b>: Beehive (Alt:Station), <b>O</b>: Pot (Alt:Mayo Machine), <b>M</b>: Barn (Alt:Large), <b>Q</b>: Shipping (Shift:Compost, Alt:Recycle), <b>T</b>: Seed Maker (Alt:Stall, Shift:Mill), <b>Alt+W</b>: Furnace, <b>Alt+Y</b>: Mill, <b>Alt+I</b>: Oil Maker</p>
             <p style={{ margin: '2px 0' }}>Press <b>E</b>: Interact / Harvest / Pick Flower, <b>H</b>: Harvest Area, <b>Shift+J</b>: Fish, <b>X</b>: Clear, <b>C</b>: Eat Food, <b>Y</b>: Home, <b>Z</b>: Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift | Find Ancient Shrines for blessings!</p>
             <p style={{ margin: '2px 0' }}>Cooking (Alt + 1-0, -, =, [, ], S, D, F, G, H, J, K, L, P, U): 29 recipes available. See Cooking Menu for details.</p>
