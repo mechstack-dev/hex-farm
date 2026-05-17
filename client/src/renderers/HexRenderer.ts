@@ -726,7 +726,62 @@ export class HexRenderer {
         this.drawMill(x, y);
     } else if (entity.species === 'bridge') {
         this.drawBridge(x, y, entity.pos);
+    } else if (entity.species === 'oil-maker') {
+        this.drawOilMaker(x, y);
+    } else if (entity.species === 'cheese-press') {
+        this.drawCheesePress(x, y);
+    } else if (entity.species === 'mayonnaise-machine') {
+        this.drawMayonnaiseMachine(x, y);
     }
+  }
+
+  drawOilMaker(x: number, y: number) {
+      // Body
+      this.graphics.rect(x - 10, y - 10, 20, 25);
+      this.graphics.fill({ color: 0x8B4513, alpha: 1 });
+      this.graphics.stroke({ color: 0x3D2B1F, width: 2 });
+
+      // Press arm
+      const armPos = Math.sin(Date.now() / 400) * 5;
+      this.graphics.rect(x - 4, y - 15 + armPos, 8, 10);
+      this.graphics.fill({ color: 0x808080, alpha: 1 });
+
+      // Drip/Bucket
+      this.graphics.circle(x, y + 15, 6);
+      this.graphics.fill({ color: 0xDAA520, alpha: 0.8 }); // Oil color
+  }
+
+  drawCheesePress(x: number, y: number) {
+      // Wooden frame
+      this.graphics.rect(x - 12, y - 5, 24, 20);
+      this.graphics.fill({ color: 0xDEB887, alpha: 1 });
+      this.graphics.stroke({ color: 0x8B4513, width: 2 });
+
+      // Press screw
+      this.graphics.rect(x - 2, y - 15, 4, 15);
+      this.graphics.fill({ color: 0x555555, alpha: 1 });
+
+      // Cheese inside
+      const squeeze = Math.sin(Date.now() / 600) * 2;
+      this.graphics.rect(x - 8, y + 5 + squeeze, 16, 10 - squeeze);
+      this.graphics.fill({ color: 0xFFFF00, alpha: 1 });
+  }
+
+  drawMayonnaiseMachine(x: number, y: number) {
+      // Glass jar/mixer body
+      this.graphics.circle(x, y, 12);
+      this.graphics.fill({ color: 0xADD8E6, alpha: 0.4 });
+      this.graphics.stroke({ color: 0xFFFFFF, width: 2 });
+
+      // Mayo inside
+      this.graphics.circle(x, y + 2, 8);
+      this.graphics.fill({ color: 0xFFFDD0, alpha: 0.9 }); // Cream color
+
+      // Mixer whisk (animated)
+      const angle = Date.now() / 100;
+      this.graphics.moveTo(x, y - 15);
+      this.graphics.lineTo(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8);
+      this.graphics.stroke({ color: 0xCCCCCC, width: 2 });
   }
 
   drawBridge(x: number, y: number, pos: Position) {

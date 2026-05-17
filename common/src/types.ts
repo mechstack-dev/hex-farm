@@ -27,6 +27,9 @@ export const BUILDING_COSTS: Record<string, { wood: number; stone: number }> = {
   'furnace': { wood: 0, stone: 25 },
   'mill': { wood: 15, stone: 10 },
   'bridge': { wood: 10, stone: 2 },
+  'oil-maker': { wood: 20, stone: 10 },
+  'cheese-press': { wood: 15, stone: 15 },
+  'mayonnaise-machine': { wood: 10, stone: 20 },
 };
 
 export const ITEM_PRICES: Record<string, number> = {
@@ -34,6 +37,7 @@ export const ITEM_PRICES: Record<string, number> = {
   'winter-radish': 40, 'sunflower': 45, 'kale': 15, 'apple': 15, 'orange': 20, 'peach': 25, 'cherry': 22, 'berry': 12, 'mushroom': 18,
   'flower': 15,
   'apple-jam': 50, 'orange-jam': 65, 'berry-jam': 45, 'peach-jam': 60, 'cherry-jam': 55,
+  'oil': 120, 'cheese': 100, 'mayonnaise': 50, 'goat-cheese': 150, 'duck-mayonnaise': 80,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
   'wood': 5, 'stone': 5, 'junk': 2, 'iron-ore': 80, 'gold-ore': 400,
@@ -117,6 +121,7 @@ export const FOOD_VALUES: Record<string, number> = {
   'pumpkin-pie': 85,
   'apple-cider': 60,
   'orange-juice': 50,
+  'oil': 20, 'cheese': 50, 'mayonnaise': 30, 'goat-cheese': 60, 'duck-mayonnaise': 40,
   'bread': 50, 'pancakes': 80, 'tortilla': 50,
   'apple-jam': 35,
   'orange-jam': 45,
@@ -162,8 +167,8 @@ export const RECIPES: Record<string, Record<string, number>> = {
   'hearty-stew': { 'winter-radish': 1, 'carrot': 1, 'mushroom': 1, 'wood': 1 },
   'seafood-platter': { 'fish': 2, 'corn': 1, 'junk': 1 },
   'honey-glazed-carrots': { 'carrot': 2, 'honey': 1 },
-  'goat-cheese-salad': { 'turnip': 1, 'goat-milk': 1 },
-  'duck-egg-mayo': { 'duck-egg': 1, 'sunflower': 1 },
+  'goat-cheese-salad': { 'turnip': 1, 'goat-cheese': 1 },
+  'duck-egg-mayo': { 'duck-mayonnaise': 1, 'sunflower': 1 },
   'berry-smoothie': { 'berry': 2, 'milk': 1 },
   'pumpkin-pie': { 'pumpkin': 1, 'wheat': 1, 'egg': 1 },
   'apple-cider': { 'apple': 3, 'honey': 1 },
