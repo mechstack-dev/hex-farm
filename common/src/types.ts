@@ -35,12 +35,16 @@ export const ITEM_PRICES: Record<string, number> = {
   'apple-jam': 50, 'orange-jam': 65, 'berry-jam': 45, 'peach-jam': 60, 'cherry-jam': 55,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
   'fish': 40, 'honey': 30, 'wildflower-honey': 30, 'sunflower-honey': 60, 'coal': 15,
-  'iron-bar': 100, 'gold-bar': 250,
+  'wood': 5, 'stone': 5, 'junk': 2, 'iron-ore': 80, 'gold-ore': 400,
+  'iron-bar': 500, 'gold-bar': 2500,
   'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
+  'bass': 60, 'trout': 70, 'salmon': 80, 'ghost-fish': 100,
+  'amethyst': 120, 'topaz': 150, 'emerald': 200, 'ruby': 250,
   'rusty-cog': 80, 'ancient-statue': 300, 'old-tablet': 200,
   'large-milk': 40, 'golden-egg': 50, 'golden-wool': 75, 'large-goat-milk': 50, 'golden-duck-egg': 60,
   'flour': 40, 'cornmeal': 40,
   'bread': 100, 'pancakes': 150, 'tortilla': 100,
+  'salmon-dinner': 180, 'ghost-pasta': 220, 'trout-soup': 160,
   'salad': 60, 'apple-pie': 80, 'pumpkin-soup': 100, 'corn-chowder': 80, 'grilled-fish': 60,
   'mushroom-soup': 85, 'berry-tart': 90, 'miners-stew': 150, 'veggie-platter': 200, 'coal-grilled-fish': 120,
   'fruit-salad': 45, 'mushroom-risotto': 95, 'corn-bread': 110, 'fish-stew': 110,
@@ -81,6 +85,13 @@ export const FOOD_VALUES: Record<string, number> = {
   'winter-radish': 12,
   'kale': 10,
   'fish': 15,
+  'bass': 20,
+  'trout': 25,
+  'salmon': 30,
+  'ghost-fish': 40,
+  'salmon-dinner': 100,
+  'ghost-pasta': 120,
+  'trout-soup': 90,
   'salad': 40,
   'apple-pie': 60,
   'pumpkin-soup': 70,
@@ -123,12 +134,15 @@ export const FOOD_VALUES: Record<string, number> = {
   'golden-omelette': 120
 };
 
-export const BEST_FOODS = ['golden-hexfish', 'royal-breakfast', 'golden-omelette', 'pancakes', 'bread', 'tortilla', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['golden-hexfish', 'ghost-pasta', 'salmon-dinner', 'royal-breakfast', 'golden-omelette', 'pancakes', 'bread', 'tortilla', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'trout-soup', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'ghost-fish', 'salmon', 'trout', 'bass', 'fish', 'corn', 'carrot', 'turnip'];
 
 export const RECIPES: Record<string, Record<string, number>> = {
   'bread': { 'flour': 2 },
   'pancakes': { 'flour': 1, 'egg': 1, 'milk': 1 },
   'tortilla': { 'cornmeal': 2 },
+  'salmon-dinner': { 'salmon': 1, 'kale': 1 },
+  'ghost-pasta': { 'ghost-fish': 1, 'wheat': 1 },
+  'trout-soup': { 'trout': 1, 'mushroom': 1, 'milk': 1 },
   'salad': { 'turnip': 1, 'carrot': 1 },
   'apple-pie': { 'apple': 3, 'wheat': 1 },
   'pumpkin-soup': { 'pumpkin': 1, 'milk': 1 },

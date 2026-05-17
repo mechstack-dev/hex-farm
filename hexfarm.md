@@ -41,14 +41,14 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`) or by simply chatting with them once per game day (+5 points). High friendship levels unlock new dialogue and rewards. At 750 friendship, NPCs give a significant one-time reward. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
 - **Natural Propagation:** Mature plants and trees have a small chance each tick to sprout new growth in adjacent empty hexes, allowing nature to reclaim the land and forests to expand naturally. Plants will not propagate onto player-built **Paths**.
 - **Ancient Shrines:** Rarely found in the wild. Interacting with a shrine grants a powerful random 10-minute buff once per day.
-- **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**.
+- **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**. Deep underground, players can find more valuable gems and rarer fish.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
 - **Lightning:** During rainy weather, there's a small chance of lightning strikes. Struck trees become **Burnt Trees**, which can be cleared with an axe to obtain **Coal**.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 - **Fountains:** Decorative buildings that provide a +1.0 stamina regeneration boost to players within a 2-hex radius.
 - **Smelting:** Using a **Furnace**, players can smelt raw ores (Iron, Gold) into **Bars** (Iron Bar, Gold Bar) using Coal as fuel (5 ore + 1 coal = 1 bar). Bars are required for high-tier tool upgrades at the Blacksmith.
-- **Discovery & Artifacts:** Clearing obstacles and plowing has a chance to yield rare items like **Ancient Coins**, **Geodes**, **Diamonds**, and new **Artifacts** (Rusty Cog, Ancient Statue, Old Tablet). Geodes can be processed by the Blacksmith for a small fee.
+- **Discovery & Artifacts:** Clearing obstacles and plowing has a chance to yield rare items like **Ancient Coins**, **Geodes**, **Diamonds**, and new **Artifacts** (Rusty Cog, Ancient Statue, Old Tablet). Geodes can be processed by the Blacksmith for a small fee. Mining rocks now also yields **Amethyst**, **Topaz**, **Emerald**, and **Ruby**, especially in the cave depths.
 - **Wild Flowers:** Players can interact with wild flowers and sunflowers to pick them, obtaining a **Flower** item.
 - **Animal Friendship:** Interact with animals ('E') to pet them and increase friendship (+10 per day). High friendship (>500) unlocks a 20% chance to produce **High Quality** products like **Large Milk**, **Golden Eggs**, and **Golden Wool**.
 - **Tiered Scythes & Rods:** Tools like the Scythe and Fishing Rod can now be upgraded at the Blacksmith. Higher-tier scythes have a larger harvesting radius, and higher-tier rods improve catch rates.
@@ -74,7 +74,7 @@ HexFarm is designed to be played over long periods.
 ### Crafting & Economy
 - **Resource Gathering:** Trees and rocks can be cleared to gather Wood and Stone. Mining rocks also has a chance to yield **Iron Ore**.
 - **Crafting:** Most infrastructure (Fences, Sheds, Chests, Wells, Cooking Pots) requires Wood and Stone to build.
-- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, **Fish Stew**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, **Apple Cider**, **Peach Cobbler**, **Cherry Pie**, **Fruit Medley**, **Royal Breakfast** (uses high-quality products), and **Golden Omelette**.
+- **Cooking:** Players can use a Cooking Pot to combine ingredients into powerful food items. Recipes include Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew (uses Iron Ore), Veggie Platter, **Coal-Grilled Fish**, **Fruit Salad**, **Mushroom Risotto**, **Corn Bread**, **Fish Stew**, **Honey-Glazed Carrots**, **Goat-Cheese Salad**, **Duck-Egg Mayo**, **Berry Smoothie**, **Pumpkin Pie**, **Apple Cider**, **Peach Cobbler**, **Cherry Pie**, **Fruit Medley**, **Royal Breakfast** (uses high-quality products), **Golden Omelette**, **Salmon Dinner**, **Ghost Pasta**, and **Trout Soup**.
 - **Merchant:** A central economy hub where crops and animal products can be sold for coins. Coins are used to buy seeds and basic tools.
 - **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore/Gold Ore to upgrade tools to Copper, Iron, and Gold versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
@@ -275,6 +275,8 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Flower Picking:** Interact with wild flowers to collect them.
 - [x] **Mill Building:** Added Mill building to process Wheat into Flour and Corn into Cornmeal.
 - [x] **New Recipes:** Added Bread, Pancakes, and Tortilla recipes using Mill products.
+- [x] **Expanded Fishing & Mining:** Added new fish (Bass, Trout, Salmon, Ghost-fish) and gems (Amethyst, Topaz, Emerald, Ruby) with location-based rewards.
+- [x] **New Advanced Recipes:** Added Salmon Dinner, Ghost Pasta, and Trout Soup.
 - [x] **NPC Schedules:** Implemented simple NPC schedules where they return to their home positions at night.
 - [x] **Improved Trading:** Enhanced `/give` command to support player names with spaces.
 - [x] **Code Quality:** Refactored duplicate logic for neighborhood calculations and fixed rock discovery reward rates.

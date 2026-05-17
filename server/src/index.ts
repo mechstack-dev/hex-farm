@@ -1012,6 +1012,8 @@ io.on('connection', (socket) => {
           // Ore drop logic
           const luckBuff = player.buffs.find(b => b.type === 'mining_luck');
           const ironChance = luckBuff ? 0.15 : 0.05;
+          const isCave = obstacle.pos.q >= 10000;
+
           if (Math.random() < ironChance) {
               player.inventory['iron-ore'] = (player.inventory['iron-ore'] || 0) + 1;
               notify(socket.id, "Found some iron ore!", 'success');
@@ -1022,12 +1024,28 @@ io.on('connection', (socket) => {
             notify(socket.id, "Found some coal!", 'success');
           }
 
-          if (obstacle.pos.q >= 10000) {
+          if (isCave) {
               const isDeepDelver = player.perks.includes('perk-miner');
               const goldChance = luckBuff ? (isDeepDelver ? 0.10 : 0.05) : (isDeepDelver ? 0.05 : 0.02);
               if (Math.random() < goldChance) {
                   player.inventory['gold-ore'] = (player.inventory['gold-ore'] || 0) + 1;
                   notify(socket.id, "Found some gold ore!", 'success');
+              }
+
+              const gemChance = luckBuff ? 0.05 : 0.02;
+              if (Math.random() < gemChance) {
+                  const gems = ['amethyst', 'topaz', 'emerald', 'ruby'];
+                  const gem = gems[Math.floor(Math.random() * gems.length)];
+                  player.inventory[gem] = (player.inventory[gem] || 0) + 1;
+                  notify(socket.id, `You found a ${gem}!`, 'success');
+              }
+          } else {
+              const gemChance = luckBuff ? 0.02 : 0.005;
+              if (Math.random() < gemChance) {
+                  const gems = ['amethyst', 'topaz'];
+                  const gem = gems[Math.floor(Math.random() * gems.length)];
+                  player.inventory[gem] = (player.inventory[gem] || 0) + 1;
+                  notify(socket.id, `You found a ${gem}!`, 'success');
               }
           }
 
@@ -1142,11 +1160,13 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const prices: Record<string, number> = { 'wood': 5, 'stone': 5, 'junk': 2 };
+        const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond'];
         let earned = 0;
-        Object.keys(prices).forEach(item => {
-          if (player.inventory[item] > 0) {
-            earned += player.inventory[item] * prices[item];
+        resourceItems.forEach(item => {
+          const count = player.inventory[item] || 0;
+          if (count > 0) {
+            const price = ITEM_PRICES[item] || 5;
+            earned += count * price;
             player.inventory[item] = 0;
           }
         });
@@ -1429,7 +1449,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'seed-maker') {
-          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'peach', 'cherry'];
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'orange', 'peach', 'cherry'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
 
           if (targetCrop) {
@@ -1446,7 +1466,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'compost-bin') {
-          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'peach', 'cherry'];
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'orange', 'peach', 'cherry'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
 
           if (targetCrop) {
@@ -1725,12 +1745,14 @@ io.on('connection', (socket) => {
         }
 
         if (animal.species === 'miner') {
-          const ores = { 'gold-ore': 500, 'iron-ore': 100, 'stone': 10 };
+          const minerItems = ['iron-ore', 'gold-ore', 'stone', 'coal', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond'];
           let earned = 0;
-          Object.entries(ores).forEach(([ore, price]) => {
-            if (player.inventory[ore] > 0) {
-              earned += player.inventory[ore] * price;
-              player.inventory[ore] = 0;
+          minerItems.forEach(item => {
+            const count = player.inventory[item] || 0;
+            if (count > 0) {
+              const basePrice = ITEM_PRICES[item] || 10;
+              earned += Math.floor(count * basePrice * 1.25);
+              player.inventory[item] = 0;
             }
           });
 
@@ -1771,14 +1793,22 @@ io.on('connection', (socket) => {
         }
 
         if (animal.species === 'fisherman') {
-          const fishCount = player.inventory['fish'] || 0;
+          const fishItems = ['fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish'];
+          let earned = 0;
           const isExpert = player.perks.includes('perk-fisherman');
-          const fishPrice = isExpert ? 60 : 50;
+          const expertBonus = isExpert ? 1.1 : 1.0;
 
-          if (fishCount > 0) {
-            const earned = fishCount * fishPrice;
+          fishItems.forEach(item => {
+            const count = player.inventory[item] || 0;
+            if (count > 0) {
+              const basePrice = ITEM_PRICES[item] || 40;
+              earned += Math.floor(count * basePrice * 1.25 * expertBonus);
+              player.inventory[item] = 0;
+            }
+          });
+
+          if (earned > 0) {
             player.coins += earned;
-            player.inventory['fish'] = 0;
             notify(socket.id, `Fisherman: "That's some fine catch! Here's ${earned} coins."`, 'success');
             socket.emit('entityUpdate', player);
             checkAchievements(player);
@@ -1852,8 +1882,12 @@ io.on('connection', (socket) => {
               player.coins -= 20;
               const rand = Math.random();
               let reward = 'coal';
-              if (rand < 0.1) reward = 'diamond';
-              else if (rand < 0.4) reward = 'gold-ore';
+              if (rand < 0.05) reward = 'diamond';
+              else if (rand < 0.15) reward = 'ruby';
+              else if (rand < 0.25) reward = 'emerald';
+              else if (rand < 0.35) reward = 'topaz';
+              else if (rand < 0.45) reward = 'amethyst';
+              else if (rand < 0.55) reward = 'gold-ore';
               else if (rand < 0.7) reward = 'iron-ore';
               else reward = 'coal';
 
@@ -2251,7 +2285,23 @@ io.on('connection', (socket) => {
       const catchChance = 0.3 + (fishingLuck ? 0.2 : 0) + rodBonus;
       const rand = Math.random();
       if (rand < catchChance) {
-        player.inventory['fish'] = (player.inventory['fish'] || 0) + 1;
+        const isCave = player.pos.q >= 10000;
+        let caughtItem = 'fish';
+        const itemRand = Math.random();
+
+        if (isCave) {
+            if (itemRand < 0.1) caughtItem = 'ghost-fish';
+            else if (itemRand < 0.4) caughtItem = 'trout';
+            else if (itemRand < 0.7) caughtItem = 'bass';
+            else caughtItem = 'fish';
+        } else {
+            if (itemRand < 0.05) caughtItem = 'golden-hexfish';
+            else if (itemRand < 0.2) caughtItem = 'salmon';
+            else if (itemRand < 0.4) caughtItem = 'bass';
+            else caughtItem = 'fish';
+        }
+
+        player.inventory[caughtItem] = (player.inventory[caughtItem] || 0) + 1;
         player.stats['fish_caught'] = (player.stats['fish_caught'] || 0) + 1;
         checkAchievements(player);
 
@@ -2259,7 +2309,7 @@ io.on('connection', (socket) => {
         const { leveledUp, newLevel } = addXP(player, 'fishing', 15);
         if (leveledUp) notify(socket.id, `Your fishing skill leveled up to ${newLevel}!`, 'success');
 
-        notify(socket.id, "You caught a fish!", 'success');
+        notify(socket.id, `You caught a ${caughtItem.replace('-', ' ')}!`, 'success');
         checkAchievements(player);
       } else if (rand < 0.6 && !isExpert) {
         player.inventory['junk'] = (player.inventory['junk'] || 0) + 1;
