@@ -3,7 +3,7 @@ import { updatePlant } from './logic/PlantLogic.js';
 import { moveAnimal } from './logic/AnimalLogic.js';
 import { SeasonManager } from './logic/SeasonManager.js';
 import type { Animal, Plant, EnvironmentState } from 'common';
-import { getChunkCoords, getNeighbors, getRecursiveNeighbors, GAME_DAY, SEED_PRICES, CHUNK_SIZE } from 'common';
+import { getChunkCoords, getNeighbors, getRecursiveNeighbors, distance, GAME_DAY, SEED_PRICES, CHUNK_SIZE } from 'common';
 
 export class GameEngine {
   private seasonManager: SeasonManager;
@@ -442,7 +442,37 @@ export class GameEngine {
         } else if (entity.type === 'animal') {
           const animal = entity as Animal;
           const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner'].includes(animal.species);
-          if (!isNPC) {
+
+          if (isNPC && (environment.timeOfDay < 0.25 || environment.timeOfDay > 0.75)) {
+              // NPCs go home at night
+              if (animal.homePos && (animal.pos.q !== animal.homePos.q || animal.pos.r !== animal.homePos.r)) {
+                  // Direct move towards home
+                  const neighbors = getNeighbors(animal.pos);
+                  const bestMove = neighbors.reduce((prev, curr) => {
+                      const prevDist = distance(prev, animal.homePos!);
+                      const currDist = distance(curr, animal.homePos!);
+                      return currDist < prevDist ? curr : prev;
+                  });
+
+                  // Simple collision check for home-bound NPCs
+                  const entsAtBest = this.world.getEntitiesAt(bestMove.q, bestMove.r);
+                  const blocked = entsAtBest.some(e => e.type === 'obstacle' || e.type === 'building' || e.type === 'fence');
+
+                  if (!blocked) {
+                      updated = {
+                          ...animal,
+                          pos: bestMove,
+                          nextMoveTime: now + 2000
+                      };
+                  }
+              } else {
+                  // Already home or no homePos, stay put
+                  updated = {
+                      ...animal,
+                      nextMoveTime: now + 10000
+                  };
+              }
+          } else if (!isNPC) {
               // Breeding chance
               const speciesAnimalsInChunk = chunk.entities.filter(e => e.type === 'animal' && (e as Animal).species === animal.species);
               const speciesAnimals = animalPositionsBySpecies.get(animal.species) || [];
