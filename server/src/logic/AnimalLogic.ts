@@ -11,14 +11,19 @@ export function moveAnimal(animal: Animal, world: WorldManager): Animal {
     }
 
     const entities = world.getEntitiesAt(pos.q, pos.r);
-    return !entities.some(e =>
-      (e.type === 'obstacle' && (animal.species !== 'duck' || e.species !== 'water')) ||
-      e.type === 'animal' ||
-      e.type === 'player' ||
-      e.type === 'fence' ||
-      e.type === 'building' ||
-      (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
-    );
+    const hasBridge = entities.some(e => e.type === 'building' && e.species === 'bridge');
+
+    return !entities.some(e => {
+      if (hasBridge && e.type === 'obstacle' && e.species === 'water') return false;
+      if (e.type === 'building' && e.species === 'bridge') return false;
+
+      return (e.type === 'obstacle' && (animal.species !== 'duck' || e.species !== 'water')) ||
+             e.type === 'animal' ||
+             e.type === 'player' ||
+             e.type === 'fence' ||
+             e.type === 'building' ||
+             (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'));
+    });
   });
 
   if (validMoves.length === 0) {

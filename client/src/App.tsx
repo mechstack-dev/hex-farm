@@ -331,7 +331,7 @@ function App() {
           break;
         case 'KeyE':
           if (altKey) socket.emit('build_building', 'lamp');
-          else socket.emit('interact');
+          else socket.emit('interact', shiftKey);
           break;
         case 'KeyV':
           if (altKey) socket.emit('build_building', 'preserves-jar');
@@ -339,6 +339,7 @@ function App() {
           break;
         case 'KeyR':
           if (altKey) socket.emit('build_building', 'fountain');
+          else if (shiftKey) socket.emit('build_building', 'bridge');
           else socket.emit('build_path');
           break;
         case 'KeyB':
@@ -632,7 +633,7 @@ function App() {
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
             <p style={{ margin: '2px 0' }}>Press <b>1-9, 0, -, =</b> to Plant: 1:Turnip, 2:Carrot, 3:Pumpkin, 4:Corn, 5:Wheat, 6:Radish, 7:Kale, 8:Sunflower, 9:Apple, 0:Orange, -:Peach, =:Cherry</p>
             <p style={{ margin: '2px 0' }}><b>Shift + (1-9, 0, -, =)</b> to Buy Seeds. <b>Ctrl + (1-6)</b> to Buy Tools (1:Hoe, 2:Can, 3:Axe, 4:Pickaxe, 5:Scythe, 6:Rod)</p>
-            <p style={{ margin: '2px 0' }}>Press <b>P</b>: Plow, <b>R</b>: Path (Alt+R: Fountain), <b>I</b>: Water, <b>G</b>: Fertilize, <b>F</b>: Fence, <b>Alt+E</b>: Lamp</p>
+            <p style={{ margin: '2px 0' }}>Press <b>P</b>: Plow, <b>R</b>: Path (Alt+R: Fountain, Shift+R: Bridge), <b>I</b>: Water, <b>G</b>: Fertilize, <b>F</b>: Fence, <b>Alt+E</b>: Lamp</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b>: Sprinkler (Shift:Iron, Alt:Gold), <b>B</b>: Scarecrow (Alt:Greenhouse, Shift:Birdhouse), <b>L</b>: Shed, <b>V</b>: Chest (Alt:Jar), <b>U</b>: Well, <b>N</b>: Beehive (Alt:Station), <b>O</b>: Pot, <b>M</b>: Barn (Alt:Large), <b>Q</b>: Shipping (Shift:Compost, Alt:Recycle), <b>T</b>: Seed Maker (Alt:Stall, Shift:Mill), <b>Alt+W</b>: Furnace, <b>Alt+Y</b>: Mill</p>
             <p style={{ margin: '2px 0' }}>Press <b>E</b>: Interact / Harvest / Pick Flower, <b>H</b>: Harvest Area, <b>Shift+J</b>: Fish, <b>X</b>: Clear, <b>C</b>: Eat Food, <b>Y</b>: Home, <b>Z</b>: Dynamite</p>
             <p style={{ margin: '2px 0' }}>Type <b>/gift [npc] [item]</b> to give a gift | Find Ancient Shrines for blessings!</p>

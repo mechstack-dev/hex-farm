@@ -242,10 +242,13 @@ io.on('connection', (socket) => {
       }
 
       const entities = world.getEntitiesAt(pos.q, pos.r);
-      const isBlocked = entities.some(e =>
-        (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building') ||
-        (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
-      );
+      const hasBridge = entities.some(e => e.type === 'building' && e.species === 'bridge');
+      const isBlocked = entities.some(e => {
+        if (hasBridge && e.type === 'obstacle' && e.species === 'water') return false;
+        if (e.type === 'building' && e.species === 'bridge') return false;
+        return (e.type === 'obstacle' || e.type === 'fence' || e.type === 'building') ||
+               (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'));
+      });
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
         player.pos = pos;
@@ -1181,7 +1184,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('interact', () => {
+  socket.on('interact', (shift: boolean = false) => {
     const player = players.get(socket.id);
     if (player) {
       const entities = [
@@ -1510,6 +1513,29 @@ io.on('connection', (socket) => {
       if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'large-barn' || building.species === 'shed' || building.species === 'birdhouse')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
+
+        if (shift && (building.species === 'chest' || building.species === 'shed')) {
+            // Explicit withdraw with Shift+E
+            let hasAnythingToTake = false;
+            Object.entries(buildingInv).forEach(([item, count]) => {
+                if (count > 0) {
+                    playerInv[item] = (playerInv[item] || 0) + count;
+                    buildingInv[item] = 0;
+                    hasAnythingToTake = true;
+                }
+            });
+
+            if (hasAnythingToTake) {
+                building.inventory = buildingInv;
+                world.updateEntity(building);
+                socket.emit('entityUpdate', player);
+                io.emit('entityUpdate', building);
+                notify(socket.id, `Withdrew everything from ${building.species}.`, 'success');
+            } else {
+                notify(socket.id, `The ${building.species} is already empty.`, 'info');
+            }
+            return;
+        }
 
         if (building.species === 'beehive') {
           let collectedAny = false;
@@ -1986,9 +2012,12 @@ io.on('connection', (socket) => {
           const isGuildMember = player.perks.includes('perk-merchant');
           const priceMultiplier = isGuildMember ? 1.2 : 1.0;
 
+          const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
           Object.keys(ITEM_PRICES).forEach(item => {
             // Don't sell the item we have an active quest for
             if (player.activeQuest && player.activeQuest.species === item) return;
+            // Don't sell resources automatically
+            if (resourceItems.includes(item)) return;
 
             if (player.inventory[item] > 0) {
               earned += Math.floor(player.inventory[item] * ITEM_PRICES[item] * priceMultiplier);
