@@ -36,9 +36,10 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Barns:** Automatically collect products from animals within a 2-hex radius.
 - **Shipping Bin:** Sell all crops and products in your inventory at 80% value instantly.
 - **Seed Maker:** Convert a crop from your inventory into 1-3 corresponding seeds.
+- **Auto-Harvester:** A powerful machine that automatically harvests mature crops in a 3-hex radius into its inventory. Does not harvest trees or bushes.
 - **Beehives:** Produce Honey over time. If a **Sunflower** is within a 2-hex radius, they produce premium **Sunflower Honey**, otherwise they produce standard **Wildflower Honey**. They also provide a 1.5x growth boost and a 5x natural propagation boost to plants within a 2-hex radius.
 - **UI Enhancements:** A visual **Hotbar** at the bottom of the screen displays seed icons and counts for quick planting. An **Explorer's Journal** (Key: J) displays Skills (with progress bars), Relationships (with heart meters), and Achievements.
-- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner) by giving them gifts (`/gift [npc] [item]`) or by simply chatting with them once per game day (+5 points). High friendship levels unlock new dialogue and rewards. At 750 friendship, NPCs give a significant one-time reward. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with.
+- **NPC Relationships:** Players can build friendship with NPCs (Merchant, Blacksmith, Fisherman, Miner, Woody) by giving them gifts (`/gift [npc] [item]`) or by simply chatting with them once per game day (+5 points). High friendship levels unlock new dialogue and rewards. At 750 friendship, NPCs give a significant one-time reward. At high friendship levels (500+), NPCs may occasionally give the player role-relevant gifts when interacted with, or even send "Daily Surprises" directly to the player's inventory.
 - **Natural Propagation:** Mature plants and trees have a small chance each tick to sprout new growth in adjacent empty hexes, allowing nature to reclaim the land and forests to expand naturally. Plants will not propagate onto player-built **Paths**.
 - **Ancient Shrines:** Rarely found in the wild. Interacting with a shrine grants a powerful random 10-minute buff once per day.
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**. Deep underground, players can find more valuable gems and rarer fish.
@@ -69,7 +70,7 @@ HexFarm is designed to be played over long periods.
 
 ### Skill System
 - **Skills:** Players gain XP and level up in various skills: Farming, Foraging, Mining, Fishing, and Cooking.
-- **Progression:** Higher levels in skills reduce the stamina cost of related actions (up to 50% reduction).
+- **Progression:** Higher levels in skills reduce the stamina cost of related actions (up to 50% reduction). Reaching level 5 and 10 in any skill grants significant coin bonuses and unique master rewards.
 - **XP Gain:** Actions like harvesting, plowing, clearing obstacles, fishing, and cooking grant XP in their respective categories.
 
 ### Crafting & Economy
@@ -130,8 +131,9 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+I**: Oil Maker (20 Wood, 10 Stone) - Processes truffles into oil.
    - **Alt+Shift+U**: Cheese Press (15 Wood, 15 Stone) - Processes milk and goat milk into cheese.
    - **Alt+O**: Mayonnaise Machine (10 Wood, 20 Stone) - Processes eggs and duck eggs into mayonnaise.
+   - **Alt+Shift+H**: Auto-Harvester (50 Wood, 30 Stone) - Automatically gathers nearby mature crops.
    - **Coffee and Tea**: New crops (Coffee-bean, Tea-leaf) and products (Coffee, Tea, Energy Drink).
-8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings (including Artisan Machines), talk to NPCs, or enter Caves. Use **Shift+E** to explicitly withdraw all items from Chests and Sheds. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
+8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings (including Artisan Machines), talk to NPCs, or enter Caves. Use **Shift+E** to explicitly withdraw all items from Chests, Sheds, Barns, and Auto-Harvesters. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
    - **Special Planting**: Press **Shift+C** to plant an **Ancient Seed** or **Ctrl+X** to plant **Wild Seeds**.
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
@@ -303,6 +305,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Special Seeds:** Added Ancient Seeds and seasonal Wild Seeds with dedicated planting hotkeys.
 - [x] **Improved AI Pathfinding:** NPCs are no longer blocked by trees when returning home at night.
 - [x] **Tool & Economy Polish:** Enhanced Scythe to harvest floor flowers; enabled selling of artifacts/gems at the Merchant; added 'Artifact Collector' achievement.
+- [x] **Auto-Automation:** Implemented the Auto-Harvester building for effortless crop collection.
+- [x] **Mastery Rewards:** Added level 5 and 10 skill rewards and NPC daily surprise gifts.
+- [x] **Recipe Realism:** Updated advanced cooking recipes to require processed ingredients like Flour and Cornmeal from the Mill.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

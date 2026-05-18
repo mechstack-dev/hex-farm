@@ -25,6 +25,10 @@ const engine = new GameEngine(world);
 
 const players: Map<string, Player> = new Map();
 
+const notify = (socketId: string, message: string, type: 'info' | 'success' | 'error' = 'info') => {
+  io.to(socketId).emit('notification', { message, type });
+};
+
 let currentGlobalRequest: {
   npc: string;
   item: string;
@@ -128,8 +132,29 @@ io.on('connection', (socket) => {
     socket.emit('notification', { message: `Welcome to HexFarm, ${name}!`, type: 'info' });
   });
 
-  const notify = (socketId: string, message: string, type: 'info' | 'success' | 'error' = 'info') => {
-    io.to(socketId).emit('notification', { message, type });
+
+  const handleLevelUp = (player: Player, skill: string, newLevel: number) => {
+    notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
+
+    // Level 5 and 10 rewards
+    if (newLevel === 5) {
+        const bonus = 500;
+        player.coins += bonus;
+        notify(socket.id, `Level 5 ${skill} bonus: +${bonus} coins!`, 'success');
+    } else if (newLevel === 10) {
+        const bonus = 2000;
+        player.coins += bonus;
+        let item = 'ancient-coin';
+        if (skill === 'farming') item = 'ancient-fruit-seed';
+        else if (skill === 'mining') item = 'diamond';
+        else if (skill === 'fishing') item = 'golden-hexfish';
+        else if (skill === 'foraging') item = 'ancient-statue';
+        else if (skill === 'cooking') item = 'royal-breakfast';
+
+        player.inventory[item] = (player.inventory[item] || 0) + 1;
+        notify(socket.id, `Master ${skill} reward: +${bonus} coins and a ${item.replace('-', ' ')}!`, 'success');
+    }
+    checkAchievements(player);
   };
 
   const checkNPCMilestones = (player: Player, npcName: string, oldPoints: number, newPoints: number) => {
@@ -374,26 +399,11 @@ io.on('connection', (socket) => {
 
       let targets = [player.pos];
       if (hasGoldHoe) {
-        targets = [player.pos];
-        const radius1 = getNeighbors(player.pos);
-        targets.push(...radius1);
-        const radius2 = radius1.flatMap(n => getNeighbors(n));
-        targets.push(...radius2);
-        const radius3 = radius2.flatMap(n => getNeighbors(n));
-        targets.push(...radius3);
-        // Deduplicate targets
-        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
-          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+        targets = getRecursiveNeighbors(player.pos, 3);
       } else if (hasIronHoe) {
-        targets = [player.pos, ...getNeighbors(player.pos)];
-        getNeighbors(player.pos).forEach(n => {
-          targets.push(...getNeighbors(n));
-        });
-        // Deduplicate targets
-        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
-          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+        targets = getRecursiveNeighbors(player.pos, 2);
       } else if (hasCopperHoe) {
-        targets = [player.pos, ...getNeighbors(player.pos)];
+        targets = getRecursiveNeighbors(player.pos, 1);
       }
 
       let success = false;
@@ -411,7 +421,7 @@ io.on('connection', (socket) => {
               // Scavenging logic
               const rand = Math.random();
               if (rand < 0.05) {
-                  const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed', 'sunflower-seed'];
+              const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'winter-radish-seed', 'sunflower-seed', 'kale-seed', 'coffee-bean-seed', 'tea-leaf-seed'];
                   const seed = seeds[Math.floor(Math.random() * seeds.length)];
                   player.inventory[seed] = (player.inventory[seed] || 0) + 1;
                   notify(socket.id, `Scavenged a ${seed.replace('-seed', '')} seed!`, 'success');
@@ -559,10 +569,7 @@ io.on('connection', (socket) => {
             const xpGained = species === 'mushroom' ? 5 : 10;
             const skill = species === 'mushroom' ? 'foraging' : 'farming';
             const { leveledUp, newLevel } = addXP(player, skill, xpGained);
-            if (leveledUp) {
-              notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
-              checkAchievements(player);
-            }
+            if (leveledUp) handleLevelUp(player, skill, newLevel);
 
             // Chance to give 1-2 seeds
             let seedsGained = 0;
@@ -756,25 +763,11 @@ io.on('connection', (socket) => {
 
       let targets = [player.pos];
       if (hasGoldWateringCan) {
-        targets = [player.pos];
-        const radius1 = getNeighbors(player.pos);
-        targets.push(...radius1);
-        const radius2 = radius1.flatMap(n => getNeighbors(n));
-        targets.push(...radius2);
-        const radius3 = radius2.flatMap(n => getNeighbors(n));
-        targets.push(...radius3);
-        // Deduplicate targets
-        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
-          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+        targets = getRecursiveNeighbors(player.pos, 3);
       } else if (hasIronWateringCan) {
-        targets = [player.pos, ...getNeighbors(player.pos)];
-        getNeighbors(player.pos).forEach(n => {
-          targets.push(...getNeighbors(n));
-        });
-        targets = Array.from(new Set(targets.map(t => `${t.q},${t.r}`)))
-          .map(s => { const [q, r] = s.split(',').map(Number); return { q, r }; });
+        targets = getRecursiveNeighbors(player.pos, 2);
       } else if (hasCopperWateringCan || isNearWell) {
-        targets = [player.pos, ...getNeighbors(player.pos)];
+        targets = getRecursiveNeighbors(player.pos, 1);
       }
 
       let success = false;
@@ -1011,7 +1004,7 @@ io.on('connection', (socket) => {
 
           // XP Gain
           const { leveledUp, newLevel } = addXP(player, 'foraging', 15);
-          if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+          if (leveledUp) handleLevelUp(player, 'foraging', newLevel);
 
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
@@ -1073,7 +1066,7 @@ io.on('connection', (socket) => {
           if (Math.random() < 0.2) player.inventory['diamond'] = (player.inventory['diamond'] || 0) + 1;
 
           const { leveledUp, newLevel } = addXP(player, 'mining', 50);
-          if (leveledUp) notify(socket.id, `Your mining skill leveled up to ${newLevel}!`, 'success');
+          if (leveledUp) handleLevelUp(player, 'mining', newLevel);
 
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
@@ -1133,13 +1126,13 @@ io.on('connection', (socket) => {
 
           // XP Gain
           const { leveledUp, newLevel } = addXP(player, 'mining', 15);
-          if (leveledUp) notify(socket.id, `Your mining skill leveled up to ${newLevel}!`, 'success');
+          if (leveledUp) handleLevelUp(player, 'mining', newLevel);
 
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
 
           // Discovery Reward
-          const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
+          const discoveryLuck = player.buffs.find(b => b.type === 'mining_luck');
           const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0);
           if (Math.random() < discoveryChance) {
             const rand = Math.random();
@@ -1194,7 +1187,7 @@ io.on('connection', (socket) => {
           player.stamina -= getEffectiveStaminaCost(player, sCost);
 
           const { leveledUp, newLevel } = addXP(player, 'foraging', 5);
-          if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+          if (leveledUp) handleLevelUp(player, 'foraging', newLevel);
 
           io.emit('entityRemove', { id: obstacle.id, pos: obstacle.pos });
           socket.emit('entityUpdate', player);
@@ -1667,7 +1660,7 @@ io.on('connection', (socket) => {
           return;
       }
 
-      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'large-barn' || building.species === 'shed' || building.species === 'birdhouse')) {
+      if (building && (building.species === 'chest' || building.species === 'beehive' || building.species === 'barn' || building.species === 'large-barn' || building.species === 'shed' || building.species === 'birdhouse' || building.species === 'auto-harvester')) {
         const buildingInv = building.inventory || {};
         const playerInv = player.inventory;
 
@@ -1739,7 +1732,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (building.species === 'barn' || building.species === 'large-barn') {
+        if (building.species === 'barn' || building.species === 'large-barn' || building.species === 'auto-harvester') {
             let hasAnythingToTake = false;
             Object.entries(buildingInv).forEach(([item, count]) => {
                 if (count > 0) {
@@ -1754,9 +1747,9 @@ io.on('connection', (socket) => {
                 world.updateEntity(building);
                 socket.emit('entityUpdate', player);
                 io.emit('entityUpdate', building);
-                notify(socket.id, "Collected products from the barn.", 'success');
+                notify(socket.id, `Collected items from the ${building.species.replace('-', ' ')}.`, 'success');
             } else {
-                notify(socket.id, "The barn is currently empty.", 'info');
+                notify(socket.id, `The ${building.species.replace('-', ' ')} is currently empty.`, 'info');
             }
             return;
         }
@@ -1823,7 +1816,7 @@ io.on('connection', (socket) => {
 
             // XP Gain
             const { leveledUp, newLevel } = addXP(player, 'foraging', 10);
-            if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+            if (leveledUp) handleLevelUp(player, 'foraging', newLevel);
 
             world.updateEntity(plant);
             socket.emit('entityUpdate', player);
@@ -2309,7 +2302,7 @@ io.on('connection', (socket) => {
             world.removeEntity(maturePlant.id, maturePlant.pos.q, maturePlant.pos.r);
             player.inventory['wood'] = (player.inventory['wood'] || 0) + 1;
             const { leveledUp, newLevel } = addXP(player, 'foraging', 2);
-            if (leveledUp) notify(socket.id, `Your foraging skill leveled up to ${newLevel}!`, 'success');
+            if (leveledUp) handleLevelUp(player, 'foraging', newLevel);
             io.emit('entityRemove', { id: maturePlant.id, pos: maturePlant.pos });
             socket.emit('entityUpdate', player);
             notify(socket.id, "Picked up a stick.", 'success');
@@ -2337,10 +2330,7 @@ io.on('connection', (socket) => {
 
           player.stamina -= getEffectiveStaminaCost(player, sCost);
           const { leveledUp, newLevel } = addXP(player, skill, xpGained);
-          if (leveledUp) {
-              notify(socket.id, `Your ${skill} skill leveled up to ${newLevel}!`, 'success');
-              checkAchievements(player);
-          }
+          if (leveledUp) handleLevelUp(player, skill, newLevel);
 
           // Chance to give 1-2 seeds
           let seedsGained = 0;
@@ -2460,7 +2450,7 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       const { leveledUp, newLevel } = addXP(player, 'cooking', 10);
-      if (leveledUp) notify(socket.id, `Your cooking skill leveled up to ${newLevel}!`, 'success');
+      if (leveledUp) handleLevelUp(player, 'cooking', newLevel);
 
       const entities = [
         ...world.getEntitiesAt(player.pos.q, player.pos.r),
@@ -2549,7 +2539,7 @@ io.on('connection', (socket) => {
 
         // XP Gain
         const { leveledUp, newLevel } = addXP(player, 'fishing', 15);
-        if (leveledUp) notify(socket.id, `Your fishing skill leveled up to ${newLevel}!`, 'success');
+        if (leveledUp) handleLevelUp(player, 'fishing', newLevel);
 
         notify(socket.id, `You caught a ${caughtItem.replace('-', ' ')}!`, 'success');
         checkAchievements(player);
@@ -2598,6 +2588,11 @@ io.on('connection', (socket) => {
         targets.forEach(pos => {
             const entities = world.getEntitiesAt(pos.q, pos.r);
             entities.forEach(e => {
+                if (e.type === 'building' && (e as Building).inventory) {
+                    const hasItems = Object.values((e as Building).inventory!).some((count: any) => count > 0);
+                    if (hasItems) return; // Safety check
+                }
+
                 if (e.type === 'obstacle' && e.species !== 'water') {
                     world.removeEntity(e.id, e.pos.q, e.pos.r);
                     io.emit('entityRemove', { id: e.id, pos: e.pos });
@@ -2786,7 +2781,11 @@ let lastDayCount = -1;
 setInterval(() => {
   const { updatedEntities, environment, environmentChanged } = engine.tick();
   updatedEntities.forEach(entity => {
-    io.emit('entityUpdate', entity);
+    if (entity.deleted) {
+      io.emit('entityRemove', { id: entity.id, pos: entity.pos });
+    } else {
+      io.emit('entityUpdate', entity);
+    }
   });
   if (environmentChanged) {
     io.emit('environmentUpdate', environment);
@@ -2821,6 +2820,45 @@ setInterval(() => {
 // Cleanup inactive chunks every minute
 setInterval(() => {
   world.cleanupChunks(Array.from(players.values()));
+
+  // NPC Daily Surprise Logic
+  const now = Date.now();
+  players.forEach((player, socketId) => {
+    Object.entries(player.relationships).forEach(([npcName, points]) => {
+      if (points >= 500) {
+        const lastGift = player.lastNPCDailyGiftTime[npcName] || 0;
+        if (now - lastGift >= GAME_DAY) {
+            // Check for random surprise (10% chance when checked every minute)
+            if (Math.random() < 0.1) {
+                let gift = 'stone';
+                let msg = '';
+                if (npcName === 'miner') {
+                    gift = Math.random() < 0.7 ? 'coal' : 'iron-ore';
+                    msg = `Miner: "Found some extra ${gift.replace('-', ' ')} today. Sending it your way!"`;
+                } else if (npcName === 'merchant') {
+                    const seeds = ['turnip-seed', 'carrot-seed', 'pumpkin-seed', 'corn-seed', 'wheat-seed', 'sunflower-seed'];
+                    gift = seeds[Math.floor(Math.random() * seeds.length)];
+                    msg = `Merchant: "Got some spare ${gift.replace('-seed', '')} seeds for you, partner!"`;
+                } else if (npcName === 'fisherman') {
+                    gift = 'fish';
+                    msg = `Fisherman: "Had a great haul today, hope you enjoy this one!"`;
+                } else if (npcName === 'blacksmith') {
+                    gift = 'stone';
+                    msg = `Blacksmith: "Clearin' out some scrap. You might find a use for it."`;
+                } else if (npcName === 'lumberjack') {
+                    gift = 'wood';
+                    msg = `Woody: "Found some good timber today. Here's a piece for ye."`;
+                }
+
+                player.inventory[gift] = (player.inventory[gift] || 0) + 1;
+                player.lastNPCDailyGiftTime[npcName] = now;
+                notify(socketId, msg, 'success');
+                io.to(socketId).emit('entityUpdate', player);
+            }
+        }
+      }
+    });
+  });
 }, 60000);
 
 app.use(express.static(path.join(__dirname, '../../client/dist')));
