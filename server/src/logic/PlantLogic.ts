@@ -20,6 +20,9 @@ const PREFERRED_SEASONS: Record<string, Season[]> = {
   'berry-bush': ['summer'],
   'tree': ['spring', 'summer', 'autumn', 'winter'],
   'sunflower': ['summer'],
+  'coffee-bean': ['summer', 'autumn'],
+  'tea-leaf': ['spring', 'summer'],
+  'ancient-fruit': ['spring', 'summer', 'autumn'],
 };
 
 const SPECIES_GROWTH: Record<string, number> = {
@@ -38,6 +41,9 @@ const SPECIES_GROWTH: Record<string, number> = {
   'berry-bush': 2 * GAME_DAY,
   'tree': 7 * GAME_DAY,     // 7 days per stage
   'sunflower': 2.5 * GAME_DAY,
+  'coffee-bean': 2 * GAME_DAY,
+  'tea-leaf': 1.5 * GAME_DAY,
+  'ancient-fruit': 7 * GAME_DAY, // 7 days per stage (28 days total)
 };
 
 export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny', season: Season = 'spring', isProtected: boolean = false): Plant {
