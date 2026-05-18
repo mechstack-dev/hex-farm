@@ -33,6 +33,20 @@ export class Generator {
             continue;
         }
 
+        // Spawn Woody the Lumberjack
+        if (q === -10 && r === -10) {
+            entities.push({
+                id: 'animal-lumberjack',
+                type: 'animal',
+                species: 'lumberjack',
+                pos: { q: -10, r: -10 },
+                homePos: { q: -10, r: -10 },
+                nextMoveTime: 0,
+                lastProductTime: 0
+            } as unknown as Entity);
+            continue;
+        }
+
         // Spawn blacksmith near merchant
         if (q === 5 && r === 5) {
             entities.push({

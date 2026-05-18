@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import { distance, GAME_DAY, getNeighbors, getRecursiveNeighbors, BUILDING_COSTS, ITEM_PRICES, SEED_PRICES, TOOL_PRICES, KIT_PRICES, FOOD_VALUES, RECIPES } from 'common';
+import { distance, GAME_DAY, getNeighbors, getRecursiveNeighbors, BUILDING_COSTS, ITEM_PRICES, SEED_PRICES, TOOL_PRICES, KIT_PRICES, FOOD_VALUES, RECIPES, PERK_NAMES } from 'common';
 import type { Player, Position, Plant, Building } from 'common';
 import { addXP, getStaminaCost } from './logic/SkillLogic.js';
 
@@ -148,6 +148,9 @@ io.on('connection', (socket) => {
         } else if (npcName === 'miner') {
             player.inventory['dynamite'] = (player.inventory['dynamite'] || 0) + 10;
             notify(socket.id, `Miner: "A gift for a fellow deep-delver. Don't blow yourself up!"`, 'success');
+        } else if (npcName === 'lumberjack') {
+            player.inventory['copper-axe'] = 1;
+            notify(socket.id, `Woody: "You've treated the forest well. Take this copper axe, it'll serve you better than that old one."`, 'success');
         }
     }
 
@@ -191,13 +194,8 @@ io.on('connection', (socket) => {
         const perkId = `perk-${npcName}`;
         if (!player.perks.includes(perkId)) {
             player.perks.push(perkId);
-            const perkNames: Record<string, string> = {
-                'merchant': "Merchant's Guild Member",
-                'blacksmith': "Smith's Apprentice",
-                'fisherman': "Expert Angler",
-                'miner': "Deep Delver"
-            };
-            notify(socket.id, `New Perk Unlocked: ${perkNames[npcName]}!`, 'success');
+            const perkName = PERK_NAMES[perkId] || perkId;
+            notify(socket.id, `New Perk Unlocked: ${perkName}!`, 'success');
         }
     }
   };
@@ -235,6 +233,15 @@ io.on('connection', (socket) => {
   socket.on('move', (pos: Position) => {
     const player = players.get(socket.id);
     if (player) {
+      const now = Date.now();
+      const hasSpeed = player.buffs.some(b => b.type === 'speed');
+      const cooldown = hasSpeed ? 100 : 200;
+
+      if (player.lastMoveTime && now - player.lastMoveTime < cooldown - 20) { // 20ms jitter leniency
+        socket.emit('entityUpdate', player);
+        return;
+      }
+
       const d = distance(player.pos, pos);
       if (d !== 1) {
         socket.emit('entityUpdate', player);
@@ -252,6 +259,7 @@ io.on('connection', (socket) => {
       if (!isBlocked) {
         world.removeEntity(player.id, player.pos.q, player.pos.r);
         player.pos = pos;
+        player.lastMoveTime = now;
         world.addEntity(player);
         io.emit('entityUpdate', player);
         checkAchievements(player);
@@ -572,6 +580,57 @@ io.on('connection', (socket) => {
         // Only notify if they specifically tried to harvest but nothing was there
         notify(socket.id, "Nothing to harvest in this area.", 'info');
       }
+    }
+  });
+
+  socket.on('plant_wild_seeds', () => {
+    const player = players.get(socket.id);
+    if (player) {
+      if (!player.inventory['wild-seed'] || player.inventory['wild-seed'] <= 0) {
+        notify(socket.id, "You don't have any wild seeds!", 'error');
+        return;
+      }
+
+      const entities = world.getEntitiesAt(player.pos.q, player.pos.r);
+      const hasTilledSoil = entities.some(e => e.type === 'floor' && e.species === 'tilled');
+      const isOccupiedByOther = entities.some(e => e.type !== 'player' && e.type !== 'floor');
+
+      if (!hasTilledSoil) {
+        notify(socket.id, "You can only plant on tilled soil.", 'info');
+        return;
+      }
+      if (isOccupiedByOther) {
+        notify(socket.id, "This spot is occupied.", 'info');
+        return;
+      }
+
+      const env = engine.tick().environment;
+      const seasonalCrops: Record<string, string[]> = {
+        'spring': ['turnip', 'carrot', 'tea-leaf'],
+        'summer': ['carrot', 'corn', 'sunflower', 'coffee-bean', 'tea-leaf'],
+        'autumn': ['pumpkin', 'wheat', 'coffee-bean', 'mushroom'],
+        'winter': ['winter-radish', 'kale']
+      };
+
+      const options = seasonalCrops[env.season] || ['turnip'];
+      const chosen = options[Math.floor(Math.random() * options.length)];
+
+      player.inventory['wild-seed']--;
+      const now = Date.now();
+      const plant: Plant = {
+        id: `plant-${player.pos.q}-${player.pos.r}-${now}`,
+        type: 'plant',
+        species: chosen,
+        pos: { ...player.pos },
+        growthStage: 0,
+        plantedAt: now,
+        lastWatered: 0,
+        lastUpdate: now
+      };
+      world.addEntity(plant);
+      io.emit('entityUpdate', plant);
+      socket.emit('entityUpdate', player);
+      notify(socket.id, `Planted wild seeds! It grew into a ${chosen}.`, 'success');
     }
   });
 
@@ -1530,7 +1589,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'seed-maker') {
-          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'orange', 'peach', 'cherry'];
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'orange', 'peach', 'cherry', 'coffee-bean', 'tea-leaf'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
 
           if (targetCrop) {
@@ -1547,7 +1606,7 @@ io.on('connection', (socket) => {
       }
 
       if (building && building.species === 'compost-bin') {
-          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'orange', 'peach', 'cherry'];
+          const crops = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'apple', 'orange', 'peach', 'cherry', 'coffee-bean', 'tea-leaf'];
           const targetCrop = crops.find(c => (player.inventory[c] || 0) > 0);
 
           if (targetCrop) {
@@ -1815,6 +1874,9 @@ io.on('connection', (socket) => {
             } else if (npcName === 'blacksmith') {
                 gift = 'stone';
                 msg = `Blacksmith: "Clearin' out some scrap stone. Take it if ye like."`;
+            } else if (npcName === 'lumberjack') {
+                gift = 'wood';
+                msg = `Woody: "Found some good timber today. Here, take some."`;
             }
 
             player.inventory[gift] = (player.inventory[gift] || 0) + 1;
@@ -1824,7 +1886,7 @@ io.on('connection', (socket) => {
             // Removed 'return' to allow primary interaction logic to continue
         }
 
-        if (animal.species === 'miner' || animal.species === 'blacksmith' || animal.species === 'fisherman' || animal.species === 'merchant') {
+        if (animal.species === 'miner' || animal.species === 'blacksmith' || animal.species === 'fisherman' || animal.species === 'merchant' || animal.species === 'lumberjack') {
             const npcKey = animal.species.charAt(0).toUpperCase() + animal.species.slice(1);
             if (currentGlobalRequest && currentGlobalRequest.npc === npcKey) {
                 const item = currentGlobalRequest.item;
@@ -1846,6 +1908,49 @@ io.on('connection', (socket) => {
                     return; // Don't proceed to normal trade/interaction
                 }
             }
+        }
+
+        if (animal.species === 'lumberjack') {
+          const woodItems = ['wood', 'apple', 'orange', 'peach', 'cherry', 'berry'];
+          let earned = 0;
+          const isWarden = player.perks.includes('perk-lumberjack');
+          const wardenBonus = isWarden ? 1.1 : 1.0;
+
+          woodItems.forEach(item => {
+            const count = player.inventory[item] || 0;
+            if (count > 0) {
+              const basePrice = ITEM_PRICES[item] || 5;
+              earned += Math.floor(count * basePrice * 1.25 * wardenBonus);
+              player.inventory[item] = 0;
+            }
+          });
+
+          if (earned > 0) {
+            player.coins += earned;
+            notify(socket.id, `Woody: "That's some fine timber and fruit! Here's ${earned} coins."`, 'success');
+            socket.emit('entityUpdate', player);
+            checkAchievements(player);
+          } else {
+            const heartLevel = Math.floor((player.relationships['lumberjack'] || 0) / 100);
+            let dialogues = [
+              "The forest is a living thing, you gotta treat it with respect.",
+              "If you're looking to sell some wood or fruit, I'm your man.",
+              "Nothing beats the smell of fresh pine in the morning.",
+              "You ever wonder how these trees grow so fast? It's the magic in the soil.",
+              "I'll give you a good price for any wood you bring me."
+            ];
+            if (heartLevel >= 5) {
+              dialogues = [
+                "I can tell you love the forest as much as I do.",
+                "It's nice to have a friend who understands the quiet of the woods.",
+                "Need some tips on pruning those fruit trees?",
+                "The birds seem to like you. That's a good sign.",
+                "Keep taking care of the land, and it'll take care of you."
+              ];
+            }
+            notify(socket.id, `Woody: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
+          }
+          return;
         }
 
         if (animal.species === 'miner') {
@@ -2076,7 +2181,7 @@ io.on('connection', (socket) => {
           } else {
               // Assign new quest with 20% chance
               if (Math.random() < 0.2) {
-                  const species = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower'][Math.floor(Math.random() * 7)];
+                  const species = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'winter-radish', 'sunflower', 'coffee-bean', 'tea-leaf'][Math.floor(Math.random() * 9)];
                   const count = 5 + Math.floor(Math.random() * 10);
                   player.activeQuest = { species, count, collected: 0 };
                   socket.emit('entityUpdate', player);
@@ -2311,6 +2416,14 @@ io.on('connection', (socket) => {
             player.buffs = player.buffs.filter(b => b.type !== 'foraging_luck');
             player.buffs.push({ type: 'foraging_luck', amount: 1, expiresAt: Date.now() + 5 * 60 * 1000 });
             notify(socket.id, "Fruit medley! Nature seems to hold more secrets.", 'success');
+        } else if (item === 'coffee' || item === 'energy-drink') {
+            player.buffs = player.buffs.filter(b => b.type !== 'speed');
+            player.buffs.push({ type: 'speed', amount: 1, expiresAt: Date.now() + (item === 'coffee' ? 3 : 5) * 60 * 1000 });
+            notify(socket.id, `You drank ${item}! You feel faster.`, 'success');
+        } else if (item === 'tea') {
+            player.buffs = player.buffs.filter(b => b.type !== 'stamina_regen');
+            player.buffs.push({ type: 'stamina_regen', amount: 1.5, expiresAt: Date.now() + 5 * 60 * 1000 });
+            notify(socket.id, "You drank tea! You feel refreshed.", 'success');
         }
 
         socket.emit('entityUpdate', player);
@@ -2530,14 +2643,16 @@ io.on('connection', (socket) => {
             'merchant': ['pumpkin', 'apple-pie', 'honey'],
             'blacksmith': ['iron-ore', 'gold-ore', 'stone'],
             'fisherman': ['fish', 'grilled-fish', 'corn-chowder'],
-            'miner': ['mushroom', 'miners-stew', 'pumpkin-soup']
+            'miner': ['mushroom', 'miners-stew', 'pumpkin-soup'],
+            'lumberjack': ['apple', 'orange', 'peach', 'cherry', 'fruit-medley']
           };
 
           const dislikes: Record<string, string[]> = {
             'merchant': ['junk'],
             'blacksmith': ['wood', 'wool'],
             'fisherman': ['junk', 'apple'],
-            'miner': ['junk', 'milk']
+            'miner': ['junk', 'milk'],
+            'lumberjack': ['junk', 'stone']
           };
 
           let points = 20; // Base points
@@ -2657,7 +2772,7 @@ setInterval(() => {
     // NPC Daily Request
     if (environment.dayCount !== lastDayCount && environment.timeOfDay < 0.1) {
         lastDayCount = environment.dayCount;
-        const npcs = ['Merchant', 'Blacksmith', 'Fisherman', 'Miner'];
+            const npcs = ['Merchant', 'Blacksmith', 'Fisherman', 'Miner', 'Woody'];
         const items = Object.keys(ITEM_PRICES).filter(i => !i.endsWith('-jam') && !RECIPES[i]); // Prefer raw items
         const randomNPC = npcs[Math.floor(Math.random() * npcs.length)];
         const randomItem = items[Math.floor(Math.random() * items.length)];

@@ -36,6 +36,8 @@ export const ITEM_PRICES: Record<string, number> = {
   'turnip': 10, 'carrot': 25, 'pumpkin': 50, 'corn': 35, 'wheat': 30,
   'winter-radish': 40, 'sunflower': 45, 'kale': 15, 'apple': 15, 'orange': 20, 'peach': 25, 'cherry': 22, 'berry': 12, 'mushroom': 18,
   'flower': 15,
+  'coffee-bean': 12, 'tea-leaf': 10,
+  'coffee': 60, 'tea': 50, 'energy-drink': 100,
   'apple-jam': 50, 'orange-jam': 65, 'berry-jam': 45, 'peach-jam': 60, 'cherry-jam': 55,
   'oil': 120, 'cheese': 100, 'mayonnaise': 50, 'goat-cheese': 150, 'duck-mayonnaise': 80,
   'milk': 20, 'wool': 30, 'egg': 10, 'truffle': 60, 'goat-milk': 25, 'duck-egg': 15,
@@ -43,6 +45,7 @@ export const ITEM_PRICES: Record<string, number> = {
   'wood': 5, 'stone': 5, 'junk': 2, 'iron-ore': 80, 'gold-ore': 400,
   'iron-bar': 500, 'gold-bar': 2500,
   'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
+  'ancient-fruit': 500,
   'bass': 60, 'trout': 70, 'salmon': 80, 'ghost-fish': 100,
   'amethyst': 120, 'topaz': 150, 'emerald': 200, 'ruby': 250,
   'rusty-cog': 80, 'ancient-statue': 300, 'old-tablet': 200,
@@ -62,7 +65,10 @@ export const ITEM_PRICES: Record<string, number> = {
 
 export const SEED_PRICES: Record<string, number> = {
   'turnip': 5, 'carrot': 15, 'pumpkin': 35, 'corn': 25, 'wheat': 20,
-  'winter-radish': 30, 'kale': 8, 'apple-tree': 50, 'orange-tree': 60, 'peach-tree': 70, 'cherry-tree': 65, 'sunflower': 35
+  'winter-radish': 30, 'kale': 8, 'apple-tree': 50, 'orange-tree': 60, 'peach-tree': 70, 'cherry-tree': 65, 'sunflower': 35,
+  'coffee-bean': 6, 'tea-leaf': 5,
+  'ancient-fruit': 100,
+  'wild': 20
 };
 
 export const TOOL_PRICES: Record<string, number> = {
@@ -79,6 +85,7 @@ export const KIT_PRICES: Record<string, number> = {
 
 export const FOOD_VALUES: Record<string, number> = {
   'golden-hexfish': 100,
+  'ancient-fruit': 100,
   'flower': 5,
   'apple': 20,
   'orange': 15,
@@ -89,6 +96,9 @@ export const FOOD_VALUES: Record<string, number> = {
   'corn': 10,
   'winter-radish': 12,
   'kale': 10,
+  'coffee': 5,
+  'tea': 10,
+  'energy-drink': 20,
   'fish': 15,
   'bass': 20,
   'trout': 25,
@@ -140,9 +150,12 @@ export const FOOD_VALUES: Record<string, number> = {
   'golden-omelette': 120
 };
 
-export const BEST_FOODS = ['golden-hexfish', 'ghost-pasta', 'salmon-dinner', 'royal-breakfast', 'golden-omelette', 'pancakes', 'bread', 'tortilla', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'trout-soup', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'ghost-fish', 'salmon', 'trout', 'bass', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['ancient-fruit', 'energy-drink', 'coffee', 'tea', 'golden-hexfish', 'ghost-pasta', 'salmon-dinner', 'royal-breakfast', 'golden-omelette', 'pancakes', 'bread', 'tortilla', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'trout-soup', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'ghost-fish', 'salmon', 'trout', 'bass', 'fish', 'corn', 'carrot', 'turnip'];
 
 export const RECIPES: Record<string, Record<string, number>> = {
+  'coffee': { 'coffee-bean': 2 },
+  'tea': { 'tea-leaf': 2 },
+  'energy-drink': { 'coffee': 1, 'tea': 1, 'honey': 1 },
   'bread': { 'flour': 2 },
   'pancakes': { 'flour': 1, 'egg': 1, 'milk': 1 },
   'tortilla': { 'cornmeal': 2 },
@@ -257,7 +270,19 @@ export interface Player extends Entity {
   perks: string[];
   color: number;
   hasGrace?: boolean;
+  lastMoveTime?: number;
 }
+
+export const NPC_SPECIES = ['merchant', 'blacksmith', 'fisherman', 'miner', 'lumberjack'] as const;
+export type NPCSpecies = typeof NPC_SPECIES[number];
+
+export const PERK_NAMES: Record<string, string> = {
+  'perk-merchant': "Merchant's Guild",
+  'perk-blacksmith': "Smith's Apprentice",
+  'perk-fisherman': "Expert Angler",
+  'perk-miner': "Deep Delver",
+  'perk-lumberjack': "Forest Warden"
+};
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type Weather = 'sunny' | 'rainy' | 'cloudy';

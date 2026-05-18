@@ -4,7 +4,7 @@ import { CookingMenu } from './components/CookingMenu'
 import { Hotbar } from './components/Hotbar'
 import { Journal } from './components/Journal'
 import type { Entity, Position, EnvironmentState } from 'common'
-import { getChunkCoords, BEST_FOODS, ITEM_PRICES } from 'common'
+import { getChunkCoords, BEST_FOODS, ITEM_PRICES, PERK_NAMES } from 'common'
 import { socket, movePlayer } from './network'
 import { useInput } from './hooks/useInput'
 import { AudioManager } from './AudioManager'
@@ -260,11 +260,13 @@ function App() {
           break;
         case 'KeyX':
           if (altKey) socket.emit('cook', 'cherry-pie');
+          else if (ctrlKey) socket.emit('plant_wild_seeds');
           else if (shiftKey) socket.emit('sell_junk');
           else socket.emit('clear_obstacle');
           break;
         case 'KeyC':
           if (altKey) socket.emit('cook', 'fruit-medley');
+          else if (shiftKey) socket.emit('plant', 'ancient-fruit');
           else {
             const toEat = BEST_FOODS.find(f => playerInventory[f] > 0);
             if (toEat) socket.emit('consume', toEat);
@@ -432,7 +434,7 @@ function App() {
         tools: { name: 'Tools/Kits', items: [] }
     };
 
-    const cropsItems = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'flower', 'fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'salmon-dinner', 'ghost-pasta', 'trout-soup', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla', 'oil', 'cheese', 'mayonnaise', 'goat-cheese', 'duck-mayonnaise'];
+    const cropsItems = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'flower', 'coffee-bean', 'tea-leaf', 'coffee', 'tea', 'energy-drink', 'fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'salmon-dinner', 'ghost-pasta', 'trout-soup', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla', 'oil', 'cheese', 'mayonnaise', 'goat-cheese', 'duck-mayonnaise'];
     const resourcesItems = ['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
     const processedItems = ['flour', 'cornmeal'];
     const productsItems = ['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg', 'large-milk', 'golden-egg', 'golden-wool', 'large-goat-milk', 'golden-duck-egg'];
@@ -572,15 +574,9 @@ function App() {
         {playerPerks.length > 0 && (
           <div className="perks" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
             {playerPerks.map(perk => {
-              const perkNames: Record<string, string> = {
-                  'perk-merchant': "Merchant's Guild",
-                  'perk-blacksmith': "Smith's Apprentice",
-                  'perk-fisherman': "Expert Angler",
-                  'perk-miner': "Deep Delver"
-              };
               return (
                 <div key={perk} style={{ background: 'rgba(255, 215, 0, 0.4)', padding: '2px 5px', borderRadius: '3px', fontSize: '10px', border: '1px solid gold', color: 'gold' }}>
-                    {perkNames[perk] || perk}
+                    {PERK_NAMES[perk] || perk}
                 </div>
               );
             })}

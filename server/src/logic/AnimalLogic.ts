@@ -3,7 +3,7 @@ import { getNeighbors, distance } from 'common';
 import { WorldManager } from '../WorldManager.js';
 
 export function moveAnimal(animal: Animal, world: WorldManager): Animal {
-  const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner'].includes(animal.species);
+  const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner', 'lumberjack'].includes(animal.species);
   const neighbors = getNeighbors(animal.pos);
   const validMoves = neighbors.filter(pos => {
     if (isNPC && animal.homePos) {

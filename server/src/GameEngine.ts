@@ -448,7 +448,7 @@ export class GameEngine {
             }
         } else if (entity.type === 'animal') {
           const animal = entity as Animal;
-          const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner'].includes(animal.species);
+          const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner', 'lumberjack'].includes(animal.species);
 
           if (isNPC && (environment.timeOfDay < 0.25 || environment.timeOfDay > 0.75)) {
               // NPCs go home at night
@@ -463,7 +463,12 @@ export class GameEngine {
 
                   // Simple collision check for home-bound NPCs
                   const entsAtBest = this.world.getEntitiesAt(bestMove.q, bestMove.r);
-                  const blocked = entsAtBest.some(e => e.type === 'obstacle' || e.type === 'building' || e.type === 'fence');
+                  const blocked = entsAtBest.some(e =>
+                      e.type === 'obstacle' ||
+                      e.type === 'building' ||
+                      e.type === 'fence' ||
+                      (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
+                  );
 
                   if (!blocked) {
                       updated = {

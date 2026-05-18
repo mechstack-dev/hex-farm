@@ -19,7 +19,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Players:** Persistent entities with unique IDs and names. Includes skills and levels.
 - **Plants:** Have `growthStage`, `lastWatered`, and `plantedAt` properties. They grow in real-time.
 - **Animals:** Move randomly to neighboring hexes at set intervals (`nextMoveTime`).
-- **NPCs:** Merchant, Blacksmith, Fisherman, and Miner are specialized animals with fixed home positions. They move within a 3-hex radius of their home, making them feel more like active inhabitants of the world.
+- **NPCs:** Merchant, Blacksmith, Fisherman, Miner, and **Woody the Lumberjack** are specialized animals with fixed home positions. They move within a 3-hex radius of their home, making them feel more like active inhabitants of the world.
 - **Obstacles:** Static entities like trees and rocks that block movement. **Berry Bushes**, **Apple Trees**, **Orange Trees**, **Peach Trees**, and **Cherry Trees** also block movement for players and animals.
 
 ### Growth Mechanics
@@ -44,6 +44,7 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**. Deep underground, players can find more valuable gems and rarer fish.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
+- **Movement & Speed:** Players have a base movement cooldown (200ms). Consuming **Coffee** or **Energy Drinks** grants a **Speed** buff, reducing this cooldown to 100ms.
 - **Lightning:** During rainy weather, there's a small chance of lightning strikes. Struck trees become **Burnt Trees**, which can be cleared with an axe to obtain **Coal**.
 - **Global Chat & Trading:** Players can communicate via a global chat. Using the `/give [name] [item] [amount]` command allows players to trade items with others nearby.
 - **Fountains:** Decorative buildings that provide a +1.0 stamina regeneration boost to players within a 2-hex radius.
@@ -79,6 +80,7 @@ HexFarm is designed to be played over long periods.
 - **Blacksmith:** Located at (5, 5), the Blacksmith specializes in tool upgrades. Players can spend coins and Iron Ore/Gold Ore to upgrade tools to Copper, Iron, and Gold versions.
 - **Fisherman:** Found near bodies of water. He buys fish for a premium price (50 coins).
 - **Miner:** Located in the cave layer at (10005, 10005). He buys Stone, Iron Ore, and Gold Ore at premium prices and sells **Dynamite**.
+- **Woody the Lumberjack:** Located at (-10, -10). He buys wood and fruit at premium prices and can reward dedicated forest wardens with tool upgrades.
 
 ---
 
@@ -128,11 +130,14 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **Alt+I**: Oil Maker (20 Wood, 10 Stone) - Processes truffles into oil.
    - **Alt+Shift+U**: Cheese Press (15 Wood, 15 Stone) - Processes milk and goat milk into cheese.
    - **Alt+O**: Mayonnaise Machine (10 Wood, 20 Stone) - Processes eggs and duck eggs into mayonnaise.
+   - **Coffee and Tea**: New crops (Coffee-bean, Tea-leaf) and products (Coffee, Tea, Energy Drink).
 8. **Interacting:** Press **E** to interact with animals, harvest fruit/berries, pick wild flowers, use buildings (including Artisan Machines), talk to NPCs, or enter Caves. Use **Shift+E** to explicitly withdraw all items from Chests and Sheds. Press **J** to open your **Explorer's Journal**, and **Shift+J** to fish. **Shift + 1-0, -, =** to buy seeds. **Ctrl + 1-6** to buy tools (1: Hoe, 2: Watering Can, 3: Axe, 4: Pickaxe, 5: Scythe, 6: Fishing Rod).
+   - **Special Planting**: Press **Shift+C** to plant an **Ancient Seed** or **Ctrl+X** to plant **Wild Seeds**.
    - **Merchant:** Stand near the Merchant (moves around (0,0)) and press **E** to sell crops and products.
    - **Blacksmith:** Stand near the Blacksmith (moves around (5,5)) and press **E** to upgrade tools or process Geodes. To process a Geode, interact with the Blacksmith while having a Geode in your inventory and at least 20 coins.
    - **Fisherman:** Stand near a Fisherman and press **E** to sell fish for 50 coins.
    - **Miner:** Stand near the Miner (10005, 10005) and press **E** to sell ores and buy **Dynamite**.
+   - **Woody:** Stand near Woody (-10, -10) and press **E** to sell wood and fruit.
    - **Merchant Selling Resources:** Stand near the merchant and press **Shift+X** to sell gathered resources (Wood, Stone, Junk) for coins.
    - **Scythe:** A tool that allows harvesting all mature crops in a 1-hex radius.
    - **Cooking Pot:** Stand near a Cooking Pot and press **Alt + 1-9** to cook standard recipes. Additional recipes: **Alt+0** for Coal-Grilled Fish, **Alt+U** for Orange Juice, **Alt+G** for Honey-Glazed Carrots, **Alt+H** for Goat Cheese Salad, **Alt+J** for Duck-Egg Mayo, **Alt+K (+Shift)** for Berry Smoothie, **Alt+L** for Pumpkin Pie, **Alt+P** for Apple Cider, **Alt+Z** for Peach Cobbler, **Alt+X** for Cherry Pie, and **Alt+C** for Fruit Medley.
@@ -292,6 +297,11 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Nature Polish:** Fixed floor entity overlap during flower propagation.
 - [x] **Artisan Machines:** Added Oil Maker, Cheese Press, and Mayonnaise Machine for advanced product processing.
 - [x] **Economy Polish:** Fixed `shipping-bin` to prevent accidental resource sales and prevented `scythe` area harvesting of trees.
+- [x] **Woody the Lumberjack:** Added a new NPC at (-10, -10) who specializes in wood and fruit.
+- [x] **New Crops & Items:** Implemented Coffee and Tea crops, seeds, and processed drinks.
+- [x] **Movement Cooldown:** Added a cooldown system for movement, integrated with a new 'speed' buff.
+- [x] **Special Seeds:** Added Ancient Seeds and seasonal Wild Seeds with dedicated planting hotkeys.
+- [x] **Improved AI Pathfinding:** NPCs are no longer blocked by trees when returning home at night.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
