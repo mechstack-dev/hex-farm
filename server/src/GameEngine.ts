@@ -30,6 +30,7 @@ export class GameEngine {
     const sunflowerPositions = new Set<string>();
     const natureGracePositions = new Set<string>(); // Optimized: Pre-calculate nature counts
     const barnPositions = new Map<string, any>();
+    const harvesterPositions = new Map<string, any>();
     const fountainPositions = new Set<string>();
 
     const natureEntityPositions = new Set<string>();
@@ -80,6 +81,11 @@ export class GameEngine {
 
             getRecursiveNeighbors(entity.pos, radius).forEach(n => {
                 barnPositions.set(`${n.q},${n.r}`, barn);
+            });
+        } else if (entity.type === 'building' && entity.species === 'auto-harvester') {
+            const harvester = entity as any;
+            getRecursiveNeighbors(entity.pos, 3).forEach(n => {
+                harvesterPositions.set(`${n.q},${n.r}`, harvester);
             });
         }
 
@@ -250,6 +256,32 @@ export class GameEngine {
           updated = updatePlant(plant, now, environment.weather, environment.season, isProtected);
           // Restore original lastUpdate to prevent double-dipping or jumping
           updated.lastUpdate = now;
+
+          // Auto-Harvester logic
+          if (updated.growthStage >= 5) {
+              const harvester = harvesterPositions.get(posKey);
+              if (harvester && updated.species !== 'tree' && updated.species !== 'apple-tree' && updated.species !== 'orange-tree' && updated.species !== 'peach-tree' && updated.species !== 'cherry-tree' && updated.species !== 'berry-bush' && updated.species !== 'wood-stick') {
+                  harvester.inventory = harvester.inventory || {};
+                  harvester.inventory[updated.species] = (harvester.inventory[updated.species] || 0) + 1;
+                  this.world.removeEntity(updated.id, updated.pos.q, updated.pos.r);
+                  if (!updatedEntities.find(e => e.id === harvester.id)) {
+                      updatedEntities.push(harvester);
+                      this.world.updateEntity(harvester);
+                  }
+                  // Signal removal to clients
+                  // We can't easily push a removal to updatedEntities because it expects full entities
+                  // The main loop handles removal from world. For now, let's return it as an "empty" plant or handle separately.
+                  // Actually, we can return it as an entity update with a flag or just let the client see it gone if we can trigger a removal broadcast.
+                  // The best way here is to use world.removeEntity and make sure it gets broadcasted.
+                  // Since tick() returns updatedEntities, we can't easily signal REMOVE here without changing the signature.
+                  // However, if we remove it from world, and it's NOT in updatedEntities, clients might still see it?
+                  // No, clients only update what they are told.
+                  // Let's add a special handling for removals in the engine or just return a dummy.
+                  // Looking at index.ts, it iterates over updatedEntities and emits entityUpdate.
+                  // Let's add a `deleted` property.
+                  updated.deleted = true;
+              }
+          }
 
           // Natural Sowing logic: Mature fruit trees drop seeds on adjacent empty tilled soil
           if (updated.growthStage >= 5 && Math.random() < 0.0005) {

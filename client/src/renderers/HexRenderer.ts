@@ -732,6 +732,8 @@ export class HexRenderer {
         this.drawCheesePress(x, y);
     } else if (entity.species === 'mayonnaise-machine') {
         this.drawMayonnaiseMachine(x, y);
+    } else if (entity.species === 'auto-harvester') {
+        this.drawAutoHarvester(x, y);
     }
   }
 
@@ -782,6 +784,28 @@ export class HexRenderer {
       this.graphics.moveTo(x, y - 15);
       this.graphics.lineTo(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8);
       this.graphics.stroke({ color: 0xCCCCCC, width: 2 });
+  }
+
+  drawAutoHarvester(x: number, y: number) {
+      // Base
+      this.graphics.rect(x - 15, y - 5, 30, 20);
+      this.graphics.fill({ color: 0x708090, alpha: 1 });
+      this.graphics.stroke({ color: 0x333333, width: 2 });
+
+      // Vacuum/Collector arm
+      const angle = Math.sin(Date.now() / 500) * 0.5;
+      this.graphics.moveTo(x, y);
+      this.graphics.lineTo(x + Math.cos(angle) * 25, y - 15 + Math.sin(angle) * 10);
+      this.graphics.stroke({ color: 0x4682B4, width: 4 });
+
+      // Collector head
+      this.graphics.circle(x + Math.cos(angle) * 25, y - 15 + Math.sin(angle) * 10, 6);
+      this.graphics.fill({ color: 0x1E90FF, alpha: 1 });
+
+      // Signal light
+      const blink = (Math.sin(Date.now() / 200) + 1) / 2;
+      this.graphics.circle(x - 10, y - 8, 3);
+      this.graphics.fill({ color: 0x00FF00, alpha: 0.3 + blink * 0.7 });
   }
 
   drawBridge(x: number, y: number, pos: Position) {
