@@ -182,6 +182,12 @@ io.on('connection', (socket) => {
                 500: "Miner: \"The stones are starting to talk to you, eh? Just don't let 'em talk back.\"",
                 750: "Miner: \"Deep delvin' is in your blood. I can see the dust in your eyes.\"",
                 1000: "Miner: \"You've reached the bottom and come back up. You're a true Deep Delver.\""
+            },
+            'lumberjack': {
+                250: "Woody: \"The forest is startin' to trust you. I can see it in the way the birds watch you.\"",
+                500: "Woody: \"You're more than just a woodsman. You've got a real connection to the land.\"",
+                750: "Woody: \"The ancient trees speak of your kindness. You've truly earned your place here.\"",
+                1000: "Woody: \"You are a true Forest Warden. The woods will always be your home.\""
             }
         };
         if (dialogues[npcName] && dialogues[npcName][reached]) {
@@ -213,6 +219,7 @@ io.on('connection', (socket) => {
           { id: 'naturalist', name: 'Master Naturalist', condition: (p: Player) => ((p.relationships['fisherman'] || 0) >= 500 && (p.relationships['miner'] || 0) >= 500) },
           { id: 'legendary_angler', name: 'Legendary Angler', condition: (p: Player) => (p.inventory['golden-hexfish'] || 0) > 0 },
           { id: 'master_architect', name: 'Master Architect', condition: (p: Player) => (p.stats['buildings_built'] || 0) >= 10 },
+          { id: 'artifact_collector', name: 'Artifact Collector', condition: (p: Player) => (p.inventory['rusty-cog'] || 0) > 0 && (p.inventory['ancient-statue'] || 0) > 0 && (p.inventory['old-tablet'] || 0) > 0 },
       ];
 
       achievementsList.forEach(ach => {
@@ -516,6 +523,19 @@ io.on('connection', (socket) => {
 
       targets.forEach(pos => {
         const entities = world.getEntitiesAt(pos.q, pos.r);
+
+        const floor = entities.find(e => e.type === 'floor');
+        if (floor && (floor.species === 'flower' || floor.species === 'sunflower')) {
+            player.inventory['flower'] = (player.inventory['flower'] || 0) + 1;
+            const grass = {
+                ...floor,
+                species: 'grass'
+            };
+            world.updateEntity(grass);
+            io.emit('entityUpdate', grass);
+            harvestedCount++;
+        }
+
         const plant = entities.find(e => e.type === 'plant') as Plant | undefined;
         if (plant) {
           if (plant.species === 'tree' || plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree') {
@@ -1222,7 +1242,7 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond'];
+        const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
         let earned = 0;
         resourceItems.forEach(item => {
           const count = player.inventory[item] || 0;
@@ -1937,7 +1957,9 @@ io.on('connection', (socket) => {
               "If you're looking to sell some wood or fruit, I'm your man.",
               "Nothing beats the smell of fresh pine in the morning.",
               "You ever wonder how these trees grow so fast? It's the magic in the soil.",
-              "I'll give you a good price for any wood you bring me."
+              "I'll give you a good price for any wood you bring me.",
+              "Sometimes, when I'm choppin' wood, I find old coins and strange relics hidden in the trunks.",
+              "Keep your eyes peeled while you're clearin' grass. You never know what might be buried underneath."
             ];
             if (heartLevel >= 5) {
               dialogues = [

@@ -302,6 +302,7 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Movement Cooldown:** Added a cooldown system for movement, integrated with a new 'speed' buff.
 - [x] **Special Seeds:** Added Ancient Seeds and seasonal Wild Seeds with dedicated planting hotkeys.
 - [x] **Improved AI Pathfinding:** NPCs are no longer blocked by trees when returning home at night.
+- [x] **Tool & Economy Polish:** Enhanced Scythe to harvest floor flowers; enabled selling of artifacts/gems at the Merchant; added 'Artifact Collector' achievement.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.
