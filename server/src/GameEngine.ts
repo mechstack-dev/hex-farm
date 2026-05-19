@@ -27,7 +27,7 @@ export class GameEngine {
     const scarecrowPositions = new Set<string>();
     const beehivePositions = new Set<string>();
     const greenhousePositions = new Set<string>();
-    const sunflowerPositions = new Set<string>();
+    const sunflowerPositions = new Map<string, string>();
     const natureGracePositions = new Set<string>(); // Optimized: Pre-calculate nature counts
     const barnPositions = new Map<string, any>();
     const harvesterPositions = new Map<string, any>();
@@ -64,8 +64,8 @@ export class GameEngine {
             getNeighbors(entity.pos).forEach(n1 => {
                 greenhousePositions.add(`${n1.q},${n1.r}`);
             });
-        } else if ((entity.type === 'floor' || entity.type === 'plant') && (entity.species === 'sunflower' || entity.species === 'flower')) {
-            sunflowerPositions.add(`${entity.pos.q},${entity.pos.r}`);
+        } else if ((entity.type === 'floor' || entity.type === 'plant') && (['sunflower', 'flower', 'tulip', 'lavender'].includes(entity.species || ''))) {
+            sunflowerPositions.set(`${entity.pos.q},${entity.pos.r}`, entity.species!);
             natureEntityPositions.add(`${entity.pos.q},${entity.pos.r}`);
         } else if (entity.type === 'building' && entity.species === 'fountain') {
             fountainPositions.add(`${entity.pos.q},${entity.pos.r}`);
@@ -89,8 +89,11 @@ export class GameEngine {
             });
         }
 
-        if ((entity.type === 'plant' || entity.type === 'obstacle') && (entity.species === 'tree' || entity.species === 'apple-tree' || entity.species === 'orange-tree' || entity.species === 'peach-tree' || entity.species === 'cherry-tree' || entity.species === 'berry-bush') && ((entity as any).growthStage >= 5 || entity.type === 'obstacle')) {
+        if ((entity.type === 'plant' || entity.type === 'obstacle') && (entity.species === 'tree' || entity.species === 'apple-tree' || entity.species === 'orange-tree' || entity.species === 'peach-tree' || entity.species === 'cherry-tree' || entity.species === 'berry-bush' || entity.species === 'blueberry-bush' || entity.species === 'raspberry-bush') && ((entity as any).growthStage >= 5 || entity.type === 'obstacle')) {
             natureEntityPositions.add(`${entity.pos.q},${entity.pos.r}`);
+            if (entity.type === 'plant' && ['apple-tree', 'orange-tree', 'peach-tree', 'cherry-tree'].includes(entity.species!)) {
+                sunflowerPositions.set(`${entity.pos.q},${entity.pos.r}`, entity.species!);
+            }
         }
       });
     });
@@ -260,7 +263,7 @@ export class GameEngine {
           // Auto-Harvester logic
           if (updated.growthStage >= 5) {
               const harvester = harvesterPositions.get(posKey);
-              if (harvester && updated.species !== 'tree' && updated.species !== 'apple-tree' && updated.species !== 'orange-tree' && updated.species !== 'peach-tree' && updated.species !== 'cherry-tree' && updated.species !== 'berry-bush' && updated.species !== 'wood-stick') {
+              if (harvester && updated.species !== 'tree' && updated.species !== 'apple-tree' && updated.species !== 'orange-tree' && updated.species !== 'peach-tree' && updated.species !== 'cherry-tree' && updated.species !== 'berry-bush' && updated.species !== 'blueberry-bush' && updated.species !== 'raspberry-bush' && updated.species !== 'wood-stick') {
                   harvester.inventory = harvester.inventory || {};
                   harvester.inventory[updated.species] = (harvester.inventory[updated.species] || 0) + 1;
                   this.world.removeEntity(updated.id, updated.pos.q, updated.pos.r);
@@ -401,11 +404,10 @@ export class GameEngine {
             // Flower propagation
             if (Math.random() < 0.00005) {
                 const neighbors = getNeighbors(entity.pos);
-                const sourceFlower = neighbors.find(n => sunflowerPositions.has(`${n.q},${n.r}`));
-                if (sourceFlower) {
-                    const sourceEntities = this.world.getEntitiesAt(sourceFlower.q, sourceFlower.r);
-                    const flowerEntity = sourceEntities.find(e => (e.type === 'floor' || e.type === 'plant') && (e.species === 'flower' || e.species === 'sunflower'));
-                    if (flowerEntity) {
+                const sourceFlowerPos = neighbors.find(n => sunflowerPositions.has(`${n.q},${n.r}`));
+                if (sourceFlowerPos) {
+                    const species = sunflowerPositions.get(`${sourceFlowerPos.q},${sourceFlowerPos.r}`);
+                    if (species && ['flower', 'sunflower', 'tulip', 'lavender'].includes(species)) {
                         // Remove existing floor first to prevent overlap
                         const existingFloors = this.world.getEntitiesAt(entity.pos.q, entity.pos.r).filter(e => e.type === 'floor');
                         existingFloors.forEach(ef => {
@@ -415,7 +417,7 @@ export class GameEngine {
                         const newFlower = {
                             id: `floor-${entity.pos.q}-${entity.pos.r}-${now}`,
                             type: 'floor' as const,
-                            species: flowerEntity.species,
+                            species: species,
                             pos: entity.pos
                         };
                         this.world.addEntity(newFlower);
@@ -429,35 +431,26 @@ export class GameEngine {
                 if (now - (building.lastProductTime || 0) >= GAME_DAY) {
                     building.inventory = building.inventory || {};
 
-                    // Check for sunflowers in 2-hex radius
-                    let hasSunflower = false;
-                    const posKey = `${building.pos.q},${building.pos.r}`;
-                    const sunflowerEnts = this.world.getEntitiesAt(building.pos.q, building.pos.r);
-                    if (sunflowerEnts.some(e => e.species === 'sunflower')) {
-                        hasSunflower = true;
-                    }
-
-                    if (!hasSunflower) {
-                        const neighbors1 = getNeighbors(building.pos);
-                        for (const n1 of neighbors1) {
-                            const n1Ents = this.world.getEntitiesAt(n1.q, n1.r);
-                            if (n1Ents.some(e => e.species === 'sunflower')) {
-                                hasSunflower = true;
-                                break;
-                            }
-                            const neighbors2 = getNeighbors(n1);
-                            for (const n2 of neighbors2) {
-                                const n2Ents = this.world.getEntitiesAt(n2.q, n2.r);
-                                if (n2Ents.some(e => e.species === 'sunflower')) {
-                                    hasSunflower = true;
-                                    break;
-                                }
-                            }
-                            if (hasSunflower) break;
+                    // Check for specialized plants in 2-hex radius
+                    let specialSpecies = '';
+                    const radius2 = getRecursiveNeighbors(building.pos, 2);
+                    for (const pos of radius2) {
+                        const species = sunflowerPositions.get(`${pos.q},${pos.r}`);
+                        if (species && species !== 'flower' && species !== 'grass') {
+                            specialSpecies = species;
+                            break;
                         }
                     }
 
-                    const honeyType = hasSunflower ? 'sunflower-honey' : 'wildflower-honey';
+                    let honeyType = 'wildflower-honey';
+                    if (specialSpecies === 'sunflower') honeyType = 'sunflower-honey';
+                    else if (specialSpecies === 'apple-tree') honeyType = 'apple-honey';
+                    else if (specialSpecies === 'orange-tree') honeyType = 'orange-honey';
+                    else if (specialSpecies === 'peach-tree') honeyType = 'peach-honey';
+                    else if (specialSpecies === 'cherry-tree') honeyType = 'cherry-honey';
+                    else if (specialSpecies === 'tulip') honeyType = 'tulip-honey';
+                    else if (specialSpecies === 'lavender') honeyType = 'lavender-honey';
+
                     building.inventory[honeyType] = (building.inventory[honeyType] || 0) + 1;
                     building.lastProductTime = now;
                     updated = { ...building };
@@ -613,5 +606,9 @@ export class GameEngine {
 
   getNextWeather(): string {
     return this.seasonManager.getNextWeather();
+  }
+
+  getEnvironment(): EnvironmentState {
+    return this.seasonManager.getState();
   }
 }

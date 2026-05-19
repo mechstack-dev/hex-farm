@@ -54,6 +54,9 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Wild Flowers:** Players can interact with wild flowers and sunflowers to pick them, obtaining a **Flower** item.
 - **Animal Friendship:** Interact with animals ('E') to pet them and increase friendship (+10 per day). High friendship (>500) unlocks a 20% chance to produce **High Quality** products like **Large Milk**, **Golden Eggs**, and **Golden Wool**.
 - **Tiered Scythes & Rods:** Tools like the Scythe and Fishing Rod can now be upgraded at the Blacksmith. Higher-tier scythes have a larger harvesting radius, and higher-tier rods improve catch rates.
+- **Player Emotes:** Express yourself with chat commands like `/heart`, `/smile`, `/sad`, and `/wow`, which display animated icons above your character.
+- **Flora & Fauna Variety:** Discover new wild berries (Blueberries, Raspberries) and decorative flowers (Tulips, Lavender).
+- **Specialized Honey:** Beehives now produce unique honey types (Apple, Orange, Peach, Cherry, Tulip, Lavender) when placed near specific plants.
 
 ---
 
@@ -308,6 +311,10 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Auto-Automation:** Implemented the Auto-Harvester building for effortless crop collection.
 - [x] **Mastery Rewards:** Added level 5 and 10 skill rewards and NPC daily surprise gifts.
 - [x] **Recipe Realism:** Updated advanced cooking recipes to require processed ingredients like Flour and Cornmeal from the Mill.
+- [x] **Persistence & Fixes:** Fixed meteorite persistence and cave entrance floor overlap bugs.
+- [x] **Player Emotes:** Implemented visual emotes via chat commands.
+- [x] **Nature Expansion:** Added blueberries, raspberries, tulips, and lavender with specialized honey production.
+- [x] **NPC Dialogue:** Added seasonal and weather-based dialogue variations for all NPCs.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

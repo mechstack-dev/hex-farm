@@ -36,6 +36,7 @@ export class HexRenderer {
   private visibleLandingSpots: { x: number, y: number }[] = [];
   private meteoriteFlash: number = 0;
   private levelUpLabels: { label: PIXI.Text, startTime: number, startY: number }[] = [];
+  private emotes: { playerId: string, type: string, startTime: number }[] = [];
 
   constructor(element: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -62,6 +63,11 @@ export class HexRenderer {
         socket.on('pet_interact', ({ pos }: { pos: Position }) => {
             const { x, y } = axialToPixel(pos.q, pos.r, HEX_SIZE);
             this.hearts.push({ x, y: y - 20, alpha: 1, startTime: Date.now() });
+        });
+
+        socket.off('player_emote');
+        socket.on('player_emote', ({ playerId, type }: { playerId: string, type: string }) => {
+            this.emotes.push({ playerId, type, startTime: Date.now() });
         });
 
         socket.off('notification');
@@ -253,6 +259,9 @@ export class HexRenderer {
     else if (plant.species === 'kale') color = 0x006400; // Dark Green
     else if (plant.species === 'mushroom') color = 0xA52A2A;
     else if (plant.species === 'sunflower') color = 0xFFFF00;
+    else if (plant.species === 'ancient-fruit') color = 0x4B0082; // Indigo
+    else if (plant.species === 'blueberry-bush') color = 0x0000FF;
+    else if (plant.species === 'raspberry-bush') color = 0xDC143C; // Crimson
 
     if (stage < 5) {
         // Sprout
@@ -275,7 +284,7 @@ export class HexRenderer {
         this.graphics.fill({ color: 0xFFFFFF, alpha: 0.8 });
         this.graphics.circle(x + 2, y + 6, 1);
         this.graphics.fill({ color: 0xFFFFFF, alpha: 0.8 });
-    } else if (plant.species === 'berry-bush') {
+    } else if (plant.species === 'berry-bush' || plant.species === 'blueberry-bush' || plant.species === 'raspberry-bush') {
         // Bush foliage
         this.graphics.circle(x, y, HEX_SIZE * 0.6);
         this.graphics.fill({ color: 0x006400, alpha: 1 });
@@ -283,13 +292,34 @@ export class HexRenderer {
         // Berries
         const hasBerries = (Date.now() - (plant.lastProductTime || 0) >= GAME_DAY);
         if (hasBerries) {
+            let berryColor = 0x800080; // Default purple
+            if (plant.species === 'blueberry-bush') berryColor = 0x0000FF;
+            else if (plant.species === 'raspberry-bush') berryColor = 0xDC143C;
+
             for (let i = 0; i < 6; i++) {
                 const bx = x + Math.cos(i) * 10;
                 const by = y + Math.sin(i) * 10;
                 this.graphics.circle(bx, by, 2.5);
-                this.graphics.fill({ color: 0x800080, alpha: 1 }); // Purple berries
+                this.graphics.fill({ color: berryColor, alpha: 1 });
             }
         }
+    } else if (plant.species === 'ancient-fruit') {
+        // Ancient Fruit Plant
+        this.graphics.rect(x - 3, y - 10, 6, 20);
+        this.graphics.fill({ color: 0x2E8B57, alpha: 1 }); // SeaGreen stalk
+
+        // Glow
+        const glow = (Math.sin(Date.now() / 400) + 1) / 2;
+        this.graphics.circle(x, y - 8, 10 + glow * 5);
+        this.graphics.fill({ color: 0x4B0082, alpha: 0.3 });
+
+        // Fruit
+        this.graphics.circle(x, y - 8, 8);
+        this.graphics.fill({ color: 0x4B0082, alpha: 1 });
+
+        // Highlights
+        this.graphics.circle(x - 3, y - 10, 2);
+        this.graphics.fill({ color: 0x9370DB, alpha: 0.8 });
     } else if (plant.species === 'apple-tree' || plant.species === 'orange-tree' || plant.species === 'peach-tree' || plant.species === 'cherry-tree' || plant.species === 'tree') {
         // Growing Tree
         const trunkWidth = 2 + (stage * 0.8);
@@ -1374,6 +1404,18 @@ export class HexRenderer {
         this.graphics.fill({ color: flowerColor, alpha: 0.8 });
         this.graphics.circle(x, y, 1);
         this.graphics.fill({ color: 0xFFFF00, alpha: 1 });
+    } else if (entity.species === 'tulip') {
+        this.graphics.ellipse(x, y, 4, 6);
+        this.graphics.fill({ color: 0xFF0000, alpha: 1 });
+        this.graphics.rect(x - 1, y, 2, 8);
+        this.graphics.fill({ color: 0x228B22, alpha: 1 });
+    } else if (entity.species === 'lavender') {
+        for (let i = 0; i < 3; i++) {
+            this.graphics.rect(x - 2 + i * 2, y - 8 + i * 2, 2, 10);
+            this.graphics.fill({ color: 0x9370DB, alpha: 1 });
+        }
+        this.graphics.rect(x, y, 1, 10);
+        this.graphics.fill({ color: 0x228B22, alpha: 1 });
     } else if (entity.species === 'sunflower') {
         this.graphics.circle(x, y, 5);
         this.graphics.fill({ color: 0xFFFF00, alpha: 0.9 });
@@ -1612,7 +1654,51 @@ export class HexRenderer {
         this.drawBlessings();
         this.drawBees();
         this.updateLevelUps();
+        this.drawEmotes();
     }
+  }
+
+  drawEmotes() {
+    const now = Date.now();
+    this.emotes = this.emotes.filter(e => now - e.startTime < 2000);
+
+    this.emotes.forEach(emote => {
+        const playerPos = this.interpolatedPositions.get(emote.playerId);
+        if (playerPos) {
+            const elapsed = now - emote.startTime;
+            const progress = elapsed / 2000;
+            const ey = playerPos.y - 30 - progress * 20;
+            const ex = playerPos.x;
+            const alpha = 1 - progress;
+
+            // For efficiency in a real project we'd use a pool or persistent objects,
+            // but for simple emotes we'll draw them via overlay or temp text.
+            // Let's use overlay text for now but it's expensive to create every frame.
+            // Better to use a PIXI.Text if we manage its lifecycle.
+            // Actually, for simplicity and performance in this tick, let's use overlay Graphics for shapes?
+            // No, emoji needs Text. Let's just use the heart logic for all if it's too much.
+            // Let's implement a simple emoji label pool later if needed.
+            // For now, let's just draw the heart shape if it's 'heart', otherwise just a color circle.
+
+            if (emote.type === 'heart') {
+                const size = 5;
+                const hx = ex + this.container.x;
+                const hy = ey + this.container.y;
+                this.overlay.beginPath();
+                this.overlay.moveTo(hx, hy);
+                this.overlay.bezierCurveTo(hx - size, hy - size, hx - size * 2, hy + size, hx, hy + size * 2);
+                this.overlay.bezierCurveTo(hx + size * 2, hy + size, hx + size, hy - size, hx, hy);
+                this.overlay.fill({ color: 0xFF0000, alpha });
+            } else {
+                let color = 0xFFFF00;
+                if (emote.type === 'sad') color = 0x0000FF;
+                else if (emote.type === 'wow') color = 0xFFA500;
+
+                this.overlay.circle(ex + this.container.x, ey + this.container.y, 8);
+                this.overlay.fill({ color, alpha });
+            }
+        }
+    });
   }
 
   updateLevelUps() {
