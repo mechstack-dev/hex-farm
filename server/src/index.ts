@@ -122,7 +122,7 @@ io.on('connection', (socket) => {
     players.set(socket.id, player);
     world.addEntity(player);
 
-    const { environment } = engine.tick(); // Just to get current state
+    const environment = engine.getEnvironment(); // Just to get current state
     socket.emit('init', { playerId: player.id, worldSeed: "mmo-seed" });
     socket.emit('environmentUpdate', environment);
     if (currentGlobalRequest && currentGlobalRequest.day === environment.dayCount) {
@@ -631,7 +631,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      const env = engine.tick().environment;
+      const env = engine.getEnvironment();
       const seasonalCrops: Record<string, string[]> = {
         'spring': ['turnip', 'carrot', 'tea-leaf'],
         'summer': ['carrot', 'corn', 'sunflower', 'coffee-bean', 'tea-leaf'],
@@ -1038,6 +1038,12 @@ io.on('connection', (socket) => {
 
           // Cave entrance chance
           if (Math.random() < 0.02) {
+              const existingFloors = world.getEntitiesAt(obstacle.pos.q, obstacle.pos.r).filter(e => e.type === 'floor');
+              existingFloors.forEach(ef => {
+                  world.removeEntity(ef.id, ef.pos.q, ef.pos.r);
+                  io.emit('entityRemove', { id: ef.id, pos: ef.pos });
+              });
+
               const caveEntrance = {
                   id: `floor-${obstacle.pos.q}-${obstacle.pos.r}`,
                   type: 'floor' as const,
@@ -1298,6 +1304,12 @@ io.on('connection', (socket) => {
           // Ensure a return entrance exists
           const targetEntities = world.getEntitiesAt(targetQ, targetR);
           if (!targetEntities.some(e => e.type === 'floor' && e.species === 'cave-entrance')) {
+              const existingFloors = targetEntities.filter(e => e.type === 'floor');
+              existingFloors.forEach(ef => {
+                  world.removeEntity(ef.id, ef.pos.q, ef.pos.r);
+                  io.emit('entityRemove', { id: ef.id, pos: ef.pos });
+              });
+
               const returnEntrance = {
                   id: `floor-${targetQ}-${targetR}`,
                   type: 'floor' as const,
@@ -1945,6 +1957,7 @@ io.on('connection', (socket) => {
             checkAchievements(player);
           } else {
             const heartLevel = Math.floor((player.relationships['lumberjack'] || 0) / 100);
+            const env = engine.getEnvironment();
             let dialogues = [
               "The forest is a living thing, you gotta treat it with respect.",
               "If you're looking to sell some wood or fruit, I'm your man.",
@@ -1954,14 +1967,20 @@ io.on('connection', (socket) => {
               "Sometimes, when I'm choppin' wood, I find old coins and strange relics hidden in the trunks.",
               "Keep your eyes peeled while you're clearin' grass. You never know what might be buried underneath."
             ];
+
+            if (env.season === 'autumn') dialogues.push("The colors of the leaves this time of year... simply breath-takin'.");
+            if (env.season === 'winter') dialogues.push("Bundle up! The trees get a bit brittle in this cold.");
+            if (env.weather === 'rainy') dialogues.push("Rain is good for the roots, but bad for my old bones.");
+
             if (heartLevel >= 5) {
-              dialogues = [
-                "I can tell you love the forest as much as I do.",
-                "It's nice to have a friend who understands the quiet of the woods.",
-                "Need some tips on pruning those fruit trees?",
-                "The birds seem to like you. That's a good sign.",
-                "Keep taking care of the land, and it'll take care of you."
-              ];
+                dialogues = [
+                    "I can tell you love the forest as much as I do.",
+                    "It's nice to have a friend who understands the quiet of the woods.",
+                    "Need some tips on pruning those fruit trees?",
+                    "The birds seem to like you. That's a good sign.",
+                    "Keep taking care of the land, and it'll take care of you."
+                ];
+                if (env.season === 'spring') dialogues.push("Ah, spring! Everything is wakin' up, including our friendship.");
             }
             notify(socket.id, `Woody: "${dialogues[Math.floor(Math.random() * dialogues.length)]}"`, 'info');
           }
@@ -1994,6 +2013,7 @@ io.on('connection', (socket) => {
               socket.emit('entityUpdate', player);
             } else {
               const heartLevel = Math.floor((player.relationships['miner'] || 0) / 100);
+              const env = engine.getEnvironment();
               let dialogues = [
                 "The depths hold many secrets... and much gold.",
                 "Digging deep is dangerous, but the rewards are worth it.",
@@ -2001,6 +2021,9 @@ io.on('connection', (socket) => {
                 "I'll buy any ores you find for a fair price.",
                 "Dynamite costs 50 coins. Use it wisely."
               ];
+              if (env.weather === 'rainy') dialogues.push("Glad I'm underground. Hate getting my beard wet.");
+              if (env.timeOfDay > 0.7) dialogues.push("The gems glow brighter in the dark, don't they?");
+
               if (heartLevel >= 5) {
                 dialogues = [
                   "You've got the spirit of a true delver, friend.",
@@ -2038,6 +2061,7 @@ io.on('connection', (socket) => {
             checkAchievements(player);
           } else {
             const heartLevel = Math.floor((player.relationships['fisherman'] || 0) / 100);
+            const env = engine.getEnvironment();
             let dialogues = [
               "Nice day for fishing, ain't it?",
               "The big ones are always near the center of the ponds.",
@@ -2045,6 +2069,9 @@ io.on('connection', (socket) => {
               "Heard of the legendary Golden Hexfish? Me neither.",
               "Quiet... you'll scare 'em away!"
             ];
+            if (env.weather === 'rainy') dialogues.push("Rainy days are the best for nibbles!");
+            if (env.season === 'summer') dialogues.push("The fish are active in this heat, just like me!");
+
             if (heartLevel >= 5) {
                 dialogues = [
                     "You've got a good cast, I can tell.",
@@ -2120,6 +2147,7 @@ io.on('connection', (socket) => {
               socket.emit('entityUpdate', player);
           } else {
             const heartLevel = Math.floor((player.relationships['blacksmith'] || 0) / 100);
+            const env = engine.getEnvironment();
             let dialogues = [
               "Aye, what can I do for ye?",
               "Looking to sharpen your tools? You've come to the right place.",
@@ -2130,6 +2158,8 @@ io.on('connection', (socket) => {
               "For Iron upgrades, I need 500 coins and 3 Iron Bars.",
               "For Gold upgrades, I need 1000 coins and 3 Gold Bars."
             ];
+            if (env.season === 'winter') dialogues.push("The forge is the warmest place in the world right now.");
+
             if (heartLevel >= 5) {
                 dialogues = [
                     "Ah, my favorite customer! Need some work done?",
@@ -2148,6 +2178,7 @@ io.on('connection', (socket) => {
           let questHandled = false;
 
           const heartLevel = Math.floor((player.relationships['merchant'] || 0) / 100);
+          const env = engine.getEnvironment();
           let dialogues = [
             "Hello there! Hard work pays off, doesn't it?",
             "Fresh air, good soil... what more could a farmer want?",
@@ -2157,6 +2188,8 @@ io.on('connection', (socket) => {
             "The seasons are changing... better keep an eye on your crops!",
             "I heard there are wild berries growing to the east."
           ];
+          if (env.season === 'spring') dialogues.push("Spring is the season of new beginnings... and new profits!");
+
           if (heartLevel >= 5) {
               dialogues = [
                   "Always a pleasure to do business with you, friend.",
@@ -2753,6 +2786,14 @@ io.on('connection', (socket) => {
                 return;
             }
         }
+    }
+
+    const emoteCommands = ['/heart', '/smile', '/sad', '/wow'];
+    const usedEmote = emoteCommands.find(cmd => sanitized.startsWith(cmd));
+    if (usedEmote) {
+        const emoteType = usedEmote.substring(1);
+        io.emit('player_emote', { playerId: player.id, type: emoteType });
+        return;
     }
 
       io.emit('chat', {

@@ -138,7 +138,7 @@ export class WorldManager {
     }
 
     const isPersistentType = ['plant', 'fence', 'animal', 'floor', 'sprinkler', 'player', 'building'].includes(entity.type) ||
-                             (entity.type === 'obstacle' && entity.species === 'scarecrow');
+                             (entity.type === 'obstacle' && (entity.species === 'scarecrow' || entity.species === 'meteorite'));
     if (isPersistentType) {
       if (!this.persistentEntities.has(entity.id)) {
           this.addToPersistence(entity);
@@ -167,7 +167,7 @@ export class WorldManager {
       this.markDirty();
     } else {
       const isPersistentType = ['plant', 'fence', 'animal', 'floor', 'sprinkler', 'player', 'building'].includes(entity.type) ||
-                               (entity.type === 'obstacle' && entity.species === 'scarecrow');
+                               (entity.type === 'obstacle' && (entity.species === 'scarecrow' || entity.species === 'meteorite'));
       if (isPersistentType) {
         this.addToPersistence(entity);
         this.markDirty();

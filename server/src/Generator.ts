@@ -172,7 +172,13 @@ export class Generator {
         } else if (chunkRng() < 0.1) {
           // Decorative floor
           const rand = chunkRng();
-          const species = rand < 0.7 ? 'grass' : (rand < 0.9 ? 'flower' : 'sunflower');
+          let species = 'grass';
+          if (rand < 0.7) species = 'grass';
+          else if (rand < 0.8) species = 'flower';
+          else if (rand < 0.85) species = 'sunflower';
+          else if (rand < 0.9) species = 'tulip';
+          else species = 'lavender';
+
           entities.push({
             id: `floor-${q}-${r}`,
             type: 'floor',
@@ -205,8 +211,10 @@ export class Generator {
           // Spawn foraging items
           const rand = chunkRng();
           let species = 'mushroom';
-          if (rand < 0.25) species = 'mushroom';
-          else if (rand < 0.55) species = 'berry-bush';
+          if (rand < 0.2) species = 'mushroom';
+          else if (rand < 0.35) species = 'berry-bush';
+          else if (rand < 0.45) species = 'blueberry-bush';
+          else if (rand < 0.55) species = 'raspberry-bush';
           else if (rand < 0.7) species = 'apple-tree';
           else if (rand < 0.8) species = 'orange-tree';
           else if (rand < 0.9) species = 'peach-tree';
