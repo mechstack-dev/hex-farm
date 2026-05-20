@@ -50,7 +50,9 @@ export const ITEM_PRICES: Record<string, number> = {
   'iron-bar': 500, 'gold-bar': 2500,
   'golden-hexfish': 500, 'ancient-coin': 150, 'geode': 30, 'diamond': 750,
   'ancient-fruit': 500,
+  'prismatic-shard': 2000, 'rainbow-shell': 800,
   'bass': 60, 'trout': 70, 'salmon': 80, 'ghost-fish': 100,
+  'spring-bass': 80, 'summer-salmon': 100, 'autumn-trout': 90, 'winter-carp': 70,
   'amethyst': 120, 'topaz': 150, 'emerald': 200, 'ruby': 250,
   'rusty-cog': 80, 'ancient-statue': 300, 'old-tablet': 200,
   'large-milk': 40, 'golden-egg': 50, 'golden-wool': 75, 'large-goat-milk': 50, 'golden-duck-egg': 60,
@@ -90,6 +92,7 @@ export const KIT_PRICES: Record<string, number> = {
 export const FOOD_VALUES: Record<string, number> = {
   'golden-hexfish': 100,
   'ancient-fruit': 100,
+  'prismatic-shard': 250, 'rainbow-shell': 150,
   'flower': 5,
   'apple': 20,
   'orange': 15,
@@ -112,6 +115,10 @@ export const FOOD_VALUES: Record<string, number> = {
   'trout': 25,
   'salmon': 30,
   'ghost-fish': 40,
+  'spring-bass': 35,
+  'summer-salmon': 45,
+  'autumn-trout': 40,
+  'winter-carp': 30,
   'salmon-dinner': 100,
   'ghost-pasta': 120,
   'trout-soup': 90,
@@ -158,7 +165,7 @@ export const FOOD_VALUES: Record<string, number> = {
   'golden-omelette': 120
 };
 
-export const BEST_FOODS = ['ancient-fruit', 'energy-drink', 'coffee', 'tea', 'golden-hexfish', 'ghost-pasta', 'salmon-dinner', 'royal-breakfast', 'golden-omelette', 'pancakes', 'bread', 'tortilla', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'trout-soup', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'blueberry', 'raspberry', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'ghost-fish', 'salmon', 'trout', 'bass', 'fish', 'corn', 'carrot', 'turnip'];
+export const BEST_FOODS = ['ancient-fruit', 'energy-drink', 'coffee', 'tea', 'golden-hexfish', 'ghost-pasta', 'salmon-dinner', 'royal-breakfast', 'golden-omelette', 'pancakes', 'bread', 'tortilla', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'trout-soup', 'pumpkin-pie', 'veggie-platter', 'fish-stew', 'goat-cheese-salad', 'honey-glazed-carrots', 'miners-stew', 'coal-grilled-fish', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'mushroom-risotto', 'mushroom-soup', 'berry-tart', 'pumpkin-soup', 'apple-pie', 'apple-cider', 'orange-juice', 'corn-chowder', 'berry-smoothie', 'grilled-fish', 'salad', 'corn-bread', 'fruit-salad', 'duck-egg-mayo', 'winter-radish', 'kale', 'blueberry', 'raspberry', 'berry', 'mushroom', 'apple', 'orange', 'peach', 'cherry', 'ghost-fish', 'summer-salmon', 'autumn-trout', 'spring-bass', 'winter-carp', 'salmon', 'trout', 'bass', 'fish', 'corn', 'carrot', 'turnip'];
 
 export const RECIPES: Record<string, Record<string, number>> = {
   'coffee': { 'coffee-bean': 2 },
@@ -167,7 +174,7 @@ export const RECIPES: Record<string, Record<string, number>> = {
   'bread': { 'flour': 2 },
   'pancakes': { 'flour': 1, 'egg': 1, 'milk': 1 },
   'tortilla': { 'cornmeal': 2 },
-  'salmon-dinner': { 'salmon': 1, 'kale': 1 },
+  'salmon-dinner': { 'summer-salmon': 1, 'kale': 1 },
   'ghost-pasta': { 'ghost-fish': 1, 'flour': 1 },
   'trout-soup': { 'trout': 1, 'mushroom': 1, 'milk': 1 },
   'salad': { 'turnip': 1, 'carrot': 1 },
@@ -300,6 +307,7 @@ export interface EnvironmentState {
   weather: Weather;
   dayCount: number;
   timeOfDay: number; // 0.0 to 1.0
+  luck: number; // -1.0 to 1.0
 }
 
 export interface WorldChunk {
