@@ -9,10 +9,12 @@ export class SeasonManager {
   private currentWeather: Weather = 'sunny';
   private nextWeather: Weather = 'sunny';
   private dayCount: number = 0;
+  private dailyLuck: number = 0;
 
   constructor() {
     this.startTime = Date.now();
     this.nextWeather = this.generateRandomWeather();
+    this.dailyLuck = (Math.random() * 2) - 1;
   }
 
   private generateRandomWeather(): Weather {
@@ -36,6 +38,7 @@ export class SeasonManager {
       // Weather for the new day was pre-determined
       this.currentWeather = this.nextWeather;
       this.nextWeather = this.generateRandomWeather();
+      this.dailyLuck = (Math.random() * 2) - 1;
     }
 
     const seasonIndex = Math.floor(this.dayCount / 7) % 4;
@@ -58,7 +61,8 @@ export class SeasonManager {
       season: this.currentSeason,
       weather: this.currentWeather,
       dayCount: this.dayCount,
-      timeOfDay
+      timeOfDay,
+      luck: this.dailyLuck
     };
   }
 

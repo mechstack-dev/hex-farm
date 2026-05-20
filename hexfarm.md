@@ -44,6 +44,9 @@ HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draw
 - **Ancient Shrines:** Rarely found in the wild. Interacting with a shrine grants a powerful random 10-minute buff once per day.
 - **Mining Depths:** Rare chance to discover a Cave Entrance while mining rocks. Caves are a rich source of rocks, mushrooms, and **Coal**. Deep underground, players can find more valuable gems and rarer fish.
 - **Quests:** The Merchant at (0,0) may assign simple crop-gathering tasks. Completing them yields significant bonus coins.
+- **Daily Luck:** Each game day, a random luck value (-1.0 to 1.0) is generated. Luck influences foraging discovery rates, mining (ore/gem yields), and fishing success.
+- **Seasonal Fishing:** Fish variety now depends on the current season. Catch 'Spring Bass', 'Summer Salmon', 'Autumn Trout', and 'Winter Carp' in their respective seasons.
+- **Ultra-Rare Finds:** Explorers can unearth the legendary **Prismatic Shard** while mining deep in caves, or catch a beautiful **Rainbow Shell** while fishing.
 - **Achievements:** Players can unlock various achievements by reaching milestones in farming, wealth, fishing, and exploration. Unlocks are announced in global chat.
 - **Movement & Speed:** Players have a base movement cooldown (200ms). Consuming **Coffee** or **Energy Drinks** grants a **Speed** buff, reducing this cooldown to 100ms.
 - **Lightning:** During rainy weather, there's a small chance of lightning strikes. Struck trees become **Burnt Trees**, which can be cleared with an axe to obtain **Coal**.
@@ -113,7 +116,7 @@ Using **WASD** or **Arrow Keys**, players navigate the grid. The camera follows 
    - **U**: Well (5 Wood, 10 Stone)
    - **N**: Beehive (5 Wood, 5 Stone)
    - **O**: Cooking Pot (5 Wood, 10 Stone)
-   - **1-0, -, =**: Plant Seeds (1: Turnip, 2: Carrot, 3: Pumpkin, 4: Corn, 5: Wheat, 6: Winter Radish, 7: Kale, 8: Sunflower, 9: Apple Tree, 0: Orange Tree, -: Peach Tree, =: Cherry Tree)
+   - **1-0, -, =, [, ]**: Plant Seeds (1: Turnip, 2: Carrot, 3: Pumpkin, 4: Corn, 5: Wheat, 6: Winter Radish, 7: Kale, 8: Sunflower, 9: Apple Tree, 0: Orange Tree, -: Peach Tree, =: Cherry Tree, [: Coffee, ]: Tea)
    - **Goats and Ducks**: New animals that provide **Goat Milk** and **Duck Eggs**.
    - **Fruit Trees**: New trees (Peach, Cherry) that provide specialized fruit and preferred seasons.
    - **M**: Barn (20 Wood, 10 Stone)
@@ -315,6 +318,9 @@ The project is organized as a **TypeScript Monorepo**:
 - [x] **Player Emotes:** Implemented visual emotes via chat commands.
 - [x] **Nature Expansion:** Added blueberries, raspberries, tulips, and lavender with specialized honey production.
 - [x] **NPC Dialogue:** Added seasonal and weather-based dialogue variations for all NPCs.
+- [x] **Daily Luck System:** Implemented a luck mechanic that influences various random events throughout the game world.
+- [x] **Seasonal Fishing:** Refactored the fishing system to provide season-specific rewards.
+- [x] **Ultra-Rare Items:** Added Prismatic Shards and Rainbow Shells as high-value discovery rewards.
 
 ### Long Term
 - [ ] **Detailed Pixel Art:** Full replacement of PIXI shapes with sprites.

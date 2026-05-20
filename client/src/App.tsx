@@ -32,7 +32,7 @@ function App() {
   const [showJournal, setShowJournal] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
-  const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0 });
+  const [environment, setEnvironment] = useState<EnvironmentState>({ season: 'spring', weather: 'sunny', dayCount: 0, timeOfDay: 0, luck: 0 });
   const currentWeatherRef = useRef<string>('sunny');
   const [notifications, setNotifications] = useState<{id: number, message: string, type: string}[]>([]);
   const [chatMessages, setChatMessages] = useState<{id: number, sender: string, message: string}[]>([]);
@@ -244,9 +244,13 @@ function App() {
           break;
         case 'BracketLeft':
           if (altKey) socket.emit('cook', 'corn-bread');
+          else if (shiftKey) socket.emit('buy_seed', 'coffee-bean');
+          else socket.emit('plant', 'coffee-bean');
           break;
         case 'BracketRight':
           if (altKey) socket.emit('cook', 'fish-stew');
+          else if (shiftKey) socket.emit('buy_seed', 'tea-leaf');
+          else socket.emit('plant', 'tea-leaf');
           break;
         case 'KeyS':
           if (altKey) socket.emit('cook', 'fruity-sorbet');
@@ -436,8 +440,8 @@ function App() {
         tools: { name: 'Tools/Kits', items: [] }
     };
 
-    const cropsItems = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'mushroom', 'flower', 'coffee-bean', 'tea-leaf', 'coffee', 'tea', 'energy-drink', 'fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'salmon-dinner', 'ghost-pasta', 'trout-soup', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla', 'oil', 'cheese', 'mayonnaise', 'goat-cheese', 'duck-mayonnaise'];
-    const resourcesItems = ['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
+    const cropsItems = ['turnip', 'carrot', 'pumpkin', 'corn', 'wheat', 'sunflower', 'kale', 'apple', 'orange', 'peach', 'cherry', 'berry', 'blueberry', 'raspberry', 'mushroom', 'flower', 'coffee-bean', 'tea-leaf', 'coffee', 'tea', 'energy-drink', 'fish', 'bass', 'trout', 'salmon', 'ghost-fish', 'golden-hexfish', 'spring-bass', 'summer-salmon', 'autumn-trout', 'winter-carp', 'rainbow-shell', 'salad', 'mushroom-soup', 'berry-tart', 'apple-pie', 'pumpkin-soup', 'corn-chowder', 'grilled-fish', 'miners-stew', 'veggie-platter', 'coal-grilled-fish', 'fruit-salad', 'mushroom-risotto', 'corn-bread', 'fish-stew', 'fruity-sorbet', 'hearty-stew', 'seafood-platter', 'honey-glazed-carrots', 'goat-cheese-salad', 'duck-egg-mayo', 'berry-smoothie', 'pumpkin-pie', 'apple-cider', 'orange-juice', 'peach-cobbler', 'cherry-pie', 'fruit-medley', 'salmon-dinner', 'ghost-pasta', 'trout-soup', 'apple-jam', 'orange-jam', 'berry-jam', 'peach-jam', 'cherry-jam', 'bread', 'pancakes', 'tortilla', 'oil', 'cheese', 'mayonnaise', 'goat-cheese', 'duck-mayonnaise'];
+    const resourcesItems = ['wood', 'stone', 'junk', 'iron-ore', 'gold-ore', 'coal', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'prismatic-shard', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
     const processedItems = ['flour', 'cornmeal'];
     const productsItems = ['milk', 'wool', 'egg', 'truffle', 'honey', 'wildflower-honey', 'sunflower-honey', 'goat-milk', 'duck-egg', 'large-milk', 'golden-egg', 'golden-wool', 'large-goat-milk', 'golden-duck-egg'];
 
@@ -633,8 +637,8 @@ function App() {
         {showControls && (
           <div className="controls-list" style={{ fontSize: '13px' }}>
             <p style={{ margin: '2px 0' }}>Use WASD or Arrow Keys to move</p>
-            <p style={{ margin: '2px 0' }}>Press <b>1-9, 0, -, =</b> to Plant: 1:Turnip, 2:Carrot, 3:Pumpkin, 4:Corn, 5:Wheat, 6:Radish, 7:Kale, 8:Sunflower, 9:Apple, 0:Orange, -:Peach, =:Cherry</p>
-            <p style={{ margin: '2px 0' }}><b>Shift + (1-9, 0, -, =)</b> to Buy Seeds. <b>Ctrl + (1-6)</b> to Buy Tools (1:Hoe, 2:Can, 3:Axe, 4:Pickaxe, 5:Scythe, 6:Rod)</p>
+            <p style={{ margin: '2px 0' }}>Press <b>1-9, 0, -, =, [, ]</b> to Plant: 1:Turnip, 2:Carrot, 3:Pumpkin, 4:Corn, 5:Wheat, 6:Radish, 7:Kale, 8:Sunflower, 9:Apple, 0:Orange, -:Peach, =:Cherry, [:Coffee, ]:Tea</p>
+            <p style={{ margin: '2px 0' }}><b>Shift + (1-9, 0, -, =, [, ])</b> to Buy Seeds. <b>Ctrl + (1-6)</b> to Buy Tools (1:Hoe, 2:Can, 3:Axe, 4:Pickaxe, 5:Scythe, 6:Rod)</p>
             <p style={{ margin: '2px 0' }}>Press <b>P</b>: Plow, <b>R</b>: Path (Alt+R: Fountain, Shift+R: Bridge), <b>I</b>: Water, <b>G</b>: Fertilize, <b>F</b>: Fence, <b>Alt+E</b>: Lamp</p>
             <p style={{ margin: '2px 0' }}>Press <b>K</b>: Sprinkler (Shift:Iron, Alt:Gold), <b>B</b>: Scarecrow (Alt:Greenhouse, Shift:Birdhouse), <b>L</b>: Shed, <b>V</b>: Chest (Alt:Jar), <b>U</b>: Well (Alt:Orange Juice, Alt+Shift+U: Cheese Press), <b>N</b>: Beehive (Alt:Station), <b>O</b>: Pot (Alt:Mayo Machine), <b>M</b>: Barn (Alt:Large), <b>Q</b>: Shipping (Shift:Compost, Alt:Recycle), <b>T</b>: Seed Maker (Alt:Stall, Shift:Mill), <b>Alt+W</b>: Furnace, <b>Alt+Y</b>: Mill, <b>Alt+I</b>: Oil Maker, <b>Alt+Shift+H</b>: Auto-Harvester</p>
             <p style={{ margin: '2px 0' }}>Press <b>E</b>: Interact / Harvest / Pick Flower, <b>H</b>: Harvest Area, <b>Shift+J</b>: Fish, <b>X</b>: Clear, <b>C</b>: Eat Food, <b>Y</b>: Home, <b>Z</b>: Dynamite</p>

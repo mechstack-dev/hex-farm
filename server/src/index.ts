@@ -535,8 +535,10 @@ io.on('connection', (socket) => {
         const entities = world.getEntitiesAt(pos.q, pos.r);
 
         const floor = entities.find(e => e.type === 'floor');
-        if (floor && (floor.species === 'flower' || floor.species === 'sunflower')) {
-            player.inventory['flower'] = (player.inventory['flower'] || 0) + 1;
+        if (floor && ['flower', 'sunflower', 'tulip', 'lavender'].includes(floor.species || '')) {
+            const species = floor.species || 'flower';
+            const item = (species === 'flower' || species === 'sunflower') ? 'flower' : species;
+            player.inventory[item] = (player.inventory[item] || 0) + 1;
             const grass = {
                 ...floor,
                 species: 'grass'
@@ -552,8 +554,8 @@ io.on('connection', (socket) => {
               if (!hasScythe) notify(socket.id, `Use 'E' to gather fruit from mature trees. Use an axe to cut them down.`, 'info');
               return;
           }
-          if (plant.species === 'berry-bush' || plant.species === 'wood-stick') {
-            if (!hasScythe && plant.species === 'berry-bush') notify(socket.id, "Use 'E' to gather berries from mature bushes. Use an axe to clear it.", 'info');
+          if (['berry-bush', 'blueberry-bush', 'raspberry-bush', 'wood-stick'].includes(plant.species || '')) {
+            if (!hasScythe && plant.species && plant.species.endsWith('-bush')) notify(socket.id, "Use 'E' to gather berries from mature bushes. Use an axe to clear it.", 'info');
             return;
           }
 
@@ -1015,8 +1017,9 @@ io.on('connection', (socket) => {
           if (obstacle.species === 'cherry-tree') name = 'cherry tree';
 
           // Discovery Reward
+          const envState = engine.getEnvironment();
           const discoveryLuck = player.buffs.find(b => b.type === 'foraging_luck');
-          const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0);
+          const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0) + (envState.luck * 0.05);
           if (Math.random() < discoveryChance) {
             const rand = Math.random();
             if (rand < 0.05) {
@@ -1091,8 +1094,9 @@ io.on('connection', (socket) => {
           player.inventory['stone'] = (player.inventory['stone'] || 0) + amount;
 
           // Ore drop logic
+          const envState = engine.getEnvironment();
           const luckBuff = player.buffs.find(b => b.type === 'mining_luck');
-          const ironChance = luckBuff ? 0.15 : 0.05;
+          const ironChance = (luckBuff ? 0.15 : 0.05) + (envState.luck * 0.02);
           const isCave = obstacle.pos.q >= 10000;
 
           if (Math.random() < ironChance) {
@@ -1120,6 +1124,17 @@ io.on('connection', (socket) => {
                   player.inventory[gem] = (player.inventory[gem] || 0) + 1;
                   notify(socket.id, `You found a ${gem}!`, 'success');
               }
+
+              if (Math.random() < 0.005 + (envState.luck * 0.002)) {
+                  player.inventory['prismatic-shard'] = (player.inventory['prismatic-shard'] || 0) + 1;
+                  notify(socket.id, "UNBELIEVABLE! You found a Prismatic Shard!", 'success');
+                  io.emit('chat', {
+                      sender: 'System',
+                      senderId: 'system',
+                      message: `${player.name} found a legendary PRISMATIC SHARD in the caves!`,
+                      timestamp: Date.now()
+                  });
+              }
           } else {
               const gemChance = luckBuff ? 0.02 : 0.005;
               if (Math.random() < gemChance) {
@@ -1139,7 +1154,7 @@ io.on('connection', (socket) => {
 
           // Discovery Reward
           const discoveryLuck = player.buffs.find(b => b.type === 'mining_luck');
-          const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0);
+          const discoveryChance = 0.1 + (discoveryLuck ? 0.1 : 0) + (envState.luck * 0.05);
           if (Math.random() < discoveryChance) {
             const rand = Math.random();
             if (rand < 0.2) {
@@ -1241,7 +1256,7 @@ io.on('connection', (socket) => {
       ];
       const isNearMerchant = entities.some(e => e.type === 'animal' && e.species === 'merchant');
       if (isNearMerchant) {
-        const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
+        const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'prismatic-shard', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
         let earned = 0;
         resourceItems.forEach(item => {
           const count = player.inventory[item] || 0;
@@ -1279,8 +1294,10 @@ io.on('connection', (socket) => {
       const building = entities.find(e => e.type === 'building') as Building | undefined;
       const floor = entities.find(e => e.type === 'floor');
 
-      if (floor && (floor.species === 'flower' || floor.species === 'sunflower')) {
-          player.inventory['flower'] = (player.inventory['flower'] || 0) + 1;
+      if (floor && ['flower', 'sunflower', 'tulip', 'lavender'].includes(floor.species || '')) {
+          const species = floor.species!;
+          const item = (species === 'flower' || species === 'sunflower') ? 'flower' : species;
+          player.inventory[item] = (player.inventory[item] || 0) + 1;
           const grass = {
               ...floor,
               species: 'grass'
@@ -1288,7 +1305,7 @@ io.on('connection', (socket) => {
           world.updateEntity(grass);
           io.emit('entityUpdate', grass);
           socket.emit('entityUpdate', player);
-          notify(socket.id, `Picked a ${floor.species}!`, 'success');
+          notify(socket.id, `Picked a ${species}!`, 'success');
           return;
       }
 
@@ -1576,7 +1593,7 @@ io.on('connection', (socket) => {
 
       if (building && building.species === 'shipping-bin') {
           let earned = 0;
-          const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
+          const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'prismatic-shard', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
           Object.entries(ITEM_PRICES).forEach(([item, price]) => {
               if (resourceItems.includes(item)) return;
               const count = player.inventory[item] || 0;
@@ -1841,10 +1858,14 @@ io.on('connection', (socket) => {
         return;
       }
 
-      if (plant && plant.species === 'berry-bush' && plant.growthStage >= 5) {
+      if (plant && (plant.species === 'berry-bush' || plant.species === 'blueberry-bush' || plant.species === 'raspberry-bush') && plant.growthStage >= 5) {
         const now = Date.now();
         if (now - (plant.lastProductTime || 0) >= GAME_DAY) {
-            player.inventory['berry'] = (player.inventory['berry'] || 0) + 1;
+            let item = 'berry';
+            if (plant.species === 'blueberry-bush') item = 'blueberry';
+            else if (plant.species === 'raspberry-bush') item = 'raspberry';
+
+            player.inventory[item] = (player.inventory[item] || 0) + 1;
             plant.lastProductTime = now;
 
             // XP Gain
@@ -1854,7 +1875,7 @@ io.on('connection', (socket) => {
             world.updateEntity(plant);
             socket.emit('entityUpdate', player);
             io.emit('entityUpdate', plant);
-            notify(socket.id, "Gathered some berries!", 'success');
+            notify(socket.id, `Gathered some ${item}s!`, 'success');
             checkAchievements(player);
         } else {
             notify(socket.id, "The berries are still ripening.", 'info');
@@ -2243,7 +2264,7 @@ io.on('connection', (socket) => {
           const isGuildMember = player.perks.includes('perk-merchant');
           const priceMultiplier = isGuildMember ? 1.2 : 1.0;
 
-          const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
+          const resourceItems = ['wood', 'stone', 'junk', 'coal', 'iron-ore', 'gold-ore', 'iron-bar', 'gold-bar', 'amethyst', 'topaz', 'emerald', 'ruby', 'diamond', 'prismatic-shard', 'compost-fertilizer', 'ancient-coin', 'geode', 'rusty-cog', 'ancient-statue', 'old-tablet'];
           Object.keys(ITEM_PRICES).forEach(item => {
             // Don't sell the item we have an active quest for
             if (player.activeQuest && player.activeQuest.species === item) return;
@@ -2547,7 +2568,8 @@ io.on('connection', (socket) => {
       const hasCopperRod = (player.inventory['copper-fishing-rod'] || 0) > 0;
       const rodBonus = hasGoldRod ? 0.15 : (hasIronRod ? 0.10 : (hasCopperRod ? 0.05 : 0));
 
-      const catchChance = 0.3 + (fishingLuck ? 0.2 : 0) + rodBonus;
+      const env = engine.getEnvironment();
+      const catchChance = 0.3 + (fishingLuck ? 0.2 : 0) + rodBonus + (env.luck * 0.1);
       const rand = Math.random();
       if (rand < catchChance) {
         const isCave = player.pos.q >= 10000;
@@ -2556,14 +2578,23 @@ io.on('connection', (socket) => {
 
         if (isCave) {
             if (itemRand < 0.1) caughtItem = 'ghost-fish';
-            else if (itemRand < 0.4) caughtItem = 'trout';
-            else if (itemRand < 0.7) caughtItem = 'bass';
+            else if (itemRand < 0.4) caughtItem = 'autumn-trout';
+            else if (itemRand < 0.7) caughtItem = 'spring-bass';
             else caughtItem = 'fish';
         } else {
             if (itemRand < 0.05) caughtItem = 'golden-hexfish';
-            else if (itemRand < 0.2) caughtItem = 'salmon';
-            else if (itemRand < 0.4) caughtItem = 'bass';
+            else if (itemRand < 0.25) {
+                if (env.season === 'spring') caughtItem = 'spring-bass';
+                else if (env.season === 'summer') caughtItem = 'summer-salmon';
+                else if (env.season === 'autumn') caughtItem = 'autumn-trout';
+                else caughtItem = 'winter-carp';
+            } else if (itemRand < 0.5) caughtItem = 'bass';
             else caughtItem = 'fish';
+        }
+
+        if (Math.random() < 0.01 + (env.luck * 0.005)) {
+            caughtItem = 'rainbow-shell';
+            notify(socket.id, "You found a beautiful Rainbow Shell!", 'success');
         }
 
         player.inventory[caughtItem] = (player.inventory[caughtItem] || 0) + 1;
