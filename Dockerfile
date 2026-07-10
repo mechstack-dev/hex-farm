@@ -37,15 +37,20 @@ COPY --from=builder /app/common/dist ./common/dist
 COPY --from=builder /app/server/dist ./server/dist
 COPY --from=builder /app/client/dist ./client/dist
 
-# Create a directory for persistent world data
+# Persistent world data lives here (mount a volume to keep it across runs).
 RUN mkdir -p /app/server/data
+VOLUME ["/app/server/data"]
 
-# The application listens on port 3001 by default
+# The single server process serves BOTH the realtime API and the built
+# client (client/dist) on one port.
 EXPOSE 3001
 
-# Set the environment to production
 ENV NODE_ENV=production
 ENV PORT=3001
 
-# Start the server
+# Liveness: the server answers HTTP on / (it serves the client there).
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+
+# Start the server (serves client + realtime on :3001).
 CMD ["npm", "run", "start", "--workspace=server"]

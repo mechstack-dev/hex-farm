@@ -1,0 +1,16 @@
+# Run all of Wanderleaf (realtime server + built client) in one container:
+#   docker compose up --build
+# then open http://localhost:3001
+services:
+  wanderleaf:
+    build: .
+    image: wanderleaf
+    ports:
+      - "3001:3001"
+    volumes:
+      # Keep the living world across restarts.
+      - wanderleaf-data:/app/server/data
+    restart: unless-stopped
+
+volumes:
+  wanderleaf-data:

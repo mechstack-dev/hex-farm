@@ -24,16 +24,19 @@ export class WorldManager {
 
   constructor(seed: string) {
     this.generator = new Generator(seed);
+
+    // Under test, stay hermetic: don't read or write the on-disk world, and
+    // don't run the auto-save loop (which would race with fake timers).
+    if (process.env.NODE_ENV === 'test') return;
+
     this.loadState();
 
-    // Auto-save loop (skipped under test so it can't race with fake timers).
-    if (process.env.NODE_ENV !== 'test') {
-      setInterval(() => {
-        if (this.isDirty && Date.now() - this.lastSaveTime > this.SAVE_INTERVAL) {
-          this.saveState();
-        }
-      }, 5000);
-    }
+    // Auto-save loop.
+    setInterval(() => {
+      if (this.isDirty && Date.now() - this.lastSaveTime > this.SAVE_INTERVAL) {
+        this.saveState();
+      }
+    }, 5000);
   }
 
   private loadState() {

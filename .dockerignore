@@ -4,9 +4,14 @@ dist
 **/dist
 .git
 .gitignore
+# Docs and meta — not needed in the image.
 README.md
-hexfarm.md
+AGENTS.md
+TODO.md
 npm-debug.log
+*.log
 docker-compose.yml
 .dockerignore
 Dockerfile
+# Never bake local runtime world state into the image.
+server/data

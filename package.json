@@ -11,11 +11,15 @@
     "qs": "^6.15.3"
   },
   "scripts": {
+    "dev": "concurrently -k -n server,client -c cyan,magenta \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client",
     "build": "npm run build --workspaces",
     "typecheck": "npm run build --workspaces",
     "test": "npm run test --workspaces --if-present",
     "start": "npm run start --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
   }
 }

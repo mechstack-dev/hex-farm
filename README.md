@@ -70,11 +70,25 @@ The infinite world is generated deterministically on-the-fly with Simplex noise 
 npm install
 ```
 
-### Run
-- **Server:** `npm run dev:server` (port 3001)
-- **Client:** `npm run dev:client` (Vite dev server)
-- **Build all:** `npm run build`
-- **Start (prod server):** `npm run start`
+### Run in development (both at once)
+One command runs the realtime server *and* the client together:
+```bash
+npm run dev
+```
+Then open **http://localhost:5173**. The Vite dev client proxies its realtime connection to the server on `:3001`, so hot-reload works for the client while the server runs alongside. (You can still run them separately with `npm run dev:server` and `npm run dev:client`.)
+
+### Run in production (single process)
+The server serves the built client and the realtime API on one port:
+```bash
+npm run build && npm run start
+```
+Then open **http://localhost:3001**.
+
+### Run in Docker (one container, both)
+```bash
+docker compose up --build
+```
+Then open **http://localhost:3001**. The container builds the client and server and runs the single server process that serves both; the living world persists in the `wanderleaf-data` volume across restarts. (Or without compose: `docker build -t wanderleaf . && docker run -p 3001:3001 wanderleaf`.)
 
 ---
 
