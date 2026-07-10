@@ -31,13 +31,19 @@ Move across an infinite hexagonal world with **WASD / Arrow keys**. The camera f
 The world is a slow, always-running simulation:
 - **Flora spreads.** Mature plants and trees sow themselves into adjacent land. Forests thicken and advance; meadows bloom and fade; mushrooms rise in the rain. Nature reclaims open ground over real-world time.
 - **Fauna moves with intent.** Creatures wander, flock, and migrate. They react to you and to the season rather than serving as livestock.
-- **Time and weather are the drama.** Day and night, seasons, and weather are the main events worth chasing — first snow, a spring bloom, a passing storm, a still dawn. You wander *toward* these moments.
+- **Time and weather are the drama.** Day and night, seasons, and weather are the main events worth chasing — first snow, a spring bloom, a still dawn. Weather is *regional*: a storm rolls across part of the map, so you can literally wander *toward* it or away from it.
 
 ### You leave gentle marks
-Your only actions are soft, additive nudges — never destructive. (Design space, being tuned:) scatter seeds, coax a sprout, part the grass, draw a curious creature closer. Each nudge ripples into the living ecosystem, and because the world is shared and persistent, those ripples remain for others to discover long after you've wandered on.
+Your entire action set is four soft, additive nudges — never destructive:
+- **Scatter seeds** — cast seeds onto nearby land; they root and then propagate on their own.
+- **Coax growth** — touch a plant to nudge it toward its next stage or into bloom.
+- **Part the grass** — a ripple that sways flora and stirs small creatures and particles; pure sensory wonder.
+- **Draw creatures near** — quietly attract or calm nearby fauna so they approach and linger.
+
+Each nudge ripples into the living ecosystem, and because the world is shared and persistent, those ripples remain for others to discover long after you've wandered on.
 
 ### You are quietly not alone
-Multiplayer is present but never required. Everyone influences the **same persistent ecosystem**, so you routinely find changes that another wanderer's presence caused — a grove that wasn't there yesterday, a trail of flowers across a hill. The game is fully satisfying solo; company is a gift, not a requirement.
+Multiplayer is present but never required. Everyone influences the **same persistent ecosystem**, so you routinely find changes that another wanderer's presence caused — a grove that wasn't there yesterday, a trail of flowers across a hill. The game is fully satisfying solo; company is a gift, not a requirement. Expression is wordless: gentle emotes only, no text chat.
 
 ---
 

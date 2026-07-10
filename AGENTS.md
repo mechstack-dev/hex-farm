@@ -6,6 +6,19 @@ Guidance for AI coding agents (and humans) working in this repo. Read this befor
 
 This was **HexFarm**, a sprawling farming MMO. It is becoming **Wanderleaf**: a goal-free, tranquil exploration game where players wander an infinite hex world that grows and changes on its own. See `README.md` for the full vision. The engine stays; the gameplay is being stripped down and refocused.
 
+## Locked decisions
+
+These are settled. Build to them; don't relitigate without explicit sign-off.
+
+- **Nudge verbs (the player's *entire* action set):** Scatter seeds · Coax growth · Part the grass · Draw creatures near. All additive, none destructive. `useInput.ts` reduces to movement + these four.
+- **Communication:** emotes only (keep `/heart`, `/smile`, etc.). Remove text/global chat and all trade commands.
+- **Journal:** cut permanently. Nothing is tracked or recorded — the world itself is the only memory. Delete `client/src/components/Journal.tsx`.
+- **Weather:** regional/walkable from the start — storms roll across parts of the map; players can wander toward or away from them. Not a single global sky.
+- **Presence-as-ecology (default tuning):** ~2–3 hex radius, moderate strength, decays over time; biases flora spread and gently draws fauna toward recent player paths.
+- **Pacing:** tune propagation/migration/weather cadence so a ~10–15 min wander reliably contains at least one "moment."
+- **Persistence:** keep file-based for now; revisit a DB only at Phase 8 scale.
+- **Visuals:** no sprite/art pipeline — wonder comes from motion, color, light, and particles.
+
 ## The four design pillars
 
 Judge every change against these. If it doesn't serve one, don't build it.

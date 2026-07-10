@@ -10,12 +10,12 @@ Legend: 🔴 blocking / high-leverage · 🟡 core · 🟢 polish · 💭 needs 
 
 ## Phase 0 — Decisions & Setup
 
-Resolve these before large-scale coding; they shape everything downstream.
+Resolve these before large-scale coding; they shape everything downstream. **All settled — see the "Locked decisions" section of `AGENTS.md`.**
 
-- [ ] 💭 **Lock the "gentle nudge" verb set.** Pick the final 2–4 non-destructive actions (candidates: scatter seeds, coax growth, part grass, attract/calm a creature, leave a bloom-mark). Write them into `README.md` §2 and `AGENTS.md`.
-- [ ] 💭 **Define "presence-as-ecology" rules.** What exactly does moving through the world do? (e.g. flora bias toward the player's recent path, creatures orienting to the nearest wanderer.) Decide radius, strength, and decay.
-- [ ] 💭 **Decide the persistence story.** Current persistence is file-based. Confirm whether that survives the pivot or moves to a DB (see Phase 8). Affects how "the world remembers" is implemented.
-- [ ] 💭 **Choose a target session shape.** Is a "session" 5 minutes or an hour? Tune world tick rates and propagation speeds to match (`GAME_DAY`/tick constants in `common/src/types.ts`, `server/src/GameEngine.ts`).
+- [x] ✅ **Nudge verb set:** Scatter seeds · Coax growth · Part the grass · Draw creatures near. All additive, none destructive.
+- [x] ✅ **Presence-as-ecology rules:** ~2–3 hex radius, moderate strength, decay over time; biases flora spread and gently draws fauna toward recent player paths.
+- [x] ✅ **Persistence story:** keep file-based for now; revisit a DB only at Phase 8 scale.
+- [x] ✅ **Session shape:** tune tick rates/propagation so a ~10–15 min wander reliably contains at least one "moment" (`GAME_DAY`/tick constants in `common/src/types.ts`, `server/src/GameEngine.ts`).
 - [ ] **Establish a baseline.** Get `npm run dev:server` + `npm run dev:client` running and confirm the current build works before deleting anything.
 - [ ] **Add minimal tooling.** There is no test suite; add at least a typecheck/lint script and a smoke test for the server tick loop so the prune doesn't silently break things.
 - [ ] **Retire `verify_final.py`** or replace it with a relevant verification harness for the new direction.
@@ -81,7 +81,7 @@ Promote the systems that survive into the heart of the game.
 ### Time / seasons / weather (`server/src/logic/SeasonManager.ts`)
 - [ ] Elevate weather from a modifier to a headline event: schedule and telegraph rare, beautiful moments (first snow, spring bloom, storms, still dawns, fog, auroras).
 - [ ] Ensure day/night and seasons drive flora appearance, fauna behavior, and the rendering color palette (Phase 4), not stat math.
-- [ ] Make weather spatial where feasible (a storm you can walk toward/away from) rather than purely global — 💭 decide global vs. regional.
+- [ ] Make weather **regional/spatial** (a storm you can walk toward/away from) — decided: not a single global sky.
 
 ### World generation (`server/src/Generator.ts`)
 - [ ] Refocus generation from resource placement to **biome variety and beauty**: distinct, legible regions (forest, wetland, meadow, tundra, coast, etc.).
@@ -125,9 +125,9 @@ Multiplayer is secondary but the "shared, remembering world" is a pillar.
 - [ ] Ensure the world simulation runs and persists **independent of who is online** (`server/src/GameEngine.ts`, `WorldManager.ts`).
 - [ ] Persist player-caused changes (nudges, propagation biases) so absent players' effects remain discoverable.
 - [ ] Render other players as gentle, non-intrusive presences; no required interaction, no collisions-as-obstruction if it harms the calm.
-- [ ] Add wordless togetherness (retain/repurpose emotes; gathering at vistas) — 💭 decide how much, keep it minimal.
+- [ ] Add wordless togetherness (retain emotes; gathering at vistas). Keep it minimal.
 - [ ] Handle scale: many wanderers across an infinite world without the sim or sync melting (interest management by chunk/region).
-- [ ] Decide chat's fate — 💭 keep a quiet global chat, reduce to emotes only, or remove.
+- [x] ✅ **Chat's fate decided:** emotes only — remove text/global chat and trade commands, keep `/heart` etc.
 
 ---
 
@@ -149,7 +149,7 @@ The game should teach itself and stay out of the way.
 
 - [ ] Reduce the login/join flow to the minimum (name + go, or even anonymous).
 - [ ] Wordless or near-wordless onboarding: the player learns "walk" and the nudge verbs through gentle prompts, not tutorials.
-- [ ] 💭 Repurpose the Journal into a **wordless atlas/memory** of places seen and moments witnessed — *only if* it stays pressure-free (no completion %, no checklist). Otherwise cut it.
+- [x] ✅ **Journal decided: cut permanently.** Nothing is tracked or recorded — the world itself is the only memory. No atlas.
 - [ ] Strip HUD to near nothing; surface time/season/weather ambiently through the world, not gauges.
 - [ ] Accessibility pass: colorblind-friendly palettes, motion-reduction option, key rebinding.
 
