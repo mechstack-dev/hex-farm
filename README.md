@@ -91,11 +91,15 @@ npm install
 - [x] **Presence-as-ecology** — a wanderer's presence quickens the spread of life around them.
 - [x] **Shared persistent world** — one authoritative world that remembers flora growth and marks.
 
-### Next — depth & beauty
-- [ ] **The generative beauty layer** — richer color grading, particle life (pollen, fireflies, drifting leaves), soft lighting, and wind. *(currently: seasonal ground, day/night tint, rain/snow.)*
-- [ ] **Richer ecosystem** — biome variety, succession, migration, more evocative creatures and behaviors.
-- [ ] **Audio & atmosphere** — ambient generative soundscapes.
-- [ ] **Persistence & scale** — bound the ever-growing world; evaluate a database.
+### Done — depth & beauty
+- [x] **Generative beauty layer** — time-of-day color grading (moonlit night, amber dawn/dusk), wind that sways grass/flowers/canopies, ambient particle life (pollen, fireflies, autumn leaves), water shimmer, soft vignette, organic ground.
+- [x] **Richer ecosystem** — coherent biomes (wetland, forest, glade, meadow, highland), plant succession (forests advance, undergrowth rises), and fauna that rest by day/night and migrate with the seasons.
+- [x] **Bounded world** — an ecological density cap holds the world at equilibrium; atomic, race-free persistence.
+
+### Next
+- [ ] **Audio & atmosphere** — ambient generative soundscapes (repurpose `AudioManager`).
+- [ ] **Persistence at scale** — evaluate a database for a very large, long-lived world.
+- [ ] **Onboarding & accessibility** — wordless first-run, colorblind-friendly palettes, motion-reduction.
 
 ### The core risk we're designing around
 With economy and progression gone, the entire experience rests on two things: **the ecosystem being genuinely surprising** and **the world being genuinely beautiful**. Those two — the living simulation and the generative rendering — are now the only things that matter.
