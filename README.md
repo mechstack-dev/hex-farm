@@ -1,161 +1,102 @@
-# HexFarm MMO
+# Wanderleaf
 
-HexFarm is a scalable, slow-paced MMO set on an infinite hexagonal grid. It draws inspiration from the tranquil atmosphere of classic farming sims like Harvest Moon, focusing on the growth of plants and the gentle movement of animals in a procedurally generated world.
+> **Note.** The project is mid-pivot from a farming MMO ("HexFarm") to this. The repo directory is still `hex-farm`.
 
-## 1. Project Overview
+**Wanderleaf is a quiet, infinite world that grows, blooms, and shifts on its own. You show up, wander, and leave gentle marks. There are no goals, no economy, and no way to fail — the reward is simply seeing what the world has become. Everyone shares the same living world.**
 
-HexFarm features an infinite world generated on-the-fly using Simplex noise. Players collaborate or work independently to cultivate land, raise animals, and explore deep caves. The game runs in real-time, with plant growth and environmental changes persisting even when you're offline.
-
-### Key Features
-- **Infinite Procedural World:** Explore a deterministic world that generates chunks as you move.
-- **Real-time Growth:** Crops grow over real-world time. Watering and seasons affect growth rates.
-- **Skill System:** Level up in Farming, Foraging, Mining, Fishing, and Cooking to reduce stamina costs.
-- **Economy & NPCs:** Trade with the Merchant, upgrade tools at the Blacksmith, sell fish to the Fisherman, and buy dynamite from the Miner.
-- **Animal Husbandry:** Raise Cows, Sheep, Chickens, Pigs, Goats, and Ducks. Automate collection with Barns.
-- **Crafting & Construction:** Build infrastructure like Fences, Sprinklers, Beehives, and Sheds.
-- **Mining Depths:** Discover cave entrances to find rare ores and coal.
+Think of it as a walking meditation across an endless hex meadow rather than a game you "win." Forests advance across the land, flowers spread after rain, flocks migrate with the seasons, and the marks you leave persist for other wanderers to find.
 
 ---
 
-## 2. Tech Stack
+## 1. Design Pillars
 
-The project is organized as a **TypeScript Monorepo**:
+Everything in Wanderleaf serves four ideas. If a proposed feature doesn't serve one of these, it doesn't belong.
 
-- **Backend (`/server`):** Node.js, Express, Socket.io for real-time synchronization, and a custom game engine.
-- **Frontend (`/client`):** React for UI, PixiJS for high-performance WebGL hexagonal rendering.
-- **Shared (`/common`):** Shared types and logic used by both client and server.
+1. **Wonder is the only reward.** No coins, no XP, no unlocks, no completion meters. The payoff is the sight. Progression is purely freeform — every player is equal at all times.
+2. **The world is alive and shared.** One persistent ecosystem that propagates, spreads, and migrates on its own — and remembers what everyone's presence did to it.
+3. **You nudge, you don't manage.** A tiny set of soft, non-destructive verbs. Nothing can be done wrong; nothing can be destroyed or lost.
+4. **Beauty from motion and color.** The world is rendered with generative geometry made lovely through light, particles, animation, and composition — not a sprite/art pipeline.
+
+### What Wanderleaf is *not*
+No farming to manage, no tools, no crafting, no buildings to construct, no NPC shops, no combat, no stamina, no hunger, no quests, no skills, no achievements. If you feel pressure, something is wrong.
 
 ---
 
-## 3. Getting Started
+## 2. The Experience
+
+### You wander
+Move across an infinite hexagonal world with **WASD / Arrow keys**. The camera follows you; new terrain generates as you approach it. There is nowhere you *have* to go and nothing you *have* to reach. Wander toward the weather, the light, or a distant shape on the horizon.
+
+### The world lives without you
+The world is a slow, always-running simulation:
+- **Flora spreads.** Mature plants and trees sow themselves into adjacent land. Forests thicken and advance; meadows bloom and fade; mushrooms rise in the rain. Nature reclaims open ground over real-world time.
+- **Fauna moves with intent.** Creatures wander, flock, and migrate. They react to you and to the season rather than serving as livestock.
+- **Time and weather are the drama.** Day and night, seasons, and weather are the main events worth chasing — first snow, a spring bloom, a passing storm, a still dawn. You wander *toward* these moments.
+
+### You leave gentle marks
+Your only actions are soft, additive nudges — never destructive. (Design space, being tuned:) scatter seeds, coax a sprout, part the grass, draw a curious creature closer. Each nudge ripples into the living ecosystem, and because the world is shared and persistent, those ripples remain for others to discover long after you've wandered on.
+
+### You are quietly not alone
+Multiplayer is present but never required. Everyone influences the **same persistent ecosystem**, so you routinely find changes that another wanderer's presence caused — a grove that wasn't there yesterday, a trail of flowers across a hill. The game is fully satisfying solo; company is a gift, not a requirement.
+
+---
+
+## 3. Tech Stack
+
+A **TypeScript monorepo**. The pivot keeps the engine and reshapes what it simulates.
+
+- **Backend (`/server`):** Node.js, Express, Socket.io for real-time sync, and a tick-based simulation engine that runs the living world.
+- **Frontend (`/client`):** React for minimal UI, PixiJS for high-performance WebGL hex rendering (the surface where "wonder from motion and color" is won).
+- **Shared (`/common`):** Types and hex math shared by client and server.
+
+The infinite world is generated deterministically on-the-fly with Simplex noise and a 16×16 hex chunking system, so the world is consistent for every player and persists whether or not anyone is watching.
+
+---
+
+## 4. Getting Started
 
 ### Prerequisites
 - Node.js (v18+ recommended)
 - npm
 
-### Installation
-1. Clone the repository.
-2. Install dependencies at the root:
-   ```bash
-   npm install
-   ```
+### Install
+```bash
+npm install
+```
 
-### Running the Game
-You can run both the server and client from the root directory:
-
-- **Start Server:** `npm run dev:server` (Starts on port 3001)
-- **Start Client:** `npm run dev:client` (Starts Vite dev server)
-- **Build All:** `npm run build`
+### Run
+- **Server:** `npm run dev:server` (port 3001)
+- **Client:** `npm run dev:client` (Vite dev server)
+- **Build all:** `npm run build`
+- **Start (prod server):** `npm run start`
 
 ---
 
-## 4. Game Mechanics
+## 5. Status & Roadmap
 
-### Farming
-- **Plowing:** Use a Hoe to till soil. Tilling decorative grass has a chance to yield seeds or coins.
-- **Growth:** Plants have 5 growth stages. Growth is doubled if watered (manually or by rain/sprinklers).
-- **Seasons:** Most crops have preferred seasons (e.g., Turnips in Spring, Corn in Summer). Out-of-season growth is 50% slower.
-- **Fertilizer:** Use "Junk" or "Compost Fertilizer" to instantly boost a plant's growth stage.
+**The codebase is mid-pivot.** It still contains the full former feature set of a farming MMO (economy, tools, ~40 buildings, cooking, mining, fishing, skills, quests). That surface area is being **removed or repurposed**, not extended. See `AGENTS.md` for the concrete keep / repurpose / cut map before making changes.
 
-### Buildings & Infrastructure
-- **Sprinklers:** Automatically water plants every game tick. Available in Basic, Iron (radius 2), and Gold (radius 3) tiers.
-- **Beehives:** Produce Honey. If a Sunflower is nearby, they produce premium Sunflower Honey and boost nearby plant growth.
-- **Barns:** Automatically collect animal products within a 2-hex radius.
-- **Shipping Bin:** Sell all eligible inventory items instantly at 80% market value.
-- **Seed Maker:** Convert crops back into 1-3 seeds of the same species.
+### Repurpose (promote to the core)
+- [ ] **Natural propagation** — from a background footnote to the beating heart of the game.
+- [ ] **Emergent fauna** — strip husbandry/products; keep and expand movement, flocking, migration, and reactions to the player.
+- [ ] **Seasons / day-night / weather** — from stat modifiers to the world's headline events.
+- [ ] **Shared persistent world** — the vehicle for "discover what others' presence changed."
 
-### NPCs & Relationships
-- **Merchant (0,0):** Buys crops and products, sells seeds and basic tools. Assigns quests.
-- **Blacksmith (5,5):** Handles tool upgrades (Copper, Iron, Gold).
-- **Fisherman (Near water):** Buys fish at a premium price.
-- **Miner (10005, 10005):** Located in caves. Buys ores and stone, sells dynamite.
-- **Friendship:** Give gifts (`/gift [npc] [item]`) to build relationships. High friendship unlocks perks like "Merchant's Guild" (+20% sell price) or "Deep Delver" (higher gold ore chance).
+### Build
+- [ ] **The "gentle nudge" verb set** — a small, additive, non-destructive interaction vocabulary.
+- [ ] **Presence-as-ecology** — the player subtly and persistently influences growth and creatures just by moving through.
+- [ ] **The generative beauty layer** — seasonal/time-of-day color grading, particle life (pollen, fireflies, drifting leaves, snow), soft lighting, and wind.
 
-### Skills & Stamina
-- Every action (plowing, watering, mining) consumes stamina.
-- Leveling up skills reduces the stamina cost of related actions.
-- **Cooking:** Combine ingredients at a Cooking Pot to create meals that restore high stamina and provide powerful buffs (e.g., Mining Luck, Max Stamina boost).
+### Cut
+- [ ] Economy & NPCs-as-shops (Merchant, Blacksmith, Miner, Fisherman, Woody), coins, selling, quests, gifting, friendship.
+- [ ] Progression: skills, XP, levels, achievements, mastery, stamina/hunger.
+- [ ] Crafting & tools: hoe/axe/pickaxe/scythe, tool tiers, buildings, cooking, smelting, artisan machines.
+- [ ] Attrition mechanics: pests, dynamite, lightning damage.
+
+### The core risk we're designing around
+With economy and progression gone, the entire experience rests on two things: **the ecosystem being genuinely surprising** and **the world being genuinely beautiful**. Those two — the living simulation and the generative rendering — are now the only things that matter.
 
 ---
 
-## 5. Controls (Keyboard Shortcuts)
-
-### Movement & Interaction
-- **WASD / Arrows:** Move player
-- **E:** Interact (Talk to NPCs, Harvest Fruit/Berries, Use Buildings, Enter Caves)
-- **H:** Harvest mature crops
-- **X:** Clear obstacle (Axe for trees, Pickaxe for rocks)
-- **C:** Eat best food in inventory
-- **Y:** Teleport home (Costs 20 stamina)
-- **Z:** Use Dynamite (Clears 1-hex radius)
-- **Enter:** Open Chat
-- **Esc:** Close Chat / Menu
-- **Alt + E**: Build Lamp
-
-### Farming & Building
-- **1 - 9:** Plant Seeds (8: Sunflower, 9: Orange Tree)
-- **Minus (-)**: Plant Kale
-- **P:** Plow / Till soil
-- **I:** Water (requires Watering Can or nearby Well)
-- **G:** Fertilize (uses Junk or Compost Fertilizer)
-- **F:** Build Fence
-- **R:** Build Path
-- **K:** Build Sprinkler (Shift+K: Iron, Alt+K: Gold)
-- **B:** Build Scarecrow
-- **L:** Build Shed
-- **V:** Build Chest
-- **U:** Build Well
-- **N:** Build Beehive
-- **O:** Build Cooking Pot
-- **M:** Build Barn
-- **Q:** Build Shipping Bin (Shift+Q: Compost Bin)
-- **T:** Build Seed Maker
-
-### Tools & Shopping
-- **Shift + 1-7, 9, 0:** Buy Seeds from Merchant
-- **Shift + 8:** Buy Fishing Rod
-- **0 (Zero):** Buy Scythe (Area-of-effect harvesting)
-- **Ctrl + 9, 0, -, =:** Buy Basic Tools (Hoe, Watering Can, Axe, Pickaxe)
-- **Shift + X:** Sell Resources (Wood, Stone, Junk) near Merchant
-
-### Cooking (Alt + Key)
-*Stand near a Cooking Pot to use these shortcuts:*
-- **Alt + 1-9:** Salad, Apple Pie, Pumpkin Soup, Corn Chowder, Grilled Fish, Mushroom Soup, Berry Tart, Miner's Stew, Veggie Platter
-- **Alt + 0:** Coal-Grilled Fish
-- **Alt + U:** Orange Juice
-- **Alt + G:** Honey Glazed Carrots
-- **Alt + H:** Goat Cheese Salad
-- **Alt + J:** Duck Egg Mayo
-- **Alt + K (+ Shift):** Berry Smoothie
-- **Alt + L:** Pumpkin Pie
-- **Alt + P:** Apple Cider
-
----
-
-## 6. Roadmap
-
-### Completed
-- [x] Persistent Infinite World & Chunking
-- [x] Farming Loop (Plow, Plant, Water, Fertilize, Harvest)
-- [x] Animal Husbandry (Breeding & Products)
-- [x] Skill & Achievement Systems
-- [x] NPC Relationship & Perk System
-- [x] Mining Depths (Caves)
-- [x] Advanced Cooking & Buff System
-- [x] Tool Tier Upgrades (Copper, Iron, Gold)
-- [x] Natural Propagation (Living World)
-- [x] Recycling Machine & Junk Processing
-- [x] Decorative Life (Butterflies, Fireflies, and Landing Birds)
-- [x] New Crops (Winter Kale)
-- [x] Decorative Lighting (Lamps)
-
-### Planned
-- [ ] **Environmental Depth:** More NPCs with unique schedules and events.
-- [ ] **Sound & Music:** Relaxing ambient sounds and seasonal music.
-- [ ] **Visual Polish:** Full replacement of geometric shapes with detailed pixel art sprites.
-- [ ] **Automation Expansion:** More advanced machinery for farm management.
-
----
-
-## 7. License
-This project is licensed under the MIT License.
+## 6. License
+MIT.
