@@ -38,48 +38,70 @@ export class Generator {
 
     for (let q = cq * chunkSize; q < (cq + 1) * chunkSize; q++) {
       for (let r = cr * chunkSize; r < (cr + 1) * chunkSize; r++) {
-        const e = this.elevation(q * 0.08, r * 0.08);
-        const m = this.moisture(q * 0.06, r * 0.06);
+        // Low frequency => large, coherent regions you can walk toward.
+        const e = this.elevation(q * 0.045, r * 0.045);
+        const m = this.moisture(q * 0.05, r * 0.05);
         const roll = rng();
-
-        // Water sits in the low, wet places — ponds and rivers, not oceans.
-        if (e < -0.5) {
-          entities.push({ id: `water-${q}-${r}`, type: 'water', species: 'water', pos: { q, r } });
-          continue;
-        }
-
-        // High, dry ground is rocky, but leaves room to wander through.
-        if (e > 0.62) {
-          if (roll < 0.4) {
-            entities.push({ id: `rock-${q}-${r}`, type: 'rock', species: 'rock', pos: { q, r } });
-          }
-          continue;
-        }
-
-        // Damp ground grows forest; drier ground becomes meadow.
-        const forested = m > 0.2;
-        if (forested) {
-          if (roll < 0.35) {
-            entities.push(this.mature(this.pick(rng, ['oak', 'birch', 'pine', 'maple', 'willow']), 'tree', q, r));
-          } else if (roll < 0.5) {
-            entities.push(this.mature(this.pick(rng, ['fern', 'clover', 'mushroom', 'grass']), 'flora', q, r));
-          } else if (roll < 0.53) {
-            entities.push(this.makeFauna(this.pick(rng, ['deer', 'fox', 'bird', 'frog']), q, r));
-          }
-        } else {
-          if (roll < 0.28) {
-            entities.push(this.mature(this.pick(rng, ['grass', 'clover', 'flower', 'poppy', 'daisy', 'tulip', 'lavender', 'sunflower']), 'flora', q, r));
-          } else if (roll < 0.31) {
-            entities.push(this.mature(this.pick(rng, ['oak', 'birch']), 'tree', q, r));
-          } else if (roll < 0.34) {
-            entities.push(this.makeFauna(this.pick(rng, ['rabbit', 'deer', 'bird', 'butterfly']), q, r));
-          } else if (roll < 0.345) {
-            entities.push({ id: `rock-${q}-${r}`, type: 'rock', species: 'rock', pos: { q, r } });
-          }
-        }
+        const spec = this.biome(e, m);
+        this.populate(entities, spec, rng, roll, q, r);
       }
     }
     return entities;
+  }
+
+  /** Classify a hex into a legible biome from elevation and moisture. */
+  private biome(e: number, m: number): string {
+    if (e < -0.5) return 'water';
+    if (e > 0.55) return 'highland';       // rocky uplands
+    if (e < -0.3) return 'wetland';        // low ground near water
+    if (m > 0.3) return 'forest';          // damp woodland
+    if (m < -0.25) return 'glade';         // dry flowering fields
+    return 'meadow';                       // gentle mixed grassland
+  }
+
+  private populate(out: Entity[], biome: string, rng: () => number, roll: number, q: number, r: number) {
+    const tree = (opts: string[]) => out.push(this.mature(this.pick(rng, opts), 'tree', q, r));
+    const flora = (opts: string[]) => out.push(this.mature(this.pick(rng, opts), 'flora', q, r));
+    const fauna = (opts: string[]) => out.push(this.makeFauna(this.pick(rng, opts), q, r));
+    const rock = () => out.push({ id: `rock-${q}-${r}`, type: 'rock', species: 'rock', pos: { q, r } });
+
+    switch (biome) {
+      case 'water':
+        out.push({ id: `water-${q}-${r}`, type: 'water', species: 'water', pos: { q, r } });
+        return;
+
+      case 'highland': // sparse, hardy, open
+        if (roll < 0.35) rock();
+        else if (roll < 0.42) tree(['pine']);
+        else if (roll < 0.5) flora(['lavender', 'clover', 'grass']);
+        else if (roll < 0.515) fauna(['fox', 'deer']);
+        return;
+
+      case 'wetland': // reeds, mushrooms, willows, frogs
+        if (roll < 0.4) flora(['fern', 'grass', 'mushroom', 'clover']);
+        else if (roll < 0.5) tree(['willow']);
+        else if (roll < 0.55) fauna(['frog', 'bird']);
+        return;
+
+      case 'forest': // dense trees with undergrowth
+        if (roll < 0.42) tree(['oak', 'birch', 'pine', 'maple']);
+        else if (roll < 0.58) flora(['fern', 'clover', 'mushroom', 'grass']);
+        else if (roll < 0.61) fauna(['deer', 'fox', 'bird']);
+        return;
+
+      case 'glade': // dry flowering fields
+        if (roll < 0.4) flora(['poppy', 'daisy', 'tulip', 'sunflower', 'lavender', 'flower']);
+        else if (roll < 0.43) tree(['birch']);
+        else if (roll < 0.47) fauna(['butterfly', 'rabbit', 'bird']);
+        return;
+
+      default: // meadow: gentle mixed grassland
+        if (roll < 0.26) flora(['grass', 'clover', 'flower', 'daisy']);
+        else if (roll < 0.29) tree(['oak', 'birch']);
+        else if (roll < 0.325) fauna(['rabbit', 'deer', 'bird', 'butterfly']);
+        else if (roll < 0.33) rock();
+        return;
+    }
   }
 
   private makeFauna(species: string, q: number, r: number): Entity {
