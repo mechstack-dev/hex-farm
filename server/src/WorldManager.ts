@@ -18,6 +18,7 @@ export class WorldManager {
   private players: Map<string, Player> = new Map();
   private dataFilePath = path.join(process.cwd(), 'data', 'world.json');
   private isDirty: boolean = false;
+  private isSaving: boolean = false;
   private lastSaveTime: number = 0;
   private SAVE_INTERVAL = 30000; // 30 seconds
 
@@ -25,12 +26,14 @@ export class WorldManager {
     this.generator = new Generator(seed);
     this.loadState();
 
-    // Auto-save loop
-    setInterval(() => {
-      if (this.isDirty && Date.now() - this.lastSaveTime > this.SAVE_INTERVAL) {
-        this.saveState();
-      }
-    }, 5000);
+    // Auto-save loop (skipped under test so it can't race with fake timers).
+    if (process.env.NODE_ENV !== 'test') {
+      setInterval(() => {
+        if (this.isDirty && Date.now() - this.lastSaveTime > this.SAVE_INTERVAL) {
+          this.saveState();
+        }
+      }, 5000);
+    }
   }
 
   private loadState() {
@@ -95,7 +98,9 @@ export class WorldManager {
   }
 
   async saveState() {
-    if (!this.isDirty) return;
+    // Guard against overlapping writes, which would corrupt world.json.
+    if (!this.isDirty || this.isSaving) return;
+    this.isSaving = true;
     this.isDirty = false;
     this.lastSaveTime = Date.now();
 
@@ -104,11 +109,15 @@ export class WorldManager {
         entities: Array.from(this.persistentEntities.values()),
         removedStaticIds: Array.from(this.removedStaticIds)
       };
-      await fs.promises.writeFile(this.dataFilePath, JSON.stringify(data, null, 2));
-      console.log('World state saved successfully.');
+      // Write to a temp file then rename, so a crash mid-write can't corrupt.
+      const tmp = this.dataFilePath + '.tmp';
+      await fs.promises.writeFile(tmp, JSON.stringify(data));
+      await fs.promises.rename(tmp, this.dataFilePath);
     } catch (e) {
       console.error('Failed to save world state:', e);
       this.isDirty = true; // Retry later
+    } finally {
+      this.isSaving = false;
     }
   }
 

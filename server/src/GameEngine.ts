@@ -79,6 +79,12 @@ export class GameEngine {
     }
 
     if (canPropagate(grown)) {
+      // Nature reaches equilibrium: once a patch is crowded it stops
+      // spreading. This keeps meadows from becoming solid carpets and
+      // bounds how much the persistent world can grow.
+      const crowding = getNeighbors(plant.pos).filter(n => occupied.has(posToKey(n.q, n.r))).length;
+      if (crowding >= 4) return;
+
       // A wanderer's presence quickens the spread of life around them.
       const boost = players.some(p => distance(p.pos, plant.pos) <= 3) ? 4 : 1;
       const baseChance = plant.type === 'tree' ? 0.003 : 0.008;
@@ -131,7 +137,12 @@ export class GameEngine {
   }
 
   private emptyNeighbor(pos: Position, occupied: Set<string>): Position | null {
-    const open = getNeighbors(pos).filter(n => !occupied.has(posToKey(n.q, n.r)));
+    // Check the authoritative world, not just the in-memory occupied set:
+    // a neighbor may lie in a not-yet-generated chunk that already holds a
+    // static entity, which the occupied set wouldn't know about.
+    const open = getNeighbors(pos).filter(
+      (n) => !occupied.has(posToKey(n.q, n.r)) && this.world.getEntitiesAt(n.q, n.r).length === 0,
+    );
     if (open.length === 0) return null;
     return open[Math.floor(Math.random() * open.length)];
   }
