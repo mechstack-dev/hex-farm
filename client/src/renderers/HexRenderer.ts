@@ -34,6 +34,12 @@ export class HexRenderer {
   private weatherParticles: Particle[] = [];
   private ambient: { x: number; y: number; vx: number; vy: number; phase: number }[] = [];
   private wind = 0;
+  private reducedMotion = false;
+
+  setReducedMotion(v: boolean) {
+    this.reducedMotion = v;
+    if (v) { this.ambient.length = 0; this.weatherParticles.length = 0; }
+  }
 
   constructor(element: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -86,7 +92,7 @@ export class HexRenderer {
     const lerp = 0.15;
     const now = Date.now();
     // A soft, coherent breeze that gusts on two overlapping periods.
-    this.wind = Math.sin(now / 1600) * 0.6 + Math.sin(now / 3700) * 0.4;
+    this.wind = this.reducedMotion ? 0 : Math.sin(now / 1600) * 0.6 + Math.sin(now / 3700) * 0.4;
 
     // Camera eases toward the wanderer.
     const cam = axialToPixel(this.playerPos.q, this.playerPos.r, HEX_SIZE);
@@ -320,7 +326,8 @@ export class HexRenderer {
 
   private drawWeather(weather: Weather) {
     if (weather === 'rainy' || weather === 'snowy') {
-      const target = weather === 'rainy' ? 130 : 90;
+      const base = weather === 'rainy' ? 130 : 90;
+      const target = this.reducedMotion ? Math.round(base * 0.3) : base;
       while (this.weatherParticles.length < target) {
         this.weatherParticles.push({
           x: Math.random() * this.app.screen.width,
@@ -400,7 +407,7 @@ export class HexRenderer {
     const H = this.app.screen.height;
     const sun = -Math.cos(timeOfDay * Math.PI * 2);
     const night = sun < -0.15;
-    const target = 26;
+    const target = this.reducedMotion ? 0 : 26;
 
     while (this.ambient.length < target) {
       this.ambient.push({

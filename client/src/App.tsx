@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { HexRenderer } from './renderers/HexRenderer';
 import { socket, joinGame, movePlayer, nudge, emote } from './network';
 import { useInput } from './hooks/useInput';
+import { AudioManager } from './AudioManager';
 import type { Entity, Position, EnvironmentState, NudgeVerb, EmoteType } from 'common';
 import { getChunkCoords, chunkToKey, localWeather, EMOTES } from 'common';
 import './App.css';
@@ -22,6 +23,10 @@ export default function App() {
   const [entities, setEntities] = useState<Map<string, Entity>>(new Map());
   const [playerPos, setPlayerPos] = useState<Position>({ q: 0, r: 0 });
   const [env, setEnv] = useState<EnvironmentState>({ season: 'spring', dayCount: 0, timeOfDay: 0, weatherCells: [] });
+  const [muted, setMuted] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+  );
 
   const requestChunksAround = useCallback((q: number, r: number) => {
     const { cq, cr } = getChunkCoords(q, r);
@@ -88,7 +93,12 @@ export default function App() {
   // --- render loop ---------------------------------------------------------
   useEffect(() => {
     renderer.current?.renderWorld(Array.from(entities.values()), playerPos, env);
+    AudioManager.getInstance().setWeather(localWeather(env.weatherCells, playerPos));
   }, [entities, playerPos, env]);
+
+  useEffect(() => {
+    renderer.current?.setReducedMotion(reducedMotion);
+  }, [reducedMotion, joined]);
 
   // --- input ---------------------------------------------------------------
   const onMove = useCallback((dq: number, dr: number) => {
@@ -100,6 +110,7 @@ export default function App() {
   }, []);
 
   const onNudge = useCallback((verb: NudgeVerb) => {
+    if (verb === 'scatter' || verb === 'coax') AudioManager.getInstance().pluck();
     setPlayerPos((p) => {
       nudge(verb, p.q + facing.current.q, p.r + facing.current.r);
       return p;
@@ -109,7 +120,7 @@ export default function App() {
   useInput({ onMove, onNudge });
 
   if (!joined) {
-    const enter = () => { joinGame(name || 'Wanderer'); setJoined(true); };
+    const enter = () => { joinGame(name || 'Wanderer'); AudioManager.getInstance().start(); setJoined(true); };
     return (
       <div className="login">
         <h1>Wanderleaf</h1>
@@ -136,11 +147,24 @@ export default function App() {
       <div ref={pixiContainer} className="pixi" />
 
       <div className="hud">
-        <div className="panel env">
-          <span className="season">{env.season}</span>
-          <span>· {weather}</span>
-          <span>· day {env.dayCount + 1}</span>
-          <span>· {hh}:{mm}</span>
+        <div className="topbar">
+          <div className="panel env">
+            <span className="season">{env.season}</span>
+            <span>· {weather}</span>
+            <span>· day {env.dayCount + 1}</span>
+            <span>· {hh}:{mm}</span>
+          </div>
+          <div className="settings">
+            <button
+              title={muted ? 'Unmute' : 'Mute'}
+              onClick={() => setMuted(AudioManager.getInstance().toggleMute())}
+            >{muted ? '🔇' : '🔊'}</button>
+            <button
+              title="Reduce motion"
+              className={reducedMotion ? 'on' : ''}
+              onClick={() => setReducedMotion((v) => !v)}
+            >〰️</button>
+          </div>
         </div>
 
         <div className="panel controls">
