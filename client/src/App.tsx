@@ -17,6 +17,7 @@ export default function App() {
   const requested = useRef<Set<string>>(new Set());
   const facing = useRef<Position>({ q: 0, r: 1 });
   const playerId = useRef<string | null>(null);
+  const nameRef = useRef('');
 
   const [joined, setJoined] = useState(false);
   const [name, setName] = useState('');
@@ -27,6 +28,8 @@ export default function App() {
   const [reducedMotion, setReducedMotion] = useState(
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
   );
+
+  const lastChunk = useRef<string>('');
 
   const requestChunksAround = useCallback((q: number, r: number) => {
     const { cq, cr } = getChunkCoords(q, r);
@@ -41,6 +44,26 @@ export default function App() {
       }
     }
     if (needed.length) socket.emit('requestChunks', needed);
+  }, []);
+
+  // As the wanderer moves on, forget far-away chunks so the client's entity
+  // map doesn't grow without bound over a long journey. Dropped chunks are
+  // also un-remembered so they reload if the wanderer returns.
+  const forgetFar = useCallback((q: number, r: number) => {
+    const PRUNE_RADIUS = 3; // a margin beyond the request radius
+    const { cq, cr } = getChunkCoords(q, r);
+    setEntities((prev) => {
+      const next = new Map<string, Entity>();
+      for (const [id, e] of prev) {
+        const ec = getChunkCoords(e.pos.q, e.pos.r);
+        if (Math.abs(ec.cq - cq) <= PRUNE_RADIUS && Math.abs(ec.cr - cr) <= PRUNE_RADIUS) {
+          next.set(id, e);
+        } else {
+          requested.current.delete(chunkToKey(ec.cq, ec.cr));
+        }
+      }
+      return next;
+    });
   }, []);
 
   // --- socket wiring -------------------------------------------------------
@@ -68,6 +91,12 @@ export default function App() {
       if (entity.id === playerId.current) {
         setPlayerPos(entity.pos);
         requestChunksAround(entity.pos.q, entity.pos.r);
+        const { cq, cr } = getChunkCoords(entity.pos.q, entity.pos.r);
+        const c = chunkToKey(cq, cr);
+        if (c !== lastChunk.current) {
+          lastChunk.current = c;
+          forgetFar(entity.pos.q, entity.pos.r);
+        }
       }
     });
 
@@ -80,6 +109,10 @@ export default function App() {
     });
 
     socket.on('environmentUpdate', (e: EnvironmentState) => setEnv(e));
+
+    // Join only after every listener is attached, so the server's `init`
+    // reply can never arrive before we're listening for it.
+    joinGame(nameRef.current || 'Wanderer');
 
     return () => {
       socket.off('init');
@@ -120,7 +153,7 @@ export default function App() {
   useInput({ onMove, onNudge });
 
   if (!joined) {
-    const enter = () => { joinGame(name || 'Wanderer'); AudioManager.getInstance().start(); setJoined(true); };
+    const enter = () => { nameRef.current = name; AudioManager.getInstance().start(); setJoined(true); };
     return (
       <div className="login">
         <h1>Wanderleaf</h1>

@@ -3,8 +3,9 @@ import type { Entity, WorldChunk, Player, Position } from 'common';
 
 // Flora and trees persist (the world remembers growth and what wanderers
 // seed). Fauna are ephemeral ambient life, regenerated per chunk; water and
-// rock are deterministic scenery. Only these three are written to disk.
-const PERSISTENT_TYPES = ['flora', 'tree', 'player'];
+// rock are deterministic scenery; players live only in memory for the length
+// of their visit. Only flora and trees are written to disk.
+const PERSISTENT_TYPES = ['flora', 'tree'];
 import { Generator } from './Generator.js';
 import fs from 'fs';
 import path from 'path';
@@ -113,6 +114,7 @@ export class WorldManager {
         removedStaticIds: Array.from(this.removedStaticIds)
       };
       // Write to a temp file then rename, so a crash mid-write can't corrupt.
+      await fs.promises.mkdir(path.dirname(this.dataFilePath), { recursive: true });
       const tmp = this.dataFilePath + '.tmp';
       await fs.promises.writeFile(tmp, JSON.stringify(data));
       await fs.promises.rename(tmp, this.dataFilePath);

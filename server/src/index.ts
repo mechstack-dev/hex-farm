@@ -5,8 +5,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WorldManager } from './WorldManager.js';
 import { GameEngine } from './GameEngine.js';
-import type { Player, Position, NudgeVerb, EmoteType } from 'common';
-import { EMOTES } from 'common';
+import type { Player, Position, EmoteType } from 'common';
+import { EMOTES, hexDistance } from 'common';
+
+// --- Input guards: socket payloads are untrusted. An unhandled throw in a
+// handler would crash the whole server, so validate everything. ---
+const NUDGE_VERBS = new Set(['scatter', 'coax', 'part', 'draw']);
+const MAX_CHUNKS_PER_REQUEST = 64;
+const isNum = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
+const isPos = (p: any): p is Position => !!p && isNum(p.q) && isNum(p.r);
 
 const app = express();
 const httpServer = createServer(app);
@@ -27,18 +34,15 @@ const PALETTE = [0x6ba368, 0x5b8fb9, 0xc98a5e, 0xb56576, 0x9b6bcc, 0xd6a34a];
 io.on('connection', (socket) => {
   console.log('a wanderer connected', socket.id);
 
-  socket.on('join', (name: string, color?: number) => {
+  socket.on('join', (name: unknown, color: unknown) => {
     const id = `player-${socket.id}`;
-    const existing = world.getPersistentEntity(id) as Player | undefined;
-
-    const player: Player = existing ?? {
+    const player: Player = {
       id,
       type: 'player',
-      name: (name || 'Wanderer').slice(0, 20),
+      name: (typeof name === 'string' && name.trim() ? name : 'Wanderer').slice(0, 20),
       pos: { q: 0, r: 0 },
-      color: color ?? PALETTE[Math.floor(Math.random() * PALETTE.length)],
+      color: isNum(color) ? color : PALETTE[Math.floor(Math.random() * PALETTE.length)],
     };
-    player.name = (name || player.name || 'Wanderer').slice(0, 20);
 
     players.set(socket.id, player);
     world.addEntity(player);
@@ -48,29 +52,37 @@ io.on('connection', (socket) => {
     io.emit('entityUpdate', player);
   });
 
-  socket.on('move', (pos: Position) => {
+  socket.on('move', (pos: unknown) => {
     const player = players.get(socket.id);
-    if (!player) return;
-    // Only single-hex steps, and never onto water or rock.
+    if (!player || !isPos(pos)) return;
+    // Only single-hex steps (no teleporting), and never onto water or rock.
+    if (hexDistance(player.pos, pos) > 1) return;
     const blocked = world
       .getEntitiesAt(pos.q, pos.r)
       .some((e) => e.type === 'water' || e.type === 'rock');
     if (blocked) return;
 
-    player.pos = pos;
-    world.updateEntity(player);
+    const oldPos = { ...player.pos };
+    player.pos = { q: pos.q, r: pos.r };
+    world.moveEntityInMemory(player, oldPos);
     io.emit('entityUpdate', player);
   });
 
-  socket.on('requestChunks', (coords: { cq: number; cr: number }[]) => {
-    const chunks = coords.map((c) => world.getChunk(c.cq, c.cr));
+  socket.on('requestChunks', (coords: unknown) => {
+    if (!Array.isArray(coords)) return;
+    const chunks = coords
+      .slice(0, MAX_CHUNKS_PER_REQUEST)
+      .filter((c) => c && isNum(c.cq) && isNum(c.cr))
+      .map((c) => world.getChunk(c.cq, c.cr));
     socket.emit('chunks', chunks);
   });
 
   // --- The four nudge verbs ---------------------------------------------
-  socket.on('nudge', ({ verb, q, r }: { verb: NudgeVerb; q: number; r: number }) => {
+  socket.on('nudge', (payload: unknown) => {
     const player = players.get(socket.id);
-    if (!player) return;
+    if (!player || !payload || typeof payload !== 'object') return;
+    const { verb, q, r } = payload as { verb: unknown; q: unknown; r: unknown };
+    if (typeof verb !== 'string' || !NUDGE_VERBS.has(verb) || !isNum(q) || !isNum(r)) return;
     const pos = { q, r };
 
     if (verb === 'scatter') {
