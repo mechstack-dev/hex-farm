@@ -80,24 +80,22 @@ npm install
 
 ## 5. Status & Roadmap
 
-**The codebase is mid-pivot.** It still contains the full former feature set of a farming MMO (economy, tools, ~40 buildings, cooking, mining, fishing, skills, quests). That surface area is being **removed or repurposed**, not extended. See `AGENTS.md` for the concrete keep / repurpose / cut map before making changes.
+**The farming-MMO engine has been replaced by a minimal Wanderleaf core** (a rewrite-to-core, not a gradual prune). The living world, the four nudge verbs, regional weather, and emotes-only multiplayer are in place and verified end-to-end. What remains is depth and polish. See `AGENTS.md` for the design guardrails and `TODO.md` for the full phased plan.
 
-### Repurpose (promote to the core)
-- [ ] **Natural propagation** — from a background footnote to the beating heart of the game.
-- [ ] **Emergent fauna** — strip husbandry/products; keep and expand movement, flocking, migration, and reactions to the player.
-- [ ] **Seasons / day-night / weather** — from stat modifiers to the world's headline events.
-- [ ] **Shared persistent world** — the vehicle for "discover what others' presence changed."
+### Done — the core
+- [x] **Cut the farming MMO** — economy, NPC shops, coins/quests/gifting, skills/XP/achievements, stamina/hunger, tools & tiers, ~40 buildings, cooking, mining, fishing, smelting, pests/attrition. (~58k lines removed.)
+- [x] **Natural propagation** — flora and forests grow and spread on their own; the beating heart of the sim.
+- [x] **Emergent fauna** — creatures wander, flock, and drift toward wanderers (no husbandry).
+- [x] **Regional weather** — fronts drift across the map; seasons and day/night drive the world.
+- [x] **The four nudge verbs** — scatter seeds, coax growth, part the grass, draw creatures near.
+- [x] **Presence-as-ecology** — a wanderer's presence quickens the spread of life around them.
+- [x] **Shared persistent world** — one authoritative world that remembers flora growth and marks.
 
-### Build
-- [ ] **The "gentle nudge" verb set** — a small, additive, non-destructive interaction vocabulary.
-- [ ] **Presence-as-ecology** — the player subtly and persistently influences growth and creatures just by moving through.
-- [ ] **The generative beauty layer** — seasonal/time-of-day color grading, particle life (pollen, fireflies, drifting leaves, snow), soft lighting, and wind.
-
-### Cut
-- [ ] Economy & NPCs-as-shops (Merchant, Blacksmith, Miner, Fisherman, Woody), coins, selling, quests, gifting, friendship.
-- [ ] Progression: skills, XP, levels, achievements, mastery, stamina/hunger.
-- [ ] Crafting & tools: hoe/axe/pickaxe/scythe, tool tiers, buildings, cooking, smelting, artisan machines.
-- [ ] Attrition mechanics: pests, dynamite, lightning damage.
+### Next — depth & beauty
+- [ ] **The generative beauty layer** — richer color grading, particle life (pollen, fireflies, drifting leaves), soft lighting, and wind. *(currently: seasonal ground, day/night tint, rain/snow.)*
+- [ ] **Richer ecosystem** — biome variety, succession, migration, more evocative creatures and behaviors.
+- [ ] **Audio & atmosphere** — ambient generative soundscapes.
+- [ ] **Persistence & scale** — bound the ever-growing world; evaluate a database.
 
 ### The core risk we're designing around
 With economy and progression gone, the entire experience rests on two things: **the ecosystem being genuinely surprising** and **the world being genuinely beautiful**. Those two — the living simulation and the generative rendering — are now the only things that matter.
