@@ -96,10 +96,13 @@ npm install
 - [x] **Richer ecosystem** — coherent biomes (wetland, forest, glade, meadow, highland), plant succession (forests advance, undergrowth rises), and fauna that rest by day/night and migrate with the seasons.
 - [x] **Bounded world** — an ecological density cap holds the world at equilibrium; atomic, race-free persistence.
 
+- [x] **Audio & atmosphere** — a generative Web Audio ambience: a breathing wind bed, sparse pentatonic birdsong, rain that rises with the weather, and gentle nudge feedback.
+- [x] **Accessibility** — reduced-motion mode (auto-detected + toggle) and a mute control.
+
 ### Next
-- [ ] **Audio & atmosphere** — ambient generative soundscapes (repurpose `AudioManager`).
 - [ ] **Persistence at scale** — evaluate a database for a very large, long-lived world.
-- [ ] **Onboarding & accessibility** — wordless first-run, colorblind-friendly palettes, motion-reduction.
+- [ ] **Deeper onboarding** — wordless first-run guidance; colorblind-friendly palette audit.
+- [ ] **Deploy** — update the Dockerfile and host a persistent server.
 
 ### The core risk we're designing around
 With economy and progression gone, the entire experience rests on two things: **the ecosystem being genuinely surprising** and **the world being genuinely beautiful**. Those two — the living simulation and the generative rendering — are now the only things that matter.
