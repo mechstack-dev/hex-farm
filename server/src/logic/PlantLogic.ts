@@ -1,78 +1,60 @@
-import type { Plant, Weather, Season } from 'common';
-import { GAME_DAY } from 'common';
+import type { Flora, Tree } from 'common';
+import { GAME_DAY, MAX_GROWTH } from 'common';
 
-const WATER_BONUS = 2;
-const SEASONAL_PENALTY = 0.5;
+type Growable = Flora | Tree;
 
-const PREFERRED_SEASONS: Record<string, Season[]> = {
-  'turnip': ['spring'],
-  'carrot': ['spring', 'summer'],
-  'pumpkin': ['autumn'],
-  'corn': ['summer'],
-  'wheat': ['autumn'],
-  'winter-radish': ['winter'],
-  'kale': ['winter'],
-  'apple-tree': ['spring', 'summer', 'autumn', 'winter'],
-  'orange-tree': ['summer'],
-  'peach-tree': ['spring', 'summer'],
-  'cherry-tree': ['spring', 'summer'],
-  'mushroom': ['autumn'],
-  'berry-bush': ['summer'],
-  'blueberry-bush': ['summer'],
-  'raspberry-bush': ['summer'],
-  'tulip': ['spring'],
-  'lavender': ['summer'],
-  'tree': ['spring', 'summer', 'autumn', 'winter'],
-  'sunflower': ['summer'],
-  'coffee-bean': ['summer', 'autumn'],
-  'tea-leaf': ['spring', 'summer'],
-  'ancient-fruit': ['spring', 'summer', 'autumn'],
+const RAIN_BONUS = 2;
+
+// Real-world time per growth stage. Flora is quick; forests are patient.
+const GROWTH_DURATION: Record<string, number> = {
+  grass: 0.4 * GAME_DAY,
+  fern: 0.6 * GAME_DAY,
+  clover: 0.5 * GAME_DAY,
+  flower: 0.8 * GAME_DAY,
+  poppy: 0.8 * GAME_DAY,
+  daisy: 0.8 * GAME_DAY,
+  tulip: 1.0 * GAME_DAY,
+  lavender: 1.2 * GAME_DAY,
+  sunflower: 1.5 * GAME_DAY,
+  mushroom: 0.7 * GAME_DAY,
+  // trees
+  oak: 4 * GAME_DAY,
+  birch: 3.5 * GAME_DAY,
+  pine: 4 * GAME_DAY,
+  maple: 3.5 * GAME_DAY,
+  willow: 4.5 * GAME_DAY,
 };
 
-const SPECIES_GROWTH: Record<string, number> = {
-  'turnip': GAME_DAY,   // 1 day per stage
-  'carrot': 2 * GAME_DAY,   // 2 days per stage
-  'pumpkin': 3 * GAME_DAY,  // 3 days per stage
-  'corn': 1.5 * GAME_DAY,   // 1.5 days per stage
-  'wheat': 1.25 * GAME_DAY, // 1.25 days per stage
-  'winter-radish': 2.5 * GAME_DAY, // 2.5 days per stage
-  'kale': 2 * GAME_DAY,   // 2 days per stage
-  'apple-tree': 4 * GAME_DAY, // 4 days per stage
-  'orange-tree': 4 * GAME_DAY,
-  'peach-tree': 4 * GAME_DAY,
-  'cherry-tree': 4 * GAME_DAY,
-  'mushroom': 1.5 * GAME_DAY,
-  'berry-bush': 2 * GAME_DAY,
-  'blueberry-bush': 2.5 * GAME_DAY,
-  'raspberry-bush': 2 * GAME_DAY,
-  'tulip': 1.5 * GAME_DAY,
-  'lavender': 2 * GAME_DAY,
-  'tree': 7 * GAME_DAY,     // 7 days per stage
-  'sunflower': 2.5 * GAME_DAY,
-  'coffee-bean': 2 * GAME_DAY,
-  'tea-leaf': 1.5 * GAME_DAY,
-  'ancient-fruit': 7 * GAME_DAY, // 7 days per stage (28 days total)
-};
+/** Advance a plant's growth by the time elapsed since it was last touched. */
+export function growPlant<T extends Growable>(plant: T, now: number, rainy = false): T {
+  if (plant.growthStage >= MAX_GROWTH) {
+    return plant.lastUpdate === now ? plant : { ...plant, lastUpdate: now };
+  }
 
-export function updatePlant(plant: Plant, now: number, weather: Weather = 'sunny', season: Season = 'spring', isProtected: boolean = false): Plant {
   const elapsed = now - plant.lastUpdate;
-  const isWatered = (now - plant.lastWatered < GAME_DAY) || weather === 'rainy';
-  
-  const duration = SPECIES_GROWTH[plant.species] || SPECIES_GROWTH['turnip'];
+  if (elapsed <= 0) return plant;
 
-  const preferred = PREFERRED_SEASONS[plant.species] || PREFERRED_SEASONS['turnip'];
-  const seasonMultiplier = (isProtected || preferred.includes(season)) ? 1.0 : SEASONAL_PENALTY;
+  const duration = GROWTH_DURATION[plant.species] ?? GAME_DAY;
+  const effective = rainy ? elapsed * RAIN_BONUS : elapsed;
+  const growthStage = Math.min(MAX_GROWTH, plant.growthStage + effective / duration);
 
-  const effectiveTime = isWatered ? elapsed * WATER_BONUS : elapsed;
-  const growthIncrement = (effectiveTime * seasonMultiplier) / duration;
-  
-  return {
-    ...plant,
-    growthStage: Math.min(5, plant.growthStage + growthIncrement),
-    lastUpdate: now
-  };
+  return { ...plant, growthStage, lastUpdate: now };
 }
 
-export function canHarvest(plant: Plant): boolean {
-  return plant.growthStage >= 5;
+/** Only mature plants seed new growth into the world. */
+export function canPropagate(plant: Growable): boolean {
+  return plant.growthStage >= MAX_GROWTH - 1;
+}
+
+/** A fresh sprout of the same species, ready to grow where it took root. */
+export function makeSprout(species: string, type: 'flora' | 'tree', q: number, r: number, now: number): Growable {
+  return {
+    id: `${type}-${species}-${q}-${r}-${Math.floor(now)}`,
+    type,
+    species,
+    pos: { q, r },
+    growthStage: 0,
+    plantedAt: now,
+    lastUpdate: now,
+  } as Growable;
 }

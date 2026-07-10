@@ -1,238 +1,99 @@
 import { createNoise2D } from 'simplex-noise';
 import seedrandom from 'seedrandom';
 import type { Entity } from 'common';
+import { MAX_GROWTH } from 'common';
 
+/**
+ * Deterministic world generation. Two noise fields (elevation + moisture)
+ * define biomes; a per-chunk RNG scatters the living things across them.
+ * The same seed always yields the same world, so it is consistent for every
+ * wanderer and stable across restarts.
+ */
 export class Generator {
-  private noise: (x: number, y: number) => number;
-  private rng: seedrandom.PRNG;
+  private elevation: (x: number, y: number) => number;
+  private moisture: (x: number, y: number) => number;
 
   constructor(seed: string) {
-    this.rng = seedrandom(seed);
-    this.noise = createNoise2D(() => this.rng());
+    const rngA = seedrandom(seed + ':elevation');
+    const rngB = seedrandom(seed + ':moisture');
+    this.elevation = createNoise2D(() => rngA());
+    this.moisture = createNoise2D(() => rngB());
+  }
+
+  private mature(species: string, type: 'flora' | 'tree', q: number, r: number): Entity {
+    return {
+      id: `${type}-${species}-${q}-${r}`,
+      type,
+      species,
+      pos: { q, r },
+      growthStage: MAX_GROWTH,
+      plantedAt: 0,
+      lastUpdate: 0,
+    } as unknown as Entity;
   }
 
   generateStaticEntities(cq: number, cr: number, chunkSize: number): Entity[] {
     const entities: Entity[] = [];
-    const chunkSeed = `${cq},${cr}`;
-    const chunkRng = seedrandom(chunkSeed);
-    let fishermanSpawned = false;
+    const rng = seedrandom(`chunk:${cq},${cr}`);
 
     for (let q = cq * chunkSize; q < (cq + 1) * chunkSize; q++) {
       for (let r = cr * chunkSize; r < (cr + 1) * chunkSize; r++) {
-        // Spawn merchant at origin
-        if (q === 0 && r === 0) {
-            entities.push({
-                id: 'animal-merchant',
-                type: 'animal',
-                species: 'merchant',
-                pos: { q: 0, r: 0 },
-                homePos: { q: 0, r: 0 },
-                nextMoveTime: 0,
-                lastProductTime: 0
-            } as unknown as Entity);
-            continue;
+        const e = this.elevation(q * 0.08, r * 0.08);
+        const m = this.moisture(q * 0.06, r * 0.06);
+        const roll = rng();
+
+        // Water sits in the low, wet places — ponds and rivers, not oceans.
+        if (e < -0.5) {
+          entities.push({ id: `water-${q}-${r}`, type: 'water', species: 'water', pos: { q, r } });
+          continue;
         }
 
-        // Spawn Woody the Lumberjack
-        if (q === -10 && r === -10) {
-            entities.push({
-                id: 'animal-lumberjack',
-                type: 'animal',
-                species: 'lumberjack',
-                pos: { q: -10, r: -10 },
-                homePos: { q: -10, r: -10 },
-                nextMoveTime: 0,
-                lastProductTime: 0
-            } as unknown as Entity);
-            continue;
+        // High, dry ground is rocky, but leaves room to wander through.
+        if (e > 0.62) {
+          if (roll < 0.4) {
+            entities.push({ id: `rock-${q}-${r}`, type: 'rock', species: 'rock', pos: { q, r } });
+          }
+          continue;
         }
 
-        // Spawn blacksmith near merchant
-        if (q === 5 && r === 5) {
-            entities.push({
-                id: 'animal-blacksmith',
-                type: 'animal',
-                species: 'blacksmith',
-                pos: { q: 5, r: 5 },
-                homePos: { q: 5, r: 5 },
-                nextMoveTime: 0,
-                lastProductTime: 0
-            } as unknown as Entity);
-            continue;
-        }
-
-        const isCave = q >= 10000;
-
-        // Spawn miner in cave layer
-        if (q === 10005 && r === 10005) {
-            entities.push({
-                id: 'animal-miner',
-                type: 'animal',
-                species: 'miner',
-                pos: { q: 10005, r: 10005 },
-                homePos: { q: 10005, r: 10005 },
-                nextMoveTime: 0,
-                lastProductTime: 0
-            } as unknown as Entity);
-            continue;
-        }
-        const n = this.noise(q * 0.1, r * 0.1);
-
-        if (isCave) {
-            // Cave generation
-            if (n > 0.4) {
-                entities.push({
-                    id: `rock-${q}-${r}`,
-                    type: 'obstacle',
-                    species: 'rock',
-                    pos: { q, r }
-                });
-            } else if (chunkRng() < 0.03) {
-                // Mushrooms in caves
-                entities.push({
-                    id: `plant-mushroom-${q}-${r}`,
-                    type: 'plant',
-                    species: 'mushroom',
-                    pos: { q, r },
-                    growthStage: 5,
-                    plantedAt: 0,
-                    lastWatered: 0,
-                    lastUpdate: 0
-                } as unknown as Entity);
-            } else if (chunkRng() < 0.05) {
-                entities.push({
-                    id: `floor-${q}-${r}`,
-                    type: 'floor',
-                    species: 'grass', // Visual placeholder, maybe "moss" later
-                    pos: { q, r }
-                });
-            }
-            continue;
-        }
-
-        // Spawn Fisherman near water
-        if (!fishermanSpawned && n < -0.4 && chunkRng() < 0.05) {
-            // Find a neighbor that is NOT water
-            const neighbors = [
-                { q: q + 1, r: r }, { q: q + 1, r: r - 1 }, { q: q, r: r - 1 },
-                { q: q - 1, r: r }, { q: q - 1, r: r + 1 }, { q: q, r: r + 1 }
-            ];
-            const shore = neighbors.find(pos => this.noise(pos.q * 0.1, pos.r * 0.1) >= -0.4);
-            if (shore) {
-                // We'll add the fisherman to this chunk's entities if it's within chunk bounds
-                // Actually, for simplicity and to avoid duplicates across chunk boundaries,
-                // we'll just check if the shore is in THIS chunk.
-                if (shore.q >= cq * chunkSize && shore.q < (cq + 1) * chunkSize &&
-                    shore.r >= cr * chunkSize && shore.r < (cr + 1) * chunkSize) {
-                    entities.push({
-                        id: `animal-fisherman-${shore.q}-${shore.r}`,
-                        type: 'animal',
-                        species: 'fisherman',
-                        pos: shore,
-                        homePos: shore,
-                        nextMoveTime: 0,
-                        lastProductTime: 0
-                    } as unknown as Entity);
-                    fishermanSpawned = true;
-                }
-            }
-        }
-        if (n < -0.4) {
-          entities.push({
-            id: `water-${q}-${r}`,
-            type: 'obstacle',
-            species: 'water',
-            pos: { q, r }
-          });
-        } else if (n > 0.5) {
-          entities.push({
-            id: `plant-tree-${q}-${r}`,
-            type: 'plant',
-            species: 'tree',
-            pos: { q, r },
-            growthStage: 5,
-            plantedAt: 0,
-            lastWatered: 0,
-            lastUpdate: 0
-          } as unknown as Entity);
-        } else if (chunkRng() < 0.05) {
-          entities.push({
-            id: `rock-${q}-${r}`,
-            type: 'obstacle',
-            species: 'rock',
-            pos: { q, r }
-          });
-        } else if (chunkRng() < 0.001) {
-            entities.push({
-                id: `shrine-${q}-${r}`,
-                type: 'building',
-                species: 'ancient-shrine',
-                pos: { q, r }
-            });
-        } else if (chunkRng() < 0.1) {
-          // Decorative floor
-          const rand = chunkRng();
-          let species = 'grass';
-          if (rand < 0.7) species = 'grass';
-          else if (rand < 0.8) species = 'flower';
-          else if (rand < 0.85) species = 'sunflower';
-          else if (rand < 0.9) species = 'tulip';
-          else species = 'lavender';
-
-          entities.push({
-            id: `floor-${q}-${r}`,
-            type: 'floor',
-            species,
-            pos: { q, r }
-          });
-        } else if (chunkRng() < 0.02) {
-          // Spawn animal
-          const rand = chunkRng();
-          let species = 'cow';
-          if (rand < 0.1) species = 'cow';
-          else if (rand < 0.3) species = 'sheep';
-          else if (rand < 0.4) species = 'chicken';
-          else if (rand < 0.5) species = 'pig';
-          else if (rand < 0.65) species = 'goat';
-          else if (rand < 0.85) species = 'duck';
-          else if (rand < 0.92) species = 'dog';
-          else species = 'cat';
-
-          entities.push({
-            id: `animal-${q}-${r}`,
-            type: 'animal',
-            species,
-            pos: { q, r },
-            nextMoveTime: 0, // Will move on first engine tick
-            lastProductTime: 0,
-            friendship: 0
-          } as unknown as Entity);
-        } else if (chunkRng() < 0.02) {
-          // Spawn foraging items
-          const rand = chunkRng();
-          let species = 'mushroom';
-          if (rand < 0.2) species = 'mushroom';
-          else if (rand < 0.35) species = 'berry-bush';
-          else if (rand < 0.45) species = 'blueberry-bush';
-          else if (rand < 0.55) species = 'raspberry-bush';
-          else if (rand < 0.7) species = 'apple-tree';
-          else if (rand < 0.8) species = 'orange-tree';
-          else if (rand < 0.9) species = 'peach-tree';
-          else species = 'cherry-tree';
-
-          entities.push({
-            id: `plant-${species}-${q}-${r}`,
-            type: 'plant',
-            species,
-            pos: { q, r },
-            growthStage: 5, // Spawned mature
-            plantedAt: 0,
-            lastWatered: 0,
-            lastUpdate: 0
-          } as unknown as Entity);
+        // Damp ground grows forest; drier ground becomes meadow.
+        const forested = m > 0.2;
+        if (forested) {
+          if (roll < 0.35) {
+            entities.push(this.mature(this.pick(rng, ['oak', 'birch', 'pine', 'maple', 'willow']), 'tree', q, r));
+          } else if (roll < 0.5) {
+            entities.push(this.mature(this.pick(rng, ['fern', 'clover', 'mushroom', 'grass']), 'flora', q, r));
+          } else if (roll < 0.53) {
+            entities.push(this.makeFauna(this.pick(rng, ['deer', 'fox', 'bird', 'frog']), q, r));
+          }
+        } else {
+          if (roll < 0.28) {
+            entities.push(this.mature(this.pick(rng, ['grass', 'clover', 'flower', 'poppy', 'daisy', 'tulip', 'lavender', 'sunflower']), 'flora', q, r));
+          } else if (roll < 0.31) {
+            entities.push(this.mature(this.pick(rng, ['oak', 'birch']), 'tree', q, r));
+          } else if (roll < 0.34) {
+            entities.push(this.makeFauna(this.pick(rng, ['rabbit', 'deer', 'bird', 'butterfly']), q, r));
+          } else if (roll < 0.345) {
+            entities.push({ id: `rock-${q}-${r}`, type: 'rock', species: 'rock', pos: { q, r } });
+          }
         }
       }
     }
     return entities;
+  }
+
+  private makeFauna(species: string, q: number, r: number): Entity {
+    return {
+      id: `fauna-${species}-${q}-${r}`,
+      type: 'fauna',
+      species,
+      pos: { q, r },
+      nextMoveTime: 0,
+      homePos: { q, r },
+    } as unknown as Entity;
+  }
+
+  private pick(rng: () => number, list: string[]): string {
+    return list[Math.floor(rng() * list.length)];
   }
 }

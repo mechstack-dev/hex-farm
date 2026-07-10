@@ -23,10 +23,10 @@ describe('GameEngine tick (smoke)', () => {
     const result = engine.tick();
 
     expect(result).toBeDefined();
-    expect(Array.isArray(result.updatedEntities)).toBe(true);
+    expect(Array.isArray(result.updated)).toBe(true);
     expect(result.environment).toBeDefined();
     expect(result.environment.season).toBeDefined();
-    expect(result.environment.weather).toBeDefined();
+    expect(Array.isArray(result.environment.weatherCells)).toBe(true);
     expect(typeof result.environment.timeOfDay).toBe('number');
     expect(result.environment.timeOfDay).toBeGreaterThanOrEqual(0);
     expect(result.environment.timeOfDay).toBeLessThanOrEqual(1);

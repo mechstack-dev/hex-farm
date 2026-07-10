@@ -1,5 +1,10 @@
 import { CHUNK_SIZE, getChunkCoords, chunkToKey } from 'common';
-import type { Entity, WorldChunk, Player } from 'common';
+import type { Entity, WorldChunk, Player, Position } from 'common';
+
+// Flora and trees persist (the world remembers growth and what wanderers
+// seed). Fauna are ephemeral ambient life, regenerated per chunk; water and
+// rock are deterministic scenery. Only these three are written to disk.
+const PERSISTENT_TYPES = ['flora', 'tree', 'player'];
 import { Generator } from './Generator.js';
 import fs from 'fs';
 import path from 'path';
@@ -137,8 +142,7 @@ export class WorldManager {
         chunk.entities.push(entity);
     }
 
-    const isPersistentType = ['plant', 'fence', 'animal', 'floor', 'sprinkler', 'player', 'building'].includes(entity.type) ||
-                             (entity.type === 'obstacle' && (entity.species === 'scarecrow' || entity.species === 'meteorite'));
+    const isPersistentType = PERSISTENT_TYPES.includes(entity.type);
     if (isPersistentType) {
       if (!this.persistentEntities.has(entity.id)) {
           this.addToPersistence(entity);
@@ -166,12 +170,29 @@ export class WorldManager {
       }
       this.markDirty();
     } else {
-      const isPersistentType = ['plant', 'fence', 'animal', 'floor', 'sprinkler', 'player', 'building'].includes(entity.type) ||
-                               (entity.type === 'obstacle' && (entity.species === 'scarecrow' || entity.species === 'meteorite'));
-      if (isPersistentType) {
+      if (PERSISTENT_TYPES.includes(entity.type)) {
         this.addToPersistence(entity);
         this.markDirty();
       }
+    }
+  }
+
+  /**
+   * Move an ephemeral entity (fauna) between chunks in memory only — no
+   * persistence, since ambient life is regenerated per chunk, not saved.
+   */
+  moveEntityInMemory(entity: Entity, oldPos: Position) {
+    const oldCoords = getChunkCoords(oldPos.q, oldPos.r);
+    const oldChunk = this.chunks.get(chunkToKey(oldCoords.cq, oldCoords.cr));
+    if (oldChunk) {
+      oldChunk.entities = oldChunk.entities.filter(e => e.id !== entity.id);
+    }
+    const { cq, cr } = getChunkCoords(entity.pos.q, entity.pos.r);
+    const newChunk = this.getChunk(cq, cr);
+    if (!newChunk.entities.find(e => e.id === entity.id)) {
+      newChunk.entities.push(entity);
+    } else {
+      newChunk.entities = newChunk.entities.map(e => e.id === entity.id ? entity : e);
     }
   }
 

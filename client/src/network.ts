@@ -1,19 +1,13 @@
 import { io, Socket } from 'socket.io-client';
-import type { Player } from 'common';
+import type { NudgeVerb, EmoteType } from 'common';
 
 export const socket: Socket = io();
 
 let lastMoveTime = 0;
-let localPlayer: Player | null = null;
-
-socket.on('entityUpdate', (entity: any) => {
-    if (entity.id === (socket as any).playerId) {
-        localPlayer = entity as Player;
-    }
-});
+const MOVE_COOLDOWN = 180;
 
 socket.on('init', ({ playerId }: { playerId: string }) => {
-    (socket as any).playerId = playerId;
+  (socket as any).playerId = playerId;
 });
 
 export function joinGame(name: string) {
@@ -22,11 +16,15 @@ export function joinGame(name: string) {
 
 export function movePlayer(q: number, r: number) {
   const now = Date.now();
-  const hasSpeed = localPlayer?.buffs?.some((b: any) => b.type === 'speed');
-  const cooldown = hasSpeed ? 100 : 200;
-
-  if (now - lastMoveTime < cooldown) return;
-
+  if (now - lastMoveTime < MOVE_COOLDOWN) return;
   lastMoveTime = now;
   socket.emit('move', { q, r });
+}
+
+export function nudge(verb: NudgeVerb, q: number, r: number) {
+  socket.emit('nudge', { verb, q, r });
+}
+
+export function emote(type: EmoteType) {
+  socket.emit('emote', type);
 }

@@ -1,45 +1,65 @@
-import type { Animal } from 'common';
+import type { Fauna, Player, Position } from 'common';
 import { getNeighbors, distance } from 'common';
 import { WorldManager } from '../WorldManager.js';
 
-export function moveAnimal(animal: Animal, world: WorldManager): Animal {
-  const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner', 'lumberjack'].includes(animal.species);
-  const neighbors = getNeighbors(animal.pos);
-  const validMoves = neighbors.filter(pos => {
-    if (isNPC && animal.homePos) {
-        if (distance(pos, animal.homePos) > 3) return false;
-    }
+// Flying/amphibious creatures aren't stopped by water.
+const WATER_OK = new Set(['bird', 'butterfly', 'frog']);
 
-    const entities = world.getEntitiesAt(pos.q, pos.r);
-    const hasBridge = entities.some(e => e.type === 'building' && e.species === 'bridge');
+const MIN_WAIT = 3000;
+const MAX_WAIT = 8000;
 
-    return !entities.some(e => {
-      if (hasBridge && e.type === 'obstacle' && e.species === 'water') return false;
-      if (e.type === 'building' && e.species === 'bridge') return false;
+// How close a wanderer has to be for a creature to drift toward them.
+const PRESENCE_RADIUS = 6;
 
-      return (e.type === 'obstacle' && (animal.species !== 'duck' || e.species !== 'water')) ||
-             e.type === 'animal' ||
-             e.type === 'player' ||
-             e.type === 'fence' ||
-             e.type === 'building' ||
-             (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'));
-    });
+function blocked(fauna: Fauna, pos: Position, world: WorldManager): boolean {
+  const here = world.getEntitiesAt(pos.q, pos.r);
+  return here.some((e) => {
+    if (e.type === 'water') return !WATER_OK.has(fauna.species);
+    return e.type === 'tree' || e.type === 'rock' || e.type === 'fauna' || e.type === 'player';
   });
+}
 
-  if (validMoves.length === 0) {
-      const waitInterval = isNPC ? (10000 + Math.random() * 20000) : (5000 + Math.random() * 10000);
-      return {
-          ...animal,
-          nextMoveTime: Date.now() + waitInterval
-      };
+/**
+ * Move a creature one hex. Movement blends three gentle pulls: aimless
+ * wandering, flocking toward nearby kin, and drifting toward the nearest
+ * wanderer. Nothing is forced — a creature that likes where it is may linger.
+ */
+export function moveFauna(fauna: Fauna, world: WorldManager, players: Player[]): Fauna {
+  const options = getNeighbors(fauna.pos).filter((p) => !blocked(fauna, p, world));
+  const waitTime = () => Date.now() + MIN_WAIT + Math.random() * (MAX_WAIT - MIN_WAIT);
+
+  if (options.length === 0) {
+    return { ...fauna, nextMoveTime: waitTime() };
   }
 
-  const nextPos = validMoves[Math.floor(Math.random() * validMoves.length)];
-  const moveInterval = isNPC ? (10000 + Math.random() * 20000) : (5000 + Math.random() * 10000);
+  // A nearby wanderer becomes a soft attractor (presence-as-ecology).
+  const nearest = players
+    .filter((p) => distance(p.pos, fauna.pos) <= PRESENCE_RADIUS)
+    .sort((a, b) => distance(a.pos, fauna.pos) - distance(b.pos, fauna.pos))[0];
 
-  return {
-    ...animal,
-    pos: nextPos,
-    nextMoveTime: Date.now() + moveInterval
-  };
+  // Nearby kin pull the creature into loose flocks.
+  const kin = world
+    .getEntitiesAt(fauna.pos.q, fauna.pos.r)
+    .concat(...getNeighbors(fauna.pos).map((n) => world.getEntitiesAt(n.q, n.r)))
+    .filter((e) => e.type === 'fauna' && e.species === fauna.species && e.id !== fauna.id);
+
+  let target: Position | null = null;
+  if (nearest && Math.random() < 0.6) {
+    target = nearest.pos;
+  } else if (kin.length > 0 && Math.random() < 0.5) {
+    const cx = kin.reduce((s, e) => s + e.pos.q, 0) / kin.length;
+    const cr = kin.reduce((s, e) => s + e.pos.r, 0) / kin.length;
+    target = { q: cx, r: cr };
+  }
+
+  let next: Position;
+  if (target) {
+    next = options.reduce((best, p) =>
+      distance(p, target!) < distance(best, target!) ? p : best,
+    );
+  } else {
+    next = options[Math.floor(Math.random() * options.length)];
+  }
+
+  return { ...fauna, pos: next, nextMoveTime: waitTime() };
 }

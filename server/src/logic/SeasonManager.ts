@@ -1,50 +1,34 @@
-import { Season, Weather, EnvironmentState, GAME_DAY } from 'common';
+import { Season, GAME_DAY } from 'common';
 
+/**
+ * Tracks the slow march of time: day/night and the four seasons.
+ * Weather lives separately (WeatherSystem) because it is regional.
+ */
 export class SeasonManager {
   private startTime: number;
   private DAY_DURATION = GAME_DAY;
-  private SEASON_DURATION = 7 * this.DAY_DURATION; // 7 days per season
+  private SEASON_LENGTH_DAYS = 7;
 
   private currentSeason: Season = 'spring';
-  private currentWeather: Weather = 'sunny';
-  private nextWeather: Weather = 'sunny';
-  private dayCount: number = 0;
-  private dailyLuck: number = 0;
+  private dayCount = 0;
 
   constructor() {
     this.startTime = Date.now();
-    this.nextWeather = this.generateRandomWeather();
-    this.dailyLuck = (Math.random() * 2) - 1;
   }
 
-  private generateRandomWeather(): Weather {
-    const rand = Math.random();
-    if (rand < 0.2) return 'rainy';
-    else if (rand < 0.4) return 'cloudy';
-    else return 'sunny';
-  }
-
+  /** Advance the clock. Returns true when the day or season rolls over. */
   update(now: number): boolean {
     const elapsed = now - this.startTime;
     const newDayCount = Math.floor(elapsed / this.DAY_DURATION);
-    const newTimeOfDay = (elapsed % this.DAY_DURATION) / this.DAY_DURATION;
-
-    let changed = true; // Always return true now because timeOfDay changes every tick
+    let changed = false;
 
     if (newDayCount !== this.dayCount) {
       this.dayCount = newDayCount;
       changed = true;
-
-      // Weather for the new day was pre-determined
-      this.currentWeather = this.nextWeather;
-      this.nextWeather = this.generateRandomWeather();
-      this.dailyLuck = (Math.random() * 2) - 1;
     }
 
-    const seasonIndex = Math.floor(this.dayCount / 7) % 4;
     const seasons: Season[] = ['spring', 'summer', 'autumn', 'winter'];
-    const newSeason = seasons[seasonIndex];
-
+    const newSeason = seasons[Math.floor(this.dayCount / this.SEASON_LENGTH_DAYS) % 4];
     if (newSeason !== this.currentSeason) {
       this.currentSeason = newSeason;
       changed = true;
@@ -53,20 +37,17 @@ export class SeasonManager {
     return changed;
   }
 
-  getState(): EnvironmentState {
-    const elapsed = Date.now() - this.startTime;
-    const timeOfDay = (elapsed % this.DAY_DURATION) / this.DAY_DURATION;
-
-    return {
-      season: this.currentSeason,
-      weather: this.currentWeather,
-      dayCount: this.dayCount,
-      timeOfDay,
-      luck: this.dailyLuck
-    };
+  get season(): Season {
+    return this.currentSeason;
   }
 
-  getNextWeather(): Weather {
-    return this.nextWeather;
+  get day(): number {
+    return this.dayCount;
+  }
+
+  /** 0.0 (midnight) .. 1.0, cycling once per game day. */
+  get timeOfDay(): number {
+    const elapsed = Date.now() - this.startTime;
+    return (elapsed % this.DAY_DURATION) / this.DAY_DURATION;
   }
 }

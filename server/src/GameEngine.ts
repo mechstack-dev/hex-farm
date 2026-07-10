@@ -1,614 +1,148 @@
 import { WorldManager } from './WorldManager.js';
-import { updatePlant } from './logic/PlantLogic.js';
-import { moveAnimal } from './logic/AnimalLogic.js';
 import { SeasonManager } from './logic/SeasonManager.js';
-import type { Animal, Plant, EnvironmentState } from 'common';
-import { getChunkCoords, getNeighbors, getRecursiveNeighbors, distance, GAME_DAY, SEED_PRICES, CHUNK_SIZE } from 'common';
+import { WeatherSystem } from './logic/WeatherSystem.js';
+import { growPlant, canPropagate, makeSprout } from './logic/PlantLogic.js';
+import { moveFauna } from './logic/AnimalLogic.js';
+import type { Entity, Player, Position, EnvironmentState, Flora, Tree, Fauna } from 'common';
+import { getNeighbors, distance, localWeather, posToKey, MAX_GROWTH } from 'common';
+
+export interface TickResult {
+  updated: Entity[];
+  environment: EnvironmentState;
+  environmentChanged: boolean;
+}
+
+// Gentle flora that a wanderer can scatter by hand.
+const SCATTERABLE = ['grass', 'clover', 'flower', 'poppy', 'daisy', 'tulip', 'lavender'];
 
 export class GameEngine {
-  private seasonManager: SeasonManager;
+  private seasons = new SeasonManager();
+  private weather = new WeatherSystem();
 
-  constructor(private world: WorldManager) {
-    this.seasonManager = new SeasonManager();
-  }
-
-  tick(): { updatedEntities: any[], environment: EnvironmentState, environmentChanged: boolean } {
-    const chunks = this.world.getActiveChunks();
-    const updatedEntities: any[] = [];
-    const now = Date.now();
-
-    const environmentChanged = this.seasonManager.update(now);
-    const environment = this.seasonManager.getState();
-
-    const updates: { oldEntity: any, newEntity: any, cq: number, cr: number }[] = [];
-
-    // Find all sprinklers, scarecrows and beehives and their ranges
-    const sprinklerPositions = new Set<string>();
-    const scarecrowPositions = new Set<string>();
-    const beehivePositions = new Set<string>();
-    const greenhousePositions = new Set<string>();
-    const sunflowerPositions = new Map<string, string>();
-    const natureGracePositions = new Set<string>(); // Optimized: Pre-calculate nature counts
-    const barnPositions = new Map<string, any>();
-    const harvesterPositions = new Map<string, any>();
-    const fountainPositions = new Set<string>();
-
-    const natureEntityPositions = new Set<string>();
-
-    chunks.forEach(chunk => {
-      chunk.entities.forEach(entity => {
-        if (entity.type === 'sprinkler') {
-          const radius = entity.species === 'gold-sprinkler' ? 3 : (entity.species === 'iron-sprinkler' ? 2 : 1);
-
-          getRecursiveNeighbors(entity.pos, radius).forEach(n => {
-              sprinklerPositions.add(`${n.q},${n.r}`);
-          });
-        } else if (entity.type === 'obstacle' && entity.species === 'scarecrow') {
-            scarecrowPositions.add(`${entity.pos.q},${entity.pos.r}`);
-            getNeighbors(entity.pos).forEach(n1 => {
-                scarecrowPositions.add(`${n1.q},${n1.r}`);
-                getNeighbors(n1).forEach(n2 => {
-                    scarecrowPositions.add(`${n2.q},${n2.r}`);
-                });
-            });
-        } else if (entity.type === 'building' && entity.species === 'beehive') {
-            beehivePositions.add(`${entity.pos.q},${entity.pos.r}`);
-            getNeighbors(entity.pos).forEach(n1 => {
-                beehivePositions.add(`${n1.q},${n1.r}`);
-                getNeighbors(n1).forEach(n2 => {
-                    beehivePositions.add(`${n2.q},${n2.r}`);
-                });
-            });
-        } else if (entity.type === 'building' && entity.species === 'greenhouse') {
-            greenhousePositions.add(`${entity.pos.q},${entity.pos.r}`);
-            getNeighbors(entity.pos).forEach(n1 => {
-                greenhousePositions.add(`${n1.q},${n1.r}`);
-            });
-        } else if ((entity.type === 'floor' || entity.type === 'plant') && (['sunflower', 'flower', 'tulip', 'lavender'].includes(entity.species || ''))) {
-            sunflowerPositions.set(`${entity.pos.q},${entity.pos.r}`, entity.species!);
-            natureEntityPositions.add(`${entity.pos.q},${entity.pos.r}`);
-        } else if (entity.type === 'building' && entity.species === 'fountain') {
-            fountainPositions.add(`${entity.pos.q},${entity.pos.r}`);
-            getNeighbors(entity.pos).forEach(n1 => {
-                fountainPositions.add(`${n1.q},${n1.r}`);
-                getNeighbors(n1).forEach(n2 => {
-                    fountainPositions.add(`${n2.q},${n2.r}`);
-                });
-            });
-        } else if (entity.type === 'building' && (entity.species === 'barn' || entity.species === 'large-barn')) {
-            const barn = entity as any;
-            const radius = entity.species === 'large-barn' ? 3 : 2;
-
-            getRecursiveNeighbors(entity.pos, radius).forEach(n => {
-                barnPositions.set(`${n.q},${n.r}`, barn);
-            });
-        } else if (entity.type === 'building' && entity.species === 'auto-harvester') {
-            const harvester = entity as any;
-            getRecursiveNeighbors(entity.pos, 3).forEach(n => {
-                harvesterPositions.set(`${n.q},${n.r}`, harvester);
-            });
-        }
-
-        if ((entity.type === 'plant' || entity.type === 'obstacle') && (entity.species === 'tree' || entity.species === 'apple-tree' || entity.species === 'orange-tree' || entity.species === 'peach-tree' || entity.species === 'cherry-tree' || entity.species === 'berry-bush' || entity.species === 'blueberry-bush' || entity.species === 'raspberry-bush') && ((entity as any).growthStage >= 5 || entity.type === 'obstacle')) {
-            natureEntityPositions.add(`${entity.pos.q},${entity.pos.r}`);
-            if (entity.type === 'plant' && ['apple-tree', 'orange-tree', 'peach-tree', 'cherry-tree'].includes(entity.species!)) {
-                sunflowerPositions.set(`${entity.pos.q},${entity.pos.r}`, entity.species!);
-            }
-        }
-      });
-    });
-
-    // Finalize natureGracePositions based on density
-    const potentialGracePos = new Set<string>();
-    natureEntityPositions.forEach(posKey => {
-        const [q, r] = posKey.split(',').map(Number);
-        const center = { q, r };
-        potentialGracePos.add(posKey);
-        getNeighbors(center).forEach(n1 => {
-            potentialGracePos.add(`${n1.q},${n1.r}`);
-            getNeighbors(n1).forEach(n2 => {
-                potentialGracePos.add(`${n2.q},${n2.r}`);
-            });
-        });
-    });
-
-    potentialGracePos.forEach(posKey => {
-        const [q, r] = posKey.split(',').map(Number);
-        let count = 0;
-        const range = 2;
-        for (let dq = -range; dq <= range; dq++) {
-            for (let dr = -range; dr <= range; dr++) {
-                if (Math.abs(dq + dr) > range) continue;
-                if (natureEntityPositions.has(`${q + dq},${r + dr}`)) {
-                    count++;
-                }
-            }
-        }
-        if (count >= 3) {
-            natureGracePositions.add(posKey);
-        }
-    });
-
-    // Breeding logic pre-calculation
-    const animalPositionsBySpecies = new Map<string, Animal[]>();
-    chunks.forEach(chunk => {
-        chunk.entities.forEach(entity => {
-            if (entity.type === 'animal' && entity.species !== 'merchant') {
-                const animal = entity as Animal;
-                if (!animalPositionsBySpecies.has(animal.species)) {
-                    animalPositionsBySpecies.set(animal.species, []);
-                }
-                animalPositionsBySpecies.get(animal.species)!.push(animal);
-            }
-        });
-    });
-
-    chunks.forEach(chunk => {
-      // Rare lightning strike during rain
-      if (environment.weather === 'rainy' && Math.random() < 0.0005) {
-          const trees = chunk.entities.filter(e =>
-              (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush')) ||
-              (e.type === 'obstacle' && e.species === 'tree')
-          );
-          if (trees.length > 0) {
-              const targetTree = trees[Math.floor(Math.random() * trees.length)];
-              const burntTree = {
-                  ...targetTree,
-                  species: 'burnt-tree',
-                  growthStage: 0 // Reset or use as indicator
-              };
-              this.world.updateEntity(burntTree);
-              updatedEntities.push(burntTree);
-              // We'll broadcast the lightning event via the updatedEntities returning to the main loop
-              // but we might need a specific event for the flash.
-              (burntTree as any).lightning = true;
-          }
-      }
-
-      // Meteorite event chance during clear night
-      if (environment.timeOfDay > 0.8 || environment.timeOfDay < 0.2) {
-          if (environment.weather === 'sunny' && Math.random() < 0.0001) {
-              const emptyHexes = [];
-              // Find a few random empty hexes in the chunk
-              for (let i = 0; i < 10; i++) {
-                  const q = chunk.q * CHUNK_SIZE + Math.floor(Math.random() * CHUNK_SIZE);
-                  const r = chunk.r * CHUNK_SIZE + Math.floor(Math.random() * CHUNK_SIZE);
-                  const ents = this.world.getEntitiesAt(q, r);
-                  if (ents.length === 0 || (ents.length === 1 && ents[0].type === 'floor' && ents[0].species === 'grass')) {
-                      emptyHexes.push({ q, r });
-                  }
-              }
-
-              if (emptyHexes.length > 0) {
-                  const target = emptyHexes[Math.floor(Math.random() * emptyHexes.length)];
-                  const meteorite = {
-                      id: `meteorite-${target.q}-${target.r}-${now}`,
-                      type: 'obstacle' as const,
-                      species: 'meteorite',
-                      pos: target
-                  };
-                  this.world.addEntity(meteorite);
-                  updatedEntities.push(meteorite);
-                  (meteorite as any).meteoriteStrike = true; // Signal for client visual
-              }
-          }
-      }
-
-      chunk.entities.forEach(entity => {
-        let updated: any = entity;
-        if (entity.type === 'player') {
-          const player = entity as any;
-          let staminaRegen = 1.5;
-
-          // Process buffs
-          if (player.buffs && player.buffs.length > 0) {
-            const initialBuffCount = player.buffs.length;
-            const expiredBuffs = player.buffs.filter((b: any) => b.expiresAt <= now);
-            player.buffs = player.buffs.filter((b: any) => b.expiresAt > now);
-
-            if (player.buffs.length !== initialBuffCount) {
-              updated = { ...player };
-              // Revert max_stamina if expired
-              expiredBuffs.forEach((b: any) => {
-                if (b.type === 'max_stamina') {
-                    player.maxStamina -= b.amount;
-                    player.stamina = Math.min(player.stamina, player.maxStamina);
-                }
-              });
-            }
-
-            const regenBuff = player.buffs.find((b: any) => b.type === 'stamina_regen');
-            if (regenBuff) staminaRegen += regenBuff.amount;
-          }
-
-          // Fountain boost
-          if (fountainPositions.has(`${player.pos.q},${player.pos.r}`)) {
-              staminaRegen += 1.0;
-          }
-
-          // Nature's Grace Aura boost (if near 3+ mature trees or flowers)
-          const hadGrace = player.hasGrace;
-          if (natureGracePositions.has(`${player.pos.q},${player.pos.r}`)) {
-              staminaRegen += 0.5;
-              player.hasGrace = true;
-          } else {
-              player.hasGrace = false;
-          }
-
-          if (player.stamina < player.maxStamina || player.hasGrace !== hadGrace) {
-            player.stamina = Math.min(player.maxStamina, player.stamina + staminaRegen);
-            updated = { ...player };
-          }
-        } else if (entity.type === 'plant') {
-          const plant = entity as Plant;
-          const posKey = `${plant.pos.q},${plant.pos.r}`;
-          if (sprinklerPositions.has(posKey)) {
-            plant.lastWatered = now;
-          }
-
-          // Beehive boost
-          const originalLastUpdate = plant.lastUpdate;
-          if (beehivePositions.has(posKey)) {
-              // Simulate 1.5x time passing for the plant
-              const elapsed = now - plant.lastUpdate;
-              const boostedElapsed = elapsed * 1.5;
-              plant.lastUpdate = now - boostedElapsed;
-          }
-
-          const isProtected = greenhousePositions.has(posKey);
-          updated = updatePlant(plant, now, environment.weather, environment.season, isProtected);
-          // Restore original lastUpdate to prevent double-dipping or jumping
-          updated.lastUpdate = now;
-
-          // Auto-Harvester logic
-          if (updated.growthStage >= 5) {
-              const harvester = harvesterPositions.get(posKey);
-              if (harvester && updated.species !== 'tree' && updated.species !== 'apple-tree' && updated.species !== 'orange-tree' && updated.species !== 'peach-tree' && updated.species !== 'cherry-tree' && updated.species !== 'berry-bush' && updated.species !== 'blueberry-bush' && updated.species !== 'raspberry-bush' && updated.species !== 'wood-stick') {
-                  harvester.inventory = harvester.inventory || {};
-                  harvester.inventory[updated.species] = (harvester.inventory[updated.species] || 0) + 1;
-                  this.world.removeEntity(updated.id, updated.pos.q, updated.pos.r);
-                  if (!updatedEntities.find(e => e.id === harvester.id)) {
-                      updatedEntities.push(harvester);
-                      this.world.updateEntity(harvester);
-                  }
-                  // Signal removal to clients
-                  // We can't easily push a removal to updatedEntities because it expects full entities
-                  // The main loop handles removal from world. For now, let's return it as an "empty" plant or handle separately.
-                  // Actually, we can return it as an entity update with a flag or just let the client see it gone if we can trigger a removal broadcast.
-                  // The best way here is to use world.removeEntity and make sure it gets broadcasted.
-                  // Since tick() returns updatedEntities, we can't easily signal REMOVE here without changing the signature.
-                  // However, if we remove it from world, and it's NOT in updatedEntities, clients might still see it?
-                  // No, clients only update what they are told.
-                  // Let's add a special handling for removals in the engine or just return a dummy.
-                  // Looking at index.ts, it iterates over updatedEntities and emits entityUpdate.
-                  // Let's add a `deleted` property.
-                  updated.deleted = true;
-              }
-          }
-
-          // Natural Sowing logic: Mature fruit trees drop seeds on adjacent empty tilled soil
-          if (updated.growthStage >= 5 && Math.random() < 0.0005) {
-              const fruitTrees = ['apple-tree', 'orange-tree', 'peach-tree', 'cherry-tree'];
-              if (fruitTrees.includes(updated.species)) {
-                  const neighbors = getNeighbors(updated.pos);
-                  const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
-                  const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
-                  const hasTilled = targetEntities.some(e => e.type === 'floor' && e.species === 'tilled');
-                  const isOccupied = targetEntities.some(e => e.type !== 'floor' && e.type !== 'player');
-
-                  if (hasTilled && !isOccupied) {
-                      const newPlant: Plant = {
-                          id: `plant-${targetPos.q}-${targetPos.r}-${now}`,
-                          type: 'plant',
-                          species: updated.species, // Correct species (e.g. apple-tree)
-                          pos: targetPos,
-                          growthStage: 0,
-                          plantedAt: now,
-                          lastWatered: 0,
-                          lastUpdate: now
-                      };
-                      this.world.addEntity(newPlant);
-                      updatedEntities.push(newPlant);
-                  }
-              }
-          }
-
-          // Pest logic
-          if (updated.growthStage >= 5 && !scarecrowPositions.has(posKey)) {
-              if (Math.random() < 0.0005) { // 0.05% chance per tick
-                  updated.growthStage = 4;
-                  // We can't easily notify here without access to IO or socket ID,
-                  // but we'll return it as an updated entity which clients will see.
-              }
-          }
-
-          // Drop wood chance (sticks)
-          if (updated.species === 'tree' && updated.growthStage >= 5 && Math.random() < 0.0001) {
-              const neighbors = getNeighbors(updated.pos);
-              const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
-              const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
-              if (targetEntities.length === 0 || (targetEntities.length === 1 && targetEntities[0].type === 'floor' && targetEntities[0].species === 'grass')) {
-                  const woodDrop = {
-                      id: `resource-wood-${targetPos.q}-${targetPos.r}-${now}`,
-                      type: 'plant' as const, // Use plant type so it can be 'harvested' easily or cleared
-                      species: 'wood-stick',
-                      pos: targetPos,
-                      growthStage: 5,
-                      plantedAt: now,
-                      lastWatered: 0,
-                      lastUpdate: now
-                  };
-                  this.world.addEntity(woodDrop);
-                  updatedEntities.push(woodDrop);
-              }
-          }
-
-          // Propagation logic
-          const propagationChance = beehivePositions.has(posKey) ? 0.0005 : 0.0001;
-          if (updated.growthStage >= 5 && Math.random() < propagationChance) {
-              const neighbors = getNeighbors(updated.pos);
-              const targetPos = neighbors[Math.floor(Math.random() * neighbors.length)];
-              const targetEntities = this.world.getEntitiesAt(targetPos.q, targetPos.r);
-              const isOccupied = targetEntities.some(e =>
-                  (e.type !== 'floor' && e.type !== 'player') ||
-                  (e.type === 'floor' && e.species === 'path')
-              );
-
-              if (!isOccupied) {
-                  const newPlant: Plant = {
-                      id: `plant-${targetPos.q}-${targetPos.r}-${now}`,
-                      type: 'plant',
-                      species: updated.species,
-                      pos: targetPos,
-                      growthStage: 0,
-                      plantedAt: now,
-                      lastWatered: 0,
-                      lastUpdate: now
-                  };
-                  this.world.addEntity(newPlant);
-                  updatedEntities.push(newPlant);
-              }
-          }
-        } else if (entity.type === 'floor' && entity.species === 'tilled') {
-            // Soil Reversion logic: Unwatered empty tilled soil reverts to grass
-            const isOccupied = this.world.getEntitiesAt(entity.pos.q, entity.pos.r).some(e => e.type !== 'floor' && e.type !== 'player');
-            if (!isOccupied && environment.weather !== 'rainy' && Math.random() < 0.0001) {
-                const floor = entity as any;
-                // We check if any plant was recently watered here? Floor doesn't have lastWatered.
-                // Let's assume if it's not raining, there's a chance.
-                const grass = {
-                    ...floor,
-                    species: 'grass'
-                };
-                this.world.updateEntity(grass);
-                updatedEntities.push(grass);
-            }
-        } else if (entity.type === 'floor' && entity.species === 'grass') {
-            // Mushroom spawning during rain
-            if (environment.weather === 'rainy' && Math.random() < 0.0001) {
-                const targetPos = entity.pos;
-                const newMushroom: Plant = {
-                    id: `plant-mushroom-${targetPos.q}-${targetPos.r}-${now}`,
-                    type: 'plant',
-                    species: 'mushroom',
-                    pos: targetPos,
-                    growthStage: 0,
-                    plantedAt: now,
-                    lastWatered: now,
-                    lastUpdate: now
-                };
-                this.world.addEntity(newMushroom);
-                updatedEntities.push(newMushroom);
-            }
-
-            // Flower propagation
-            if (Math.random() < 0.00005) {
-                const neighbors = getNeighbors(entity.pos);
-                const sourceFlowerPos = neighbors.find(n => sunflowerPositions.has(`${n.q},${n.r}`));
-                if (sourceFlowerPos) {
-                    const species = sunflowerPositions.get(`${sourceFlowerPos.q},${sourceFlowerPos.r}`);
-                    if (species && ['flower', 'sunflower', 'tulip', 'lavender'].includes(species)) {
-                        // Remove existing floor first to prevent overlap
-                        const existingFloors = this.world.getEntitiesAt(entity.pos.q, entity.pos.r).filter(e => e.type === 'floor');
-                        existingFloors.forEach(ef => {
-                            this.world.removeEntity(ef.id, ef.pos.q, ef.pos.r);
-                        });
-
-                        const newFlower = {
-                            id: `floor-${entity.pos.q}-${entity.pos.r}-${now}`,
-                            type: 'floor' as const,
-                            species: species,
-                            pos: entity.pos
-                        };
-                        this.world.addEntity(newFlower);
-                        updatedEntities.push(newFlower);
-                    }
-                }
-            }
-        } else if (entity.type === 'building') {
-            const building = entity as any;
-            if (building.species === 'beehive') {
-                if (now - (building.lastProductTime || 0) >= GAME_DAY) {
-                    building.inventory = building.inventory || {};
-
-                    // Check for specialized plants in 2-hex radius
-                    let specialSpecies = '';
-                    const radius2 = getRecursiveNeighbors(building.pos, 2);
-                    for (const pos of radius2) {
-                        const species = sunflowerPositions.get(`${pos.q},${pos.r}`);
-                        if (species && species !== 'flower' && species !== 'grass') {
-                            specialSpecies = species;
-                            break;
-                        }
-                    }
-
-                    let honeyType = 'wildflower-honey';
-                    if (specialSpecies === 'sunflower') honeyType = 'sunflower-honey';
-                    else if (specialSpecies === 'apple-tree') honeyType = 'apple-honey';
-                    else if (specialSpecies === 'orange-tree') honeyType = 'orange-honey';
-                    else if (specialSpecies === 'peach-tree') honeyType = 'peach-honey';
-                    else if (specialSpecies === 'cherry-tree') honeyType = 'cherry-honey';
-                    else if (specialSpecies === 'tulip') honeyType = 'tulip-honey';
-                    else if (specialSpecies === 'lavender') honeyType = 'lavender-honey';
-
-                    building.inventory[honeyType] = (building.inventory[honeyType] || 0) + 1;
-                    building.lastProductTime = now;
-                    updated = { ...building };
-                }
-            } else if (building.species === 'birdhouse') {
-                if (now - (building.lastProductTime || 0) >= GAME_DAY) {
-                    building.inventory = building.inventory || {};
-                    const rand = Math.random();
-                    let item = 'turnip-seed';
-                    if (rand < 0.05) item = 'ancient-coin';
-                    else if (rand < 0.1) item = 'geode';
-                    else {
-                        const seeds = Object.keys(SEED_PRICES);
-                        item = seeds[Math.floor(Math.random() * seeds.length)] + '-seed';
-                    }
-                    building.inventory[item] = (building.inventory[item] || 0) + 1;
-                    building.lastProductTime = now;
-                    updated = { ...building };
-                }
-            }
-        } else if (entity.type === 'animal') {
-          const animal = entity as Animal;
-          const isNPC = ['merchant', 'blacksmith', 'fisherman', 'miner', 'lumberjack'].includes(animal.species);
-
-          if (isNPC && (environment.timeOfDay < 0.25 || environment.timeOfDay > 0.75)) {
-              // NPCs go home at night
-              if (animal.homePos && (animal.pos.q !== animal.homePos.q || animal.pos.r !== animal.homePos.r)) {
-                  // Direct move towards home
-                  const neighbors = getNeighbors(animal.pos);
-                  const bestMove = neighbors.reduce((prev, curr) => {
-                      const prevDist = distance(prev, animal.homePos!);
-                      const currDist = distance(curr, animal.homePos!);
-                      return currDist < prevDist ? curr : prev;
-                  });
-
-                  // Simple collision check for home-bound NPCs
-                  const entsAtBest = this.world.getEntitiesAt(bestMove.q, bestMove.r);
-                  const blocked = entsAtBest.some(e =>
-                      e.type === 'obstacle' ||
-                      e.type === 'building' ||
-                      e.type === 'fence' ||
-                      (e.type === 'plant' && (e.species === 'tree' || e.species === 'apple-tree' || e.species === 'orange-tree' || e.species === 'peach-tree' || e.species === 'cherry-tree' || e.species === 'berry-bush' || e.species === 'burnt-tree'))
-                  );
-
-                  if (!blocked) {
-                      updated = {
-                          ...animal,
-                          pos: bestMove,
-                          nextMoveTime: now + 2000
-                      };
-                  }
-              } else {
-                  // Already home or no homePos, stay put
-                  updated = {
-                      ...animal,
-                      nextMoveTime: now + 10000
-                  };
-              }
-          } else if (!isNPC) {
-              // Breeding chance
-              const speciesAnimalsInChunk = chunk.entities.filter(e => e.type === 'animal' && (e as Animal).species === animal.species);
-              const speciesAnimals = animalPositionsBySpecies.get(animal.species) || [];
-
-              if (speciesAnimalsInChunk.length >= 2 && speciesAnimalsInChunk.length < 10) { // Population control per chunk
-                  const lastBred = animal.lastBredTime || 0;
-                  if (now - lastBred > GAME_DAY) {
-                      const neighbors = getNeighbors(animal.pos);
-                      const mate = speciesAnimals.find(other =>
-                          other.id !== animal.id &&
-                          neighbors.some(n => n.q === other.pos.q && n.r === other.pos.r) &&
-                          (now - (other.lastBredTime || 0) > GAME_DAY)
-                      );
-
-                      // Barn automation
-                      const barn = barnPositions.get(`${animal.pos.q},${animal.pos.r}`);
-                      if (barn && now - animal.lastProductTime >= GAME_DAY) {
-                          let product = '';
-                          const friendship = animal.friendship || 0;
-                          const isHighQuality = friendship > 500 && Math.random() < 0.2;
-
-                          if (animal.species === 'cow') product = isHighQuality ? 'large-milk' : 'milk';
-                          else if (animal.species === 'sheep') product = isHighQuality ? 'golden-wool' : 'wool';
-                          else if (animal.species === 'chicken') product = isHighQuality ? 'golden-egg' : 'egg';
-                          else if (animal.species === 'pig') product = 'truffle';
-                          else if (animal.species === 'goat') product = isHighQuality ? 'large-goat-milk' : 'goat-milk';
-                          else if (animal.species === 'duck') product = isHighQuality ? 'golden-duck-egg' : 'duck-egg';
-
-                          if (product) {
-                              barn.inventory = barn.inventory || {};
-                              barn.inventory[product] = (barn.inventory[product] || 0) + 1;
-                              animal.lastProductTime = now;
-                              if (!updatedEntities.find(e => e.id === barn.id)) {
-                                  updatedEntities.push(barn);
-                                  this.world.updateEntity(barn);
-                              }
-                              updated = { ...animal };
-                          }
-                      }
-
-                      if (mate && Math.random() < 0.001) { // 0.1% chance per tick if mate nearby
-                          const babyPos = neighbors.find(n => this.world.getEntitiesAt(n.q, n.r).length === 0);
-                          if (babyPos) {
-                              const baby: Animal = {
-                                  id: `animal-${babyPos.q}-${babyPos.r}-${now}`,
-                                  type: 'animal',
-                                  species: animal.species,
-                                  pos: babyPos,
-                                  nextMoveTime: now + 5000,
-                                  lastProductTime: now,
-                                  lastBredTime: now
-                              };
-                              this.world.addEntity(baby);
-                              updatedEntities.push(baby);
-                              animal.lastBredTime = now;
-                              mate.lastBredTime = now;
-                              updated = { ...animal };
-                              // Note: mate will also be updated when the loop reaches it,
-                              // or if it was already reached, it might miss one tick but it's fine.
-                          }
-                      }
-                  }
-              }
-
-          }
-
-          if (animal.nextMoveTime < now) {
-              updated = moveAnimal(animal, this.world);
-          }
-        }
-
-        if (updated !== entity) {
-          updates.push({ oldEntity: entity, newEntity: updated, cq: chunk.q, cr: chunk.r });
-        }
-      });
-    });
-
-    updates.forEach(({ oldEntity, newEntity, cq, cr }) => {
-      const { cq: newCQ, cr: newCR } = getChunkCoords(newEntity.pos.q, newEntity.pos.r);
-
-      if (newCQ !== cq || newCR !== cr) {
-        // Moved to a different chunk
-        this.world.removeEntity(oldEntity.id, oldEntity.pos.q, oldEntity.pos.r);
-        this.world.addEntity(newEntity);
-      } else {
-        // Stayed in the same chunk, just update it
-        this.world.updateEntity(newEntity);
-      }
-      updatedEntities.push(newEntity);
-    });
-
-    return { updatedEntities, environment, environmentChanged };
-  }
-
-  getNextWeather(): string {
-    return this.seasonManager.getNextWeather();
-  }
+  constructor(private world: WorldManager) {}
 
   getEnvironment(): EnvironmentState {
-    return this.seasonManager.getState();
+    return {
+      season: this.seasons.season,
+      dayCount: this.seasons.day,
+      timeOfDay: this.seasons.timeOfDay,
+      weatherCells: this.weather.getCells(),
+    };
+  }
+
+  tick(players: Player[] = []): TickResult {
+    const now = Date.now();
+    const seasonChanged = this.seasons.update(now);
+    this.weather.update(now, players.map(p => p.pos), this.seasons.season);
+    const environment = this.getEnvironment();
+    const cells = environment.weatherCells;
+
+    const updated: Entity[] = [];
+    const chunks = this.world.getActiveChunks();
+
+    // Occupied hexes, so growth never sprouts onto something already there.
+    const occupied = new Set<string>();
+    chunks.forEach(c => c.entities.forEach(e => occupied.add(posToKey(e.pos.q, e.pos.r))));
+
+    for (const chunk of chunks) {
+      for (const entity of [...chunk.entities]) {
+        if (entity.type === 'flora' || entity.type === 'tree') {
+          this.tickPlant(entity as Flora | Tree, now, cells, players, occupied, updated);
+        } else if (entity.type === 'fauna') {
+          this.tickFauna(entity as Fauna, now, players, occupied, updated);
+        }
+      }
+    }
+
+    return { updated, environment, environmentChanged: true };
+  }
+
+  private tickPlant(
+    plant: Flora | Tree,
+    now: number,
+    cells: EnvironmentState['weatherCells'],
+    players: Player[],
+    occupied: Set<string>,
+    updated: Entity[],
+  ) {
+    const rainy = localWeather(cells, plant.pos) === 'rainy';
+    const grown = growPlant(plant, now, rainy);
+
+    // Only commit (persist + broadcast) at whole-stage boundaries — keeps
+    // growth cheap while the world quietly advances between ticks.
+    if (Math.floor(grown.growthStage) > Math.floor(plant.growthStage)) {
+      this.world.updateEntity(grown);
+      updated.push(grown);
+    }
+
+    if (canPropagate(grown)) {
+      // A wanderer's presence quickens the spread of life around them.
+      const boost = players.some(p => distance(p.pos, plant.pos) <= 3) ? 4 : 1;
+      const baseChance = plant.type === 'tree' ? 0.003 : 0.008;
+      if (Math.random() < baseChance * boost) {
+        const spot = this.emptyNeighbor(plant.pos, occupied);
+        if (spot) {
+          const sprout = makeSprout(plant.species, plant.type, spot.q, spot.r, now);
+          this.world.addEntity(sprout);
+          occupied.add(posToKey(spot.q, spot.r));
+          updated.push(sprout);
+        }
+      }
+    }
+  }
+
+  private tickFauna(fauna: Fauna, now: number, players: Player[], occupied: Set<string>, updated: Entity[]) {
+    if (now < fauna.nextMoveTime) return;
+    const moved = moveFauna(fauna, this.world, players);
+    if (moved.pos.q !== fauna.pos.q || moved.pos.r !== fauna.pos.r) {
+      occupied.delete(posToKey(fauna.pos.q, fauna.pos.r));
+      occupied.add(posToKey(moved.pos.q, moved.pos.r));
+      this.world.moveEntityInMemory(moved, fauna.pos);
+    } else {
+      this.world.moveEntityInMemory(moved, fauna.pos); // same hex, just refresh timer
+    }
+    updated.push(moved);
+  }
+
+  private emptyNeighbor(pos: Position, occupied: Set<string>): Position | null {
+    const open = getNeighbors(pos).filter(n => !occupied.has(posToKey(n.q, n.r)));
+    if (open.length === 0) return null;
+    return open[Math.floor(Math.random() * open.length)];
+  }
+
+  // --- Nudges: the player's entire, gentle, additive action set ------------
+
+  /** Scatter seeds: a young sprout takes root on an open hex. */
+  scatter(pos: Position): Entity | null {
+    // A wanderer standing here doesn't block their own seed; scenery does.
+    if (this.world.getEntitiesAt(pos.q, pos.r).some((e) => e.type !== 'player')) return null;
+    const species = SCATTERABLE[Math.floor(Math.random() * SCATTERABLE.length)];
+    const sprout = makeSprout(species, 'flora', pos.q, pos.r, Date.now());
+    this.world.addEntity(sprout);
+    return sprout;
+  }
+
+  /** Coax growth: encourage the plant here toward its next stage. */
+  coax(pos: Position): Entity | null {
+    const plant = this.world
+      .getEntitiesAt(pos.q, pos.r)
+      .find(e => e.type === 'flora' || e.type === 'tree') as Flora | Tree | undefined;
+    if (!plant || plant.growthStage >= MAX_GROWTH) return null;
+    const grown = { ...plant, growthStage: Math.min(MAX_GROWTH, Math.floor(plant.growthStage) + 1), lastUpdate: Date.now() };
+    this.world.updateEntity(grown);
+    return grown;
+  }
+
+  /** Part the grass / draw creatures near: stir nearby fauna to move now. */
+  stir(pos: Position, radius: number): Entity[] {
+    const affected: Entity[] = [];
+    const scan = this.world.getAllEntitiesInRadius(pos.q, pos.r, 1);
+    for (const e of scan) {
+      if (e.type === 'fauna' && distance(e.pos, pos) <= radius) {
+        (e as Fauna).nextMoveTime = 0; // free to move on the next tick
+        affected.push(e);
+      }
+    }
+    return affected;
   }
 }
