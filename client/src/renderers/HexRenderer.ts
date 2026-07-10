@@ -362,7 +362,7 @@ export class HexRenderer {
     const sun = -Math.cos(timeOfDay * Math.PI * 2);
 
     if (sun < 0) {
-      const night = Math.min(0.6, -sun * 0.6);
+      const night = Math.min(0.45, -sun * 0.45); // moonlit, not gloomy
       this.overlay.rect(0, 0, W, H);
       this.overlay.fill({ color: season === 'winter' ? 0x1b2540 : 0x121a38, alpha: night });
     }

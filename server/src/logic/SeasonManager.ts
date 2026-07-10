@@ -13,7 +13,8 @@ export class SeasonManager {
   private dayCount = 0;
 
   constructor() {
-    this.startTime = Date.now();
+    // Begin a fresh world in morning light rather than at midnight.
+    this.startTime = Date.now() - 0.3 * this.DAY_DURATION;
   }
 
   /** Advance the clock. Returns true when the day or season rolls over. */
